@@ -62,8 +62,8 @@ impl Calendar for Target {
 /// Uses the Anonymous Gregorian algorithm.  Exposed for use by other calendar
 /// modules in this crate.
 pub(crate) fn easter_monday_pub(year: u16) -> u16 {
-    let y = year as u32;
-    // Oudin's algorithm for Easter Sunday
+    let y = year as i32;
+    // Oudin's algorithm for Easter Sunday (requires signed arithmetic)
     let g = y % 19;
     let c = y / 100;
     let h = (c - c / 4 - (8 * c + 13) / 25 + 19 * g + 15) % 30;

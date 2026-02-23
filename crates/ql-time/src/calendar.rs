@@ -46,7 +46,7 @@ pub trait Calendar: std::fmt::Debug + Send + Sync {
             BusinessDayConvention::Unadjusted => date,
             BusinessDayConvention::Following => {
                 while self.is_holiday(date) {
-                    date = date + 1;
+                    date += 1;
                 }
                 date
             }
@@ -60,7 +60,7 @@ pub trait Calendar: std::fmt::Debug + Send + Sync {
             }
             BusinessDayConvention::Preceding => {
                 while self.is_holiday(date) {
-                    date = date - 1;
+                    date -= 1;
                 }
                 date
             }
@@ -97,7 +97,7 @@ pub trait Calendar: std::fmt::Debug + Send + Sync {
         let step: i32 = if n >= 0 { 1 } else { -1 };
         let mut remaining = n.abs();
         while remaining > 0 {
-            date = date + step;
+            date += step;
             if self.is_business_day(date) {
                 remaining -= 1;
             }
@@ -119,7 +119,7 @@ pub trait Calendar: std::fmt::Debug + Send + Sync {
             if self.is_business_day(d) {
                 count += 1;
             }
-            d = d + 1;
+            d += 1;
         }
         sign * count
     }

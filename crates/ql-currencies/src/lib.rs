@@ -14,5 +14,5 @@ pub mod exchange_rate;
 /// Pre-defined world currencies.
 pub mod currencies;
 
-pub use currency::Currency;
-pub use exchange_rate::{ExchangeRate, Money};
+pub use currency::{Currency, Money};
+pub use exchange_rate::{ExchangeRate, ExchangeRateManager};

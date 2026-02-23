@@ -78,6 +78,32 @@ macro_rules! ensure {
     };
 }
 
+/// Equivalent to C++ `QL_ENSURE(condition, message)`.
+///
+/// Returns `Err(Error::Postcondition(...))` if `$cond` is false.
+///
+/// # Example
+/// ```
+/// use ql_core::{ensure_post, errors::Error};
+/// fn compute(x: f64) -> ql_core::errors::Result<f64> {
+///     let result = x * 2.0;
+///     ensure_post!(result > 0.0, "result must be positive, got {result}");
+///     Ok(result)
+/// }
+/// assert!(compute(1.0).is_ok());
+/// assert!(compute(-1.0).is_err());
+/// ```
+#[macro_export]
+macro_rules! ensure_post {
+    ($cond:expr, $($msg:tt)*) => {
+        if !$cond {
+            return Err($crate::errors::Error::Postcondition(
+                format!($($msg)*)
+            ));
+        }
+    };
+}
+
 /// Equivalent to C++ `QL_FAIL(message)`.
 ///
 /// Returns `Err(Error::Runtime(...))` immediately.

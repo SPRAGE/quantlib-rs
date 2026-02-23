@@ -8,6 +8,7 @@ use crate::business_day_convention::BusinessDayConvention;
 use crate::calendar::Calendar;
 use crate::date::Date;
 use crate::period::Period;
+use crate::weekday::Weekday;
 use ql_core::errors::{Error, Result};
 
 /// Date generation rule for schedules.
@@ -236,7 +237,117 @@ impl<'a> ScheduleBuilder<'a> {
                 is_regular.push(dates.last().copied() == expected_last);
                 dates.push(term);
             }
-            DateGeneration::Backward | _ => {
+
+            DateGeneration::ThirdWednesday => {
+                // Generate dates forward, then snap every intermediate date to
+                // the third Wednesday of its month.
+                dates.push(start);
+                let mut n = 1i32;
+                loop {
+                    let next = start
+                        .advance(n * self.tenor.length, self.tenor.unit)
+                        .map_err(|e| Error::Date(e.to_string()))?;
+                    if next >= end {
+                        break;
+                    }
+                    // Snap to 3rd Wednesday
+                    let tw = Date::nth_weekday(3, Weekday::Wednesday, next.year(), next.month())
+                        .map_err(|e| Error::Date(e.to_string()))?;
+                    dates.push(tw);
+                    is_regular.push(true);
+                    n += 1;
+                }
+                is_regular.push(true);
+                dates.push(end);
+            }
+
+            DateGeneration::Twentieth | DateGeneration::TwentiethIMM => {
+                // Generate dates forward, snapping intermediate dates to the
+                // 20th of the month.
+                dates.push(start);
+                let mut n = 1i32;
+                loop {
+                    let next = start
+                        .advance(n * self.tenor.length, self.tenor.unit)
+                        .map_err(|e| Error::Date(e.to_string()))?;
+                    if next >= end {
+                        break;
+                    }
+                    // Snap to the 20th
+                    let twentieth = Date::from_ymd(next.year(), next.month(), 20)
+                        .map_err(|e| Error::Date(e.to_string()))?;
+                    dates.push(twentieth);
+                    is_regular.push(true);
+                    n += 1;
+                }
+                is_regular.push(true);
+                dates.push(end);
+            }
+
+            DateGeneration::CDS | DateGeneration::CDS2015 | DateGeneration::OldCDS => {
+                // CDS schedules: generate quarterly dates snapped to the 20th
+                // of Mar, Jun, Sep, Dec (the standard IMM months).
+                // For CDS/CDS2015, the stub is at the front (short first).
+                let cds_months = [3u8, 6, 9, 12];
+                let mut raw = Vec::new();
+                // Walk backwards from end, stepping 3 months at a time on
+                // the 20th of CDS months.
+                let mut y = end.year();
+                let mut m = end.month();
+                // Find the CDS month on or before the end
+                if !cds_months.contains(&m) {
+                    // Find the most recent CDS month
+                    for &cm in cds_months.iter().rev() {
+                        if cm <= m {
+                            m = cm;
+                            break;
+                        }
+                    }
+                    if m > end.month() {
+                        // Wrapped around year — previous December
+                        m = 12;
+                        y -= 1;
+                    }
+                }
+
+                // Generate dates backward from the CDS month on or before end
+                loop {
+                    let d = Date::from_ymd(y, m, 20)
+                        .map_err(|e| Error::Date(e.to_string()))?;
+                    if d <= start {
+                        // Include one more for CDS (the previous 20th before start)
+                        raw.push(d);
+                        break;
+                    }
+                    raw.push(d);
+                    // Move back 3 months
+                    if m <= 3 {
+                        m = m + 12 - 3;
+                        y -= 1;
+                    } else {
+                        m -= 3;
+                    }
+                }
+                raw.reverse();
+
+                // Ensure start and end are included
+                dates = raw;
+                // If the first date is before start, keep it (it becomes the
+                // effective date for the stub).
+                // Always include the termination date.
+                if dates.last().map(|d| *d < end).unwrap_or(true) {
+                    dates.push(end);
+                }
+
+                // Build is_regular (all regular for CDS)
+                is_regular = vec![true; dates.len().saturating_sub(1)];
+                // First period might be a stub
+                if dates.len() > 1 {
+                    is_regular[0] = false;
+                }
+            }
+
+            DateGeneration::Backward => {
                 dates.push(end);
                 let mut seed = end;
                 if let Some(ntl) = self.next_to_last_date {
@@ -273,6 +384,11 @@ impl<'a> ScheduleBuilder<'a> {
                 is_regular.push(dates.first().copied() == expected_next);
                 dates.insert(0, self.calendar.adjust(start, self.convention));
                 is_regular.reverse();
+            }
+
+            DateGeneration::Zero => {
+                // Already handled above; this arm is unreachable.
+                unreachable!("Zero coupon is handled before the match");
             }
         }
 
@@ -323,5 +439,89 @@ mod tests {
         assert_eq!(sched.size(), 4);
         assert_eq!(sched.start_date().unwrap(), date(2020, 1, 1));
         assert_eq!(sched.end_date().unwrap(), date(2023, 1, 1));
+    }
+
+    #[test]
+    fn forward_schedule() {
+        let cal = WeekendsOnly;
+        let sched = ScheduleBuilder::new(
+            date(2020, 1, 2),  // Thursday
+            date(2023, 1, 2),  // Monday
+            Period::new(1, TimeUnit::Years),
+            &cal,
+        )
+        .with_rule(DateGeneration::Forward)
+        .build()
+        .unwrap();
+        assert_eq!(sched.size(), 4);
+        assert_eq!(sched.start_date().unwrap(), date(2020, 1, 2));
+        assert_eq!(sched.end_date().unwrap(), date(2023, 1, 2));
+    }
+
+    #[test]
+    fn third_wednesday_quarterly() {
+        let cal = WeekendsOnly;
+        // Quarterly schedule with ThirdWednesday rule for 2024
+        let sched = ScheduleBuilder::new(
+            date(2024, 1, 1),
+            date(2025, 1, 1),
+            Period::new(3, TimeUnit::Months),
+            &cal,
+        )
+        .with_rule(DateGeneration::ThirdWednesday)
+        .build()
+        .unwrap();
+        // start=Jan 1, then 3rd Wed of Apr, Jul, Oct, end=Jan 1
+        // 3rd Wed Apr 2024 = Apr 17
+        // 3rd Wed Jul 2024 = Jul 17
+        // 3rd Wed Oct 2024 = Oct 16
+        assert_eq!(sched.size(), 5);
+        assert_eq!(sched.date(1), date(2024, 4, 17));
+        assert_eq!(sched.date(2), date(2024, 7, 17));
+        assert_eq!(sched.date(3), date(2024, 10, 16));
+    }
+
+    #[test]
+    fn twentieth_quarterly() {
+        let cal = WeekendsOnly;
+        let sched = ScheduleBuilder::new(
+            date(2024, 1, 1),
+            date(2025, 1, 1),
+            Period::new(3, TimeUnit::Months),
+            &cal,
+        )
+        .with_rule(DateGeneration::Twentieth)
+        .build()
+        .unwrap();
+        // start, 20th of Apr, Jul, Oct, end
+        assert_eq!(sched.size(), 5);
+        assert_eq!(sched.date(1), date(2024, 4, 20));
+        assert_eq!(sched.date(2), date(2024, 7, 20));
+        assert_eq!(sched.date(3), date(2024, 10, 20));
+    }
+
+    #[test]
+    fn cds_schedule() {
+        let cal = WeekendsOnly;
+        // CDS schedule: 1-year with quarterly standard dates
+        let sched = ScheduleBuilder::new(
+            date(2024, 1, 15),
+            date(2025, 3, 20),
+            Period::new(3, TimeUnit::Months),
+            &cal,
+        )
+        .with_rule(DateGeneration::CDS)
+        .build()
+        .unwrap();
+        // Should snap to 20th of Mar, Jun, Sep, Dec
+        // Dates should be: Dec 20 (before start), Mar 20, Jun 20, Sep 20, Dec 20, Mar 20
+        assert!(sched.size() >= 4);
+        // All intermediate dates should be on the 20th
+        for i in 0..sched.size() {
+            let d = sched.date(i);
+            if i > 0 && i < sched.size() - 1 {
+                assert_eq!(d.day_of_month(), 20, "intermediate date should be 20th: {d}");
+            }
+        }
     }
 }

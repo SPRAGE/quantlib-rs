@@ -1,5 +1,6 @@
-//! Basic statistics accumulator (translates
-//! `ql/math/statistics/generalstatistics.hpp`).
+//! Statistics accumulators and utilities (translates
+//! `ql/math/statistics/generalstatistics.hpp` and
+//! `ql/math/statistics/incrementalstatistics.hpp`).
 
 use ql_core::Real;
 
@@ -109,6 +110,288 @@ impl Statistics {
     }
 }
 
+// ── GeneralStatistics ─────────────────────────────────────────────────────────
+
+/// Full statistics accumulator that stores all samples.
+///
+/// Supports mean, variance, std_dev, skewness, kurtosis, percentiles,
+/// min, max.
+///
+/// Corresponds to `QuantLib::GeneralStatistics`.
+#[derive(Debug, Clone, Default)]
+pub struct GeneralStatistics {
+    data: Vec<(Real, Real)>, // (value, weight)
+    sorted: bool,
+}
+
+impl GeneralStatistics {
+    /// Create a new, empty statistics collector.
+    pub fn new() -> Self {
+        Self {
+            data: Vec::new(),
+            sorted: false,
+        }
+    }
+
+    /// Add a sample with weight 1.
+    pub fn add(&mut self, x: Real) {
+        self.add_weighted(x, 1.0);
+    }
+
+    /// Add a weighted sample.
+    pub fn add_weighted(&mut self, x: Real, weight: Real) {
+        self.data.push((x, weight));
+        self.sorted = false;
+    }
+
+    /// Number of samples.
+    pub fn samples(&self) -> usize {
+        self.data.len()
+    }
+
+    /// Sum of weights.
+    pub fn sum_weights(&self) -> Real {
+        self.data.iter().map(|(_, w)| w).sum()
+    }
+
+    /// Weighted mean.
+    pub fn mean(&self) -> Option<Real> {
+        let sw = self.sum_weights();
+        if sw == 0.0 {
+            return None;
+        }
+        Some(self.data.iter().map(|(x, w)| w * x).sum::<Real>() / sw)
+    }
+
+    /// Weighted variance (Bessel-corrected).
+    pub fn variance(&self) -> Option<Real> {
+        if self.data.len() < 2 {
+            return None;
+        }
+        let mean = self.mean()?;
+        let sw = self.sum_weights();
+        let n = self.data.len() as Real;
+        let s2 = self.data.iter().map(|(x, w)| w * (x - mean).powi(2)).sum::<Real>() / sw;
+        Some(s2 * n / (n - 1.0))
+    }
+
+    /// Standard deviation.
+    pub fn std_dev(&self) -> Option<Real> {
+        self.variance().map(|v| v.sqrt())
+    }
+
+    /// Skewness (third standardized moment).
+    pub fn skewness(&self) -> Option<Real> {
+        if self.data.len() < 3 {
+            return None;
+        }
+        let mean = self.mean()?;
+        let sigma = self.std_dev()?;
+        if sigma == 0.0 {
+            return None;
+        }
+        let sw = self.sum_weights();
+        let n = self.data.len() as Real;
+        let m3 = self.data.iter().map(|(x, w)| w * ((x - mean) / sigma).powi(3)).sum::<Real>() / sw;
+        // Adjust for sample skewness
+        Some(m3 * n * n / ((n - 1.0) * (n - 2.0)))
+    }
+
+    /// Excess kurtosis (fourth standardized moment minus 3).
+    pub fn kurtosis(&self) -> Option<Real> {
+        if self.data.len() < 4 {
+            return None;
+        }
+        let mean = self.mean()?;
+        let sigma = self.std_dev()?;
+        if sigma == 0.0 {
+            return None;
+        }
+        let sw = self.sum_weights();
+        let n = self.data.len() as Real;
+        let m4 = self.data.iter().map(|(x, w)| w * ((x - mean) / sigma).powi(4)).sum::<Real>() / sw;
+        // Excess kurtosis with sample correction
+        let k = (n - 1.0) / ((n - 2.0) * (n - 3.0))
+            * ((n + 1.0) * m4 - 3.0 * (n - 1.0));
+        Some(k)
+    }
+
+    /// Minimum sample value.
+    pub fn minimum(&self) -> Option<Real> {
+        self.data.iter().map(|(x, _)| *x).reduce(f64::min)
+    }
+
+    /// Maximum sample value.
+    pub fn maximum(&self) -> Option<Real> {
+        self.data.iter().map(|(x, _)| *x).reduce(f64::max)
+    }
+
+    /// Percentile (0..=100). Uses linear interpolation between sorted samples.
+    pub fn percentile(&mut self, p: Real) -> Option<Real> {
+        if self.data.is_empty() {
+            return None;
+        }
+        assert!((0.0..=100.0).contains(&p), "percentile must be in [0, 100]");
+
+        if !self.sorted {
+            self.data.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+            self.sorted = true;
+        }
+
+        let n = self.data.len();
+        if n == 1 {
+            return Some(self.data[0].0);
+        }
+
+        let rank = p / 100.0 * (n - 1) as Real;
+        let lo = rank.floor() as usize;
+        let hi = rank.ceil() as usize;
+        let frac = rank - lo as Real;
+
+        if lo == hi {
+            Some(self.data[lo].0)
+        } else {
+            Some(self.data[lo].0 * (1.0 - frac) + self.data[hi].0 * frac)
+        }
+    }
+
+    /// Median (50th percentile).
+    pub fn median(&mut self) -> Option<Real> {
+        self.percentile(50.0)
+    }
+
+    /// Reset the accumulator.
+    pub fn reset(&mut self) {
+        self.data.clear();
+        self.sorted = false;
+    }
+}
+
+// ── IncrementalStatistics ─────────────────────────────────────────────────────
+
+/// Online (incremental) statistics accumulator using Welford's algorithm.
+///
+/// Computes running mean, variance, skewness, and kurtosis without storing all
+/// samples.
+///
+/// Corresponds to `QuantLib::IncrementalStatistics`.
+#[derive(Debug, Clone, Default)]
+pub struct IncrementalStatistics {
+    n: usize,
+    sum_w: Real,
+    m1: Real,   // mean
+    m2: Real,   // sum of (x - mean)^2 * w (for variance)
+    m3: Real,   // for skewness
+    m4: Real,   // for kurtosis
+    min: Real,
+    max: Real,
+}
+
+impl IncrementalStatistics {
+    /// Create a new empty accumulator.
+    pub fn new() -> Self {
+        Self {
+            n: 0,
+            sum_w: 0.0,
+            m1: 0.0,
+            m2: 0.0,
+            m3: 0.0,
+            m4: 0.0,
+            min: f64::INFINITY,
+            max: f64::NEG_INFINITY,
+        }
+    }
+
+    /// Add a sample with weight 1.
+    pub fn add(&mut self, x: Real) {
+        self.add_weighted(x, 1.0);
+    }
+
+    /// Add a weighted sample, updating running moments.
+    pub fn add_weighted(&mut self, x: Real, w: Real) {
+        let n1 = self.sum_w;
+        self.sum_w += w;
+        self.n += 1;
+
+        let delta = x - self.m1;
+        let delta_n = delta * w / self.sum_w;
+        let delta_n2 = delta_n * delta_n;
+        let term1 = delta * delta_n * n1;
+
+        self.m1 += delta_n;
+        self.m4 += term1 * delta_n2 * (self.sum_w * self.sum_w - 3.0 * w * self.sum_w + 3.0 * w * w)
+            + 6.0 * delta_n2 * self.m2
+            - 4.0 * delta_n * self.m3;
+        self.m3 += term1 * delta_n * (self.sum_w - 2.0 * w) - 3.0 * delta_n * self.m2;
+        self.m2 += term1;
+
+        if x < self.min {
+            self.min = x;
+        }
+        if x > self.max {
+            self.max = x;
+        }
+    }
+
+    /// Number of samples.
+    pub fn samples(&self) -> usize {
+        self.n
+    }
+
+    /// Mean.
+    pub fn mean(&self) -> Option<Real> {
+        if self.n == 0 {
+            None
+        } else {
+            Some(self.m1)
+        }
+    }
+
+    /// Variance (Bessel-corrected).
+    pub fn variance(&self) -> Option<Real> {
+        if self.n < 2 {
+            return None;
+        }
+        Some(self.m2 / (self.sum_w - 1.0))
+    }
+
+    /// Standard deviation.
+    pub fn std_dev(&self) -> Option<Real> {
+        self.variance().map(|v| v.sqrt())
+    }
+
+    /// Skewness.
+    pub fn skewness(&self) -> Option<Real> {
+        if self.n < 3 || self.m2 == 0.0 {
+            return None;
+        }
+        Some(self.sum_w.sqrt() * self.m3 / self.m2.powf(1.5))
+    }
+
+    /// Excess kurtosis.
+    pub fn kurtosis(&self) -> Option<Real> {
+        if self.n < 4 || self.m2 == 0.0 {
+            return None;
+        }
+        Some(self.sum_w * self.m4 / (self.m2 * self.m2) - 3.0)
+    }
+
+    /// Minimum.
+    pub fn minimum(&self) -> Option<Real> {
+        if self.n == 0 { None } else { Some(self.min) }
+    }
+
+    /// Maximum.
+    pub fn maximum(&self) -> Option<Real> {
+        if self.n == 0 { None } else { Some(self.max) }
+    }
+
+    /// Reset.
+    pub fn reset(&mut self) {
+        *self = Self::new();
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -132,5 +415,69 @@ mod tests {
         let s = Statistics::new();
         assert!(s.mean().is_none());
         assert!(s.variance().is_none());
+    }
+
+    #[test]
+    fn general_statistics_skewness_kurtosis() {
+        let mut gs = GeneralStatistics::new();
+        // Symmetric data → skewness ≈ 0
+        for &x in &[1.0, 2.0, 3.0, 4.0, 5.0] {
+            gs.add(x);
+        }
+        assert!(gs.mean().unwrap() - 3.0 < 1e-12);
+        // Skewness of symmetric uniform data = 0
+        assert!(
+            gs.skewness().unwrap().abs() < 1e-10,
+            "skewness = {}",
+            gs.skewness().unwrap()
+        );
+    }
+
+    #[test]
+    fn general_statistics_percentile() {
+        let mut gs = GeneralStatistics::new();
+        for i in 1..=100 {
+            gs.add(i as Real);
+        }
+        let median = gs.median().unwrap();
+        assert!(
+            (median - 50.5).abs() < 1e-10,
+            "median = {median}"
+        );
+        let p25 = gs.percentile(25.0).unwrap();
+        assert!(
+            (p25 - 25.75).abs() < 1e-10,
+            "p25 = {p25}"
+        );
+    }
+
+    #[test]
+    fn incremental_statistics_mean_variance() {
+        let mut is = IncrementalStatistics::new();
+        for &x in &[1.0, 2.0, 3.0, 4.0, 5.0] {
+            is.add(x);
+        }
+        assert!((is.mean().unwrap() - 3.0).abs() < 1e-12);
+        assert!(
+            (is.variance().unwrap() - 2.5).abs() < 1e-10,
+            "variance = {}",
+            is.variance().unwrap()
+        );
+        assert_eq!(is.minimum().unwrap(), 1.0);
+        assert_eq!(is.maximum().unwrap(), 5.0);
+    }
+
+    #[test]
+    fn incremental_statistics_symmetric_skewness() {
+        let mut is = IncrementalStatistics::new();
+        // Symmetric data → skewness ≈ 0
+        for &x in &[-2.0, -1.0, 0.0, 1.0, 2.0] {
+            is.add(x);
+        }
+        assert!(
+            is.skewness().unwrap().abs() < 1e-10,
+            "skewness = {}",
+            is.skewness().unwrap()
+        );
     }
 }

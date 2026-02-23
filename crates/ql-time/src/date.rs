@@ -184,6 +184,33 @@ impl Date {
     pub fn is_end_of_month(self) -> bool {
         self == self.end_of_month()
     }
+
+    /// Return the *n*-th occurrence of `weekday` in the month of `year`/`month`.
+    ///
+    /// For example, `nth_weekday(3, Weekday::Wednesday, 2024, 3)` returns the
+    /// third Wednesday of March 2024 (2024-03-20).
+    ///
+    /// # Errors
+    /// Returns an error if the result is out of the valid date range or if `n`
+    /// is zero or larger than the number of such weekdays in the month.
+    pub fn nth_weekday(n: u8, weekday: Weekday, year: u16, month: u8) -> Result<Self> {
+        if n == 0 {
+            return Err(Error::Date("nth_weekday: n must be >= 1".into()));
+        }
+        // Start from the 1st of the month
+        let first = Date::from_ymd(year, month, 1)?;
+        let first_wd = first.weekday().ordinal(); // 1=Mon..7=Sun
+        let target_wd = weekday.ordinal();
+        // Days to advance from the 1st to reach the first occurrence
+        let skip = ((target_wd as i32 - first_wd as i32).rem_euclid(7)) as u8;
+        let day = 1 + skip + 7 * (n - 1);
+        if day > days_in_month(year, month) {
+            return Err(Error::Date(format!(
+                "nth_weekday: {n}-th {weekday:?} does not exist in {year}-{month:02}"
+            )));
+        }
+        Date::from_ymd(year, month, day)
+    }
 }
 
 // ── Arithmetic operators ──────────────────────────────────────────────────────
@@ -406,5 +433,29 @@ mod tests {
         assert_eq!(d2.month(), 2);
         assert_eq!(d2.day_of_month(), 1);
         assert_eq!(Date::from_ymd(2023, 2, 1).unwrap() - d, 31);
+    }
+
+    #[test]
+    fn test_nth_weekday() {
+        // 3rd Wednesday of March 2024 = March 20
+        let d = Date::nth_weekday(3, Weekday::Wednesday, 2024, 3).unwrap();
+        assert_eq!(d, Date::from_ymd(2024, 3, 20).unwrap());
+        assert_eq!(d.weekday(), Weekday::Wednesday);
+
+        // 1st Monday of January 2024 = January 1
+        let d2 = Date::nth_weekday(1, Weekday::Monday, 2024, 1).unwrap();
+        assert_eq!(d2, Date::from_ymd(2024, 1, 1).unwrap());
+
+        // 5th Monday of January 2024 = January 29
+        let d3 = Date::nth_weekday(5, Weekday::Monday, 2024, 1).unwrap();
+        assert_eq!(d3, Date::from_ymd(2024, 1, 29).unwrap());
+    }
+
+    #[test]
+    fn test_nth_weekday_out_of_range() {
+        // There is no 5th Wednesday in February 2024
+        assert!(Date::nth_weekday(5, Weekday::Wednesday, 2024, 2).is_err());
+        // n == 0 is invalid
+        assert!(Date::nth_weekday(0, Weekday::Monday, 2024, 1).is_err());
     }
 }

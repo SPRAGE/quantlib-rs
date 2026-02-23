@@ -8,4 +8,7 @@
 /// `Quote` trait and concrete implementations.
 pub mod quote;
 
-pub use quote::{Quote, SimpleQuote};
+pub use quote::{
+    CompositeQuote, DerivedQuote, ForwardValueQuote, ImpliedStdDevQuote,
+    LastFixingQuote, NegativeQuote, Quote, SimpleQuote,
+};

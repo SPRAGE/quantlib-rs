@@ -54,6 +54,58 @@ impl Money {
     }
 }
 
+impl std::ops::Add for Money {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self {
+        assert_eq!(
+            self.currency, rhs.currency,
+            "cannot add amounts in different currencies ({} vs {})",
+            self.currency.code, rhs.currency.code
+        );
+        Self::new(self.value + rhs.value, self.currency)
+    }
+}
+
+impl std::ops::Sub for Money {
+    type Output = Self;
+    fn sub(self, rhs: Self) -> Self {
+        assert_eq!(
+            self.currency, rhs.currency,
+            "cannot subtract amounts in different currencies ({} vs {})",
+            self.currency.code, rhs.currency.code
+        );
+        Self::new(self.value - rhs.value, self.currency)
+    }
+}
+
+impl std::ops::Neg for Money {
+    type Output = Self;
+    fn neg(self) -> Self {
+        Self::new(-self.value, self.currency)
+    }
+}
+
+impl std::ops::Mul<Real> for Money {
+    type Output = Self;
+    fn mul(self, rhs: Real) -> Self {
+        Self::new(self.value * rhs, self.currency)
+    }
+}
+
+impl std::ops::Mul<Money> for Real {
+    type Output = Money;
+    fn mul(self, rhs: Money) -> Money {
+        Money::new(self * rhs.value, rhs.currency)
+    }
+}
+
+impl std::ops::Div<Real> for Money {
+    type Output = Self;
+    fn div(self, rhs: Real) -> Self {
+        Self::new(self.value / rhs, self.currency)
+    }
+}
+
 impl std::fmt::Display for Money {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:.2} {}", self.value, self.currency.code)
