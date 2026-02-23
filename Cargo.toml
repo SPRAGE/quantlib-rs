@@ -1,0 +1,79 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/ql-core",
+    "crates/ql-time",
+    "crates/ql-math",
+    "crates/ql-currencies",
+    "crates/ql-quotes",
+    "crates/ql-indexes",
+    "crates/ql-termstructures",
+    "crates/ql-processes",
+    "crates/ql-models",
+    "crates/ql-methods",
+    "crates/ql-cashflows",
+    "crates/ql-instruments",
+    "crates/ql-pricingengines",
+    "crates/ql-experimental",
+    "crates/ql-legacy",
+    "quantlib",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+license = "BSD-3-Clause"
+repository = "https://github.com/SPRAGE/quantlib-rs"
+description = "A complete Rust translation of the QuantLib C++ quantitative finance library"
+keywords = ["quantitative-finance", "derivatives", "pricing", "risk", "fixed-income"]
+categories = ["finance", "mathematics", "science"]
+
+[workspace.dependencies]
+# --- Core ---
+thiserror = "2"
+num-traits = "0.2"
+
+# --- Linear algebra & math ---
+nalgebra = "0.33"
+statrs = "0.17"
+
+# --- Random number generation ---
+rand = "0.8"
+rand_distr = "0.4"
+rand_mt = "4"
+
+# --- Optional ---
+serde = { version = "1", features = ["derive"] }
+chrono = "0.4"
+
+# --- Dev / test ---
+approx = "0.5"
+criterion = { version = "0.5", features = ["html_reports"] }
+proptest = "1"
+
+# --- Internal crates ---
+ql-core = { path = "crates/ql-core" }
+ql-time = { path = "crates/ql-time" }
+ql-math = { path = "crates/ql-math" }
+ql-currencies = { path = "crates/ql-currencies" }
+ql-quotes = { path = "crates/ql-quotes" }
+ql-indexes = { path = "crates/ql-indexes" }
+ql-termstructures = { path = "crates/ql-termstructures" }
+ql-processes = { path = "crates/ql-processes" }
+ql-models = { path = "crates/ql-models" }
+ql-methods = { path = "crates/ql-methods" }
+ql-cashflows = { path = "crates/ql-cashflows" }
+ql-instruments = { path = "crates/ql-instruments" }
+ql-pricingengines = { path = "crates/ql-pricingengines" }
+ql-experimental = { path = "crates/ql-experimental" }
+ql-legacy = { path = "crates/ql-legacy" }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
+
+[profile.bench]
+inherits = "release"
+debug = true  # Enable debug info for flamegraphs

@@ -1,0 +1,30 @@
+[package]
+name = "quantlib"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "A complete Rust translation of the QuantLib quantitative finance library"
+keywords = ["quantitative-finance", "derivatives", "pricing", "risk", "fixed-income"]
+categories = ["finance", "mathematics", "science"]
+
+[dependencies]
+ql-core.workspace = true
+ql-time.workspace = true
+ql-math.workspace = true
+ql-currencies.workspace = true
+ql-quotes.workspace = true
+ql-indexes.workspace = true
+ql-termstructures.workspace = true
+ql-processes.workspace = true
+ql-models.workspace = true
+ql-methods.workspace = true
+ql-cashflows.workspace = true
+ql-instruments.workspace = true
+ql-pricingengines.workspace = true
+ql-experimental.workspace = true
+ql-legacy.workspace = true
+
+[dev-dependencies]
+approx.workspace = true

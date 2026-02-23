@@ -1,0 +1,28 @@
+# Build artifacts
+/target/
+
+# Nix
+/result
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Coverage & profiling
+*.profraw
+lcov.info
+tarpaulin-report.html
+perf.data
+perf.data.old
+flamegraph.svg
+
+# Cargo lock is committed for the library workspace
+# (remove this line if you prefer not to)
+# Cargo.lock

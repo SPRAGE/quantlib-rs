@@ -1,0 +1,16 @@
+[package]
+name = "ql-legacy"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Legacy / deprecated QuantLib modules for quantlib-rs"
+
+[dependencies]
+ql-core.workspace = true
+ql-time.workspace = true
+ql-math.workspace = true
+
+[dev-dependencies]
+approx.workspace = true

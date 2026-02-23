@@ -1,0 +1,14 @@
+[package]
+name = "ql-currencies"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Currency definitions for quantlib-rs"
+
+[dependencies]
+ql-core.workspace = true
+
+[dev-dependencies]
+approx.workspace = true

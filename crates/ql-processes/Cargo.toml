@@ -1,0 +1,17 @@
+[package]
+name = "ql-processes"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Stochastic process definitions for quantlib-rs"
+
+[dependencies]
+ql-core.workspace = true
+ql-time.workspace = true
+ql-math.workspace = true
+
+[dev-dependencies]
+approx.workspace = true
+proptest.workspace = true

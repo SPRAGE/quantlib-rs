@@ -1,0 +1,19 @@
+[package]
+name = "ql-experimental"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Experimental / unstable modules for quantlib-rs"
+
+[dependencies]
+ql-core.workspace = true
+ql-time.workspace = true
+ql-math.workspace = true
+ql-termstructures.workspace = true
+ql-instruments.workspace = true
+ql-pricingengines.workspace = true
+
+[dev-dependencies]
+approx.workspace = true

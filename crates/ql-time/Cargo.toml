@@ -1,0 +1,16 @@
+[package]
+name = "ql-time"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Date, calendar, day counter, and schedule types for quantlib-rs"
+
+[dependencies]
+ql-core.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+approx.workspace = true
+proptest.workspace = true
