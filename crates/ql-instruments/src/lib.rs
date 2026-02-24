@@ -11,6 +11,7 @@ pub mod instrument;
 pub mod option;
 pub mod payoff;
 pub mod swap;
+pub mod zero_coupon_inflation_swap;
 
 pub use bond::{fixed_rate_bond, floating_rate_bond, zero_coupon_bond, Bond, BondArguments};
 pub use exercise::{Exercise, ExerciseType};
@@ -23,3 +24,4 @@ pub use payoff::{
     StrikedPayoff,
 };
 pub use swap::{Swap, SwapArguments, SwapType, VanillaSwap};
+pub use zero_coupon_inflation_swap::{SwapPayerType, ZeroCouponInflationSwap};

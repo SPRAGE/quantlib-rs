@@ -10,6 +10,7 @@ pub mod cashflows;
 pub mod coupon;
 pub mod fixed_rate_coupon;
 pub mod floating_rate_coupon;
+pub mod inflation_coupon;
 
 pub use cashflow::{CashFlow, Leg, Redemption, SimpleCashFlow};
 pub use cashflows::{
@@ -19,3 +20,4 @@ pub use cashflows::{
 pub use coupon::Coupon;
 pub use fixed_rate_coupon::{FixedRateCoupon, FixedRateLegBuilder};
 pub use floating_rate_coupon::{FloatingRateCoupon, IborCoupon, IborLegBuilder};
+pub use inflation_coupon::{CPICoupon, YoYInflationCoupon};

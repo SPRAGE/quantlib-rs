@@ -645,12 +645,16 @@ name = "ql-experimental"
 version = "0.1.0"
 dependencies = [
  "approx",
+ "num-complex",
  "ql-core",
  "ql-instruments",
  "ql-math",
  "ql-pricingengines",
+ "ql-processes",
  "ql-termstructures",
  "ql-time",
+ "rand 0.8.5",
+ "rand_distr",
 ]
 
 [[package]]
@@ -713,7 +717,9 @@ dependencies = [
  "criterion",
  "proptest",
  "ql-core",
+ "ql-instruments",
  "ql-math",
+ "ql-pricingengines",
  "ql-processes",
  "ql-termstructures",
  "ql-time",

@@ -30,6 +30,9 @@ pub mod position;
 /// Global library settings (evaluation date, etc.).
 pub mod settings;
 
+/// Generic time-series container.
+pub mod time_series;
+
 /// Miscellaneous utilities.
 pub mod utilities;
 
@@ -81,3 +84,4 @@ pub use errors::{Error, Result};
 pub use handle::{Handle, RelinkableHandle};
 pub use position::Position;
 pub use settings::{ScopedEvaluationDate, Settings};
+pub use time_series::TimeSeries;

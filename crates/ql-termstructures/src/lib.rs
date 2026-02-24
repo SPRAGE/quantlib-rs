@@ -41,6 +41,9 @@ pub mod local_vol_term_structure;
 /// `DefaultProbabilityTermStructure` — credit default-probability curves.
 pub mod default_probability_term_structure;
 
+/// Inflation term structures: zero-inflation and year-on-year inflation curves.
+pub mod inflation_term_structure;
+
 // ── Convenience re-exports ────────────────────────────────────────────────────
 
 pub use black_variance_surface::{BlackVarianceSurface, Extrapolation};
@@ -49,6 +52,10 @@ pub use default_probability_term_structure::{
     DefaultProbabilityTermStructure, FlatHazardRate, InterpolatedHazardRateCurve,
 };
 pub use flat_forward::FlatForward;
+pub use inflation_term_structure::{
+    FlatYoYInflationCurve, FlatZeroInflationCurve, InflationTermStructure,
+    YoYInflationTermStructure, ZeroInflationTermStructure,
+};
 pub use interpolated_discount_curve::InterpolatedDiscountCurve;
 pub use interpolated_forward_curve::InterpolatedForwardCurve;
 pub use interpolated_zero_curve::{

@@ -14,6 +14,10 @@ ql-math.workspace = true
 ql-termstructures.workspace = true
 ql-instruments.workspace = true
 ql-pricingengines.workspace = true
+ql-processes.workspace = true
+rand.workspace = true
+rand_distr.workspace = true
+num-complex.workspace = true
 
 [dev-dependencies]
 approx.workspace = true

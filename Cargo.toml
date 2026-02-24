@@ -37,6 +37,7 @@ num-traits = "0.2"
 # --- Linear algebra & math ---
 nalgebra = "0.33"
 statrs = "0.17"
+num-complex = "0.4"
 
 # --- Random number generation ---
 rand = "0.8"

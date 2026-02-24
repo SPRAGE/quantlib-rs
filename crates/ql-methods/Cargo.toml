@@ -18,6 +18,8 @@ ql-termstructures.workspace = true
 approx.workspace = true
 criterion.workspace = true
 proptest.workspace = true
+ql-instruments = { path = "../ql-instruments" }
+ql-pricingengines = { path = "../ql-pricingengines" }
 
 [[bench]]
 name = "monte_carlo"
