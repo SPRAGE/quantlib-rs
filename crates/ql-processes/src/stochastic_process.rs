@@ -47,7 +47,7 @@ pub trait StochasticProcess: std::fmt::Debug + Send + Sync {
         let sigma = self.diffusion(t, x);
         let sqrt_dt = dt.sqrt();
         let mut result = sigma;
-        let (rows, cols) = (result.nrows(), result.ncols());
+        let (rows, cols) = (result.rows(), result.cols());
         for r in 0..rows {
             for c in 0..cols {
                 result[(r, c)] *= sqrt_dt;
@@ -188,7 +188,7 @@ mod tests {
     fn process_1d_initial_values() {
         let p = ConstantProcess { x0: 100.0, mu: 0.05, sigma: 0.20 };
         let iv = p.initial_values();
-        assert_eq!(iv.len(), 1);
+        assert_eq!(iv.size(), 1);
         assert!((iv[0] - 100.0).abs() < 1e-15);
     }
 

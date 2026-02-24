@@ -2,7 +2,12 @@
 //! `ql/math/interpolation.hpp` and `ql/math/interpolations/`).
 //!
 //! Implementations: Linear, LogLinear, Flat (backward), ForwardFlat,
-//! CubicNaturalSpline, LagrangeInterpolation.
+//! CubicNaturalSpline, LagrangeInterpolation, AkimaSpline, MonotoneCubicSpline,
+//! SABR interpolation.
+
+pub mod akima;
+pub mod monotone_cubic;
+pub mod sabr;
 
 use ql_core::{errors::Result, Real};
 

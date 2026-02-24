@@ -16,3 +16,4 @@ ql-termstructures.workspace = true
 
 [dev-dependencies]
 approx.workspace = true
+ql-currencies.workspace = true

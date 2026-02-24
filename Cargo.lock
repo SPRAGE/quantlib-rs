@@ -615,6 +615,7 @@ version = "0.1.0"
 dependencies = [
  "approx",
  "ql-core",
+ "ql-currencies",
  "ql-indexes",
  "ql-math",
  "ql-termstructures",
@@ -670,6 +671,8 @@ dependencies = [
  "proptest",
  "ql-cashflows",
  "ql-core",
+ "ql-currencies",
+ "ql-indexes",
  "ql-math",
  "ql-termstructures",
  "ql-time",
@@ -736,6 +739,7 @@ dependencies = [
  "approx",
  "criterion",
  "proptest",
+ "ql-cashflows",
  "ql-core",
  "ql-instruments",
  "ql-math",
@@ -754,6 +758,7 @@ dependencies = [
  "proptest",
  "ql-core",
  "ql-math",
+ "ql-termstructures",
  "ql-time",
 ]
 

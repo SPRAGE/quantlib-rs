@@ -1,7 +1,10 @@
 //! Optimization framework (translates `ql/math/optimization/`).
 //!
 //! Provides cost functions, constraints, end criteria, and concrete
-//! optimizers (Levenberg-Marquardt, Simplex, conjugate gradient, etc.).
+//! optimizers (Levenberg-Marquardt, Simplex, conjugate gradient,
+//! BFGS, steepest descent, differential evolution, etc.).
+
+pub mod bfgs;
 
 use crate::array::Array;
 use ql_core::{

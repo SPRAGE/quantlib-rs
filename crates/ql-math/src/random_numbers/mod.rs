@@ -1,7 +1,9 @@
 //! Random number generators (translates `ql/math/randomnumbers/`).
 //!
 //! Provides wrappers around the `rand` and `rand_mt` crates that match the
-//! QuantLib RNG interface, plus quasi-random sequences (Halton).
+//! QuantLib RNG interface, plus quasi-random sequences (Halton, Sobol).
+
+pub mod sobol;
 
 use ql_core::Real;
 use rand_mt::Mt19937GenRand64;

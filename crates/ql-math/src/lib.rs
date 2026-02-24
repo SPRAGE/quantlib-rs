@@ -15,6 +15,9 @@ pub mod array;
 /// Floating-point comparison utilities.
 pub mod comparison;
 
+/// Copula functions.
+pub mod copulas;
+
 /// Probability distributions.
 pub mod distributions;
 
@@ -29,6 +32,9 @@ pub mod matrix;
 
 /// Matrix decomposition and utility functions.
 pub mod matrix_utilities;
+
+/// Ordinary differential equation solvers.
+pub mod ode;
 
 /// Optimization framework.
 pub mod optimization;
@@ -51,14 +57,18 @@ pub use array::Array;
 pub use comparison::{close, close_enough};
 pub use distributions::{
     normal_cdf, normal_cdf_inverse, normal_pdf,
-    BinomialDistribution, ChiSquareDistribution, GammaDistribution,
+    BetaDistribution, BinomialDistribution, ChiSquareDistribution, GammaDistribution,
     PoissonDistribution, StudentTDistribution,
 };
 pub use interpolations::{
+    akima::AkimaSpline,
+    monotone_cubic::MonotoneCubicSpline,
     CubicNaturalSpline, FlatInterpolation, ForwardFlatInterpolation,
     Interpolation1D, LagrangeInterpolation, LinearInterpolation,
     LogLinearInterpolation,
 };
 pub use matrix::Matrix;
 pub use rounding::{round, Rounding};
-pub use statistics::{GeneralStatistics, IncrementalStatistics, Statistics};
+pub use statistics::{
+    ConvergenceStatistics, GeneralStatistics, IncrementalStatistics, SequenceStatistics, Statistics,
+};

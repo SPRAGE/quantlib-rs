@@ -1,7 +1,10 @@
 //! Numerical integration (translates `ql/math/integrals/`).
 //!
-//! Provides Simpson, trapezoidal, Gauss-Kronrod adaptive, and
-//! Gauss-Lobatto quadrature rules.
+//! Provides Simpson, trapezoidal, Gauss-Kronrod adaptive,
+//! Gauss-Lobatto quadrature rules, and Gaussian quadratures
+//! (Legendre, Hermite, Laguerre, Chebyshev, Jacobi).
+
+pub mod gaussianquadratures;
 
 use ql_core::{
     errors::{Error, Result},

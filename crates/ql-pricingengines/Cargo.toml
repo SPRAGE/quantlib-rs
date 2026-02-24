@@ -11,6 +11,7 @@ description = "Pricing engine implementations for quantlib-rs"
 ql-core.workspace = true
 ql-time.workspace = true
 ql-math.workspace = true
+ql-cashflows.workspace = true
 ql-instruments.workspace = true
 ql-termstructures.workspace = true
 ql-processes.workspace = true

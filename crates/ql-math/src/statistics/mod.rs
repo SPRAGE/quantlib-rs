@@ -360,6 +360,14 @@ impl IncrementalStatistics {
         self.variance().map(|v| v.sqrt())
     }
 
+    /// Error estimate (standard error of the mean): σ / √n.
+    pub fn error_estimate(&self) -> Option<Real> {
+        if self.n < 2 {
+            return None;
+        }
+        self.std_dev().map(|sd| sd / (self.n as Real).sqrt())
+    }
+
     /// Skewness.
     pub fn skewness(&self) -> Option<Real> {
         if self.n < 3 || self.m2 == 0.0 {
@@ -389,6 +397,191 @@ impl IncrementalStatistics {
     /// Reset.
     pub fn reset(&mut self) {
         *self = Self::new();
+    }
+}
+
+// ── ConvergenceStatistics ─────────────────────────────────────────────────────
+
+/// A statistics accumulator that records convergence snapshots at power-of-2
+/// sample counts.
+///
+/// Wraps an `IncrementalStatistics` and captures the running mean (and error
+/// estimate) at 1, 2, 4, 8, 16, … samples. This is used in Monte Carlo
+/// pricing to assess convergence.
+///
+/// Corresponds to `QuantLib::ConvergenceStatistics`.
+#[derive(Debug, Clone)]
+pub struct ConvergenceStatistics {
+    inner: IncrementalStatistics,
+    /// (samples, mean, error_estimate) snapshots
+    snapshots: Vec<(usize, Real, Real)>,
+    next_trigger: usize,
+}
+
+impl ConvergenceStatistics {
+    /// Create a new convergence statistics accumulator.
+    pub fn new() -> Self {
+        Self {
+            inner: IncrementalStatistics::new(),
+            snapshots: Vec::new(),
+            next_trigger: 1,
+        }
+    }
+
+    /// Add a value.
+    pub fn add(&mut self, x: Real) {
+        self.inner.add(x);
+        let n = self.inner.samples();
+        if n == self.next_trigger {
+            let mean = self.inner.mean().unwrap_or(0.0);
+            let err = self
+                .inner
+                .error_estimate()
+                .unwrap_or(0.0);
+            self.snapshots.push((n, mean, err));
+            self.next_trigger *= 2;
+        }
+    }
+
+    /// Add a weighted value.
+    pub fn add_weighted(&mut self, x: Real, w: Real) {
+        self.inner.add_weighted(x, w);
+        let n = self.inner.samples();
+        if n == self.next_trigger {
+            let mean = self.inner.mean().unwrap_or(0.0);
+            let err = self.inner.error_estimate().unwrap_or(0.0);
+            self.snapshots.push((n, mean, err));
+            self.next_trigger *= 2;
+        }
+    }
+
+    /// Return convergence snapshots: `(samples, mean, error_estimate)`.
+    pub fn convergence_table(&self) -> &[(usize, Real, Real)] {
+        &self.snapshots
+    }
+
+    /// Access the underlying statistics accumulator.
+    pub fn statistics(&self) -> &IncrementalStatistics {
+        &self.inner
+    }
+
+    /// Reset.
+    pub fn reset(&mut self) {
+        *self = Self::new();
+    }
+}
+
+impl Default for ConvergenceStatistics {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+// ── SequenceStatistics ────────────────────────────────────────────────────────
+
+/// Multi-dimensional statistics accumulator.
+///
+/// Keeps an independent `IncrementalStatistics` for each dimension, plus
+/// accumulates the covariance matrix.
+///
+/// Corresponds to `QuantLib::SequenceStatistics`.
+#[derive(Debug, Clone)]
+pub struct SequenceStatistics {
+    dim: usize,
+    stats: Vec<IncrementalStatistics>,
+    n: usize,
+    /// Running sum of outer products (for covariance)
+    sum_xy: Vec<Vec<Real>>,
+    /// Running sum of means for covariance: sum_x[i]
+    sum_x: Vec<Real>,
+}
+
+impl SequenceStatistics {
+    /// Create for `dimension` variates.
+    pub fn new(dimension: usize) -> Self {
+        Self {
+            dim: dimension,
+            stats: (0..dimension).map(|_| IncrementalStatistics::new()).collect(),
+            n: 0,
+            sum_xy: vec![vec![0.0; dimension]; dimension],
+            sum_x: vec![0.0; dimension],
+        }
+    }
+
+    /// Dimension.
+    pub fn dimension(&self) -> usize {
+        self.dim
+    }
+
+    /// Number of samples added.
+    pub fn samples(&self) -> usize {
+        self.n
+    }
+
+    /// Add a multi-dimensional sample.
+    pub fn add(&mut self, sample: &[Real]) {
+        assert_eq!(sample.len(), self.dim, "sample dimension mismatch");
+        self.n += 1;
+        for i in 0..self.dim {
+            self.stats[i].add(sample[i]);
+            self.sum_x[i] += sample[i];
+            for j in 0..self.dim {
+                self.sum_xy[i][j] += sample[i] * sample[j];
+            }
+        }
+    }
+
+    /// Mean vector.
+    pub fn mean(&self) -> Vec<Real> {
+        self.stats.iter().map(|s| s.mean().unwrap_or(0.0)).collect()
+    }
+
+    /// Variance vector.
+    pub fn variance(&self) -> Vec<Real> {
+        self.stats.iter().map(|s| s.variance().unwrap_or(0.0)).collect()
+    }
+
+    /// Standard deviation vector.
+    pub fn std_dev(&self) -> Vec<Real> {
+        self.stats.iter().map(|s| s.std_dev().unwrap_or(0.0)).collect()
+    }
+
+    /// Covariance matrix (sample covariance).
+    pub fn covariance(&self) -> Vec<Vec<Real>> {
+        if self.n < 2 {
+            return vec![vec![0.0; self.dim]; self.dim];
+        }
+        let n = self.n as Real;
+        let mut cov = vec![vec![0.0; self.dim]; self.dim];
+        for i in 0..self.dim {
+            for j in 0..self.dim {
+                cov[i][j] = (self.sum_xy[i][j] - self.sum_x[i] * self.sum_x[j] / n) / (n - 1.0);
+            }
+        }
+        cov
+    }
+
+    /// Correlation matrix.
+    pub fn correlation(&self) -> Vec<Vec<Real>> {
+        let cov = self.covariance();
+        let mut corr = vec![vec![0.0; self.dim]; self.dim];
+        for i in 0..self.dim {
+            for j in 0..self.dim {
+                let denom = (cov[i][i] * cov[j][j]).sqrt();
+                corr[i][j] = if denom > 1e-30 { cov[i][j] / denom } else { 0.0 };
+            }
+        }
+        corr
+    }
+
+    /// Access the statistics for dimension `i`.
+    pub fn stat(&self, i: usize) -> &IncrementalStatistics {
+        &self.stats[i]
+    }
+
+    /// Reset all accumulators.
+    pub fn reset(&mut self) {
+        *self = Self::new(self.dim);
     }
 }
 
@@ -479,5 +672,34 @@ mod tests {
             "skewness = {}",
             is.skewness().unwrap()
         );
+    }
+
+    #[test]
+    fn convergence_statistics_snapshots() {
+        let mut cs = ConvergenceStatistics::new();
+        for i in 1..=128 {
+            cs.add(i as Real);
+        }
+        let table = cs.convergence_table();
+        // Should have snapshots at 1, 2, 4, 8, 16, 32, 64, 128
+        assert_eq!(table.len(), 8);
+        assert_eq!(table[0].0, 1); // 1 sample
+        assert_eq!(table[7].0, 128); // 128 samples
+        // Mean at 128 samples should be 64.5
+        assert!((table[7].1 - 64.5).abs() < 1e-10);
+    }
+
+    #[test]
+    fn sequence_statistics_2d() {
+        let mut ss = SequenceStatistics::new(2);
+        ss.add(&[1.0, 2.0]);
+        ss.add(&[3.0, 4.0]);
+        ss.add(&[5.0, 6.0]);
+        let m = ss.mean();
+        assert!((m[0] - 3.0).abs() < 1e-12);
+        assert!((m[1] - 4.0).abs() < 1e-12);
+        // Perfect correlation between the two series
+        let corr = ss.correlation();
+        assert!((corr[0][1] - 1.0).abs() < 1e-10, "corr = {}", corr[0][1]);
     }
 }

@@ -107,9 +107,19 @@ impl HestonProcess {
         &*self.risk_free_rate
     }
 
+    /// Risk-free rate as `Arc`.
+    pub fn risk_free_rate_arc(&self) -> Arc<dyn YieldTermStructure> {
+        Arc::clone(&self.risk_free_rate)
+    }
+
     /// Dividend yield.
     pub fn dividend_yield(&self) -> &dyn YieldTermStructure {
         &*self.dividend_yield
+    }
+
+    /// Dividend yield as `Arc`.
+    pub fn dividend_yield_arc(&self) -> Arc<dyn YieldTermStructure> {
+        Arc::clone(&self.dividend_yield)
     }
 }
 
