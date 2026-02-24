@@ -9,7 +9,7 @@ use ql_core::{errors::Result, Real};
 /// A 1D interpolation function `f: R → R` defined by a set of known points.
 ///
 /// Corresponds to `QuantLib::Interpolation`.
-pub trait Interpolation1D: std::fmt::Debug {
+pub trait Interpolation1D: std::fmt::Debug + Send + Sync {
     /// Evaluate the interpolation at `x`.
     fn operator(&self, x: Real) -> Real;
 
