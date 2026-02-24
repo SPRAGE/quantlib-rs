@@ -38,6 +38,17 @@ pub mod black_variance_surface;
 /// `LocalVolTermStructure` — local-volatility term structures and `LocalConstantVol`.
 pub mod local_vol_term_structure;
 
+/// `LocalVolSurface` — Dupire local volatility surface from a Black vol surface.
+pub mod local_vol_surface;
+
+/// `SmileSection` — abstract smile interface and concrete smile sections
+/// (Flat, SABR, SVI).
+pub mod smile_section;
+
+/// Smile calibration framework — per-expiry SABR/SVI calibration and
+/// `SmileSurface` for the full volatility surface.
+pub mod smile_calibration;
+
 /// `DefaultProbabilityTermStructure` — credit default-probability curves.
 pub mod default_probability_term_structure;
 
@@ -62,6 +73,15 @@ pub use interpolated_zero_curve::{
     CubicNatural, InterpolatedZeroCurve, InterpolationBuilder, Linear, LogLinear,
 };
 pub use local_vol_term_structure::{LocalConstantVol, LocalVolTermStructure};
+pub use local_vol_surface::LocalVolSurface;
+pub use smile_section::{
+    calibrate_svi, FlatSmileSection, SabrSmileSection, SmileOptionType, SmileSection,
+    SviParameters, SviSmileSection, VolatilityType,
+};
+pub use smile_calibration::{
+    calibrate_sabr_surface, calibrate_svi_surface, ExpirySmileData, SmileCalibrationResult,
+    SmileSurface,
+};
 pub use term_structure::TermStructure;
 pub use volatility_term_structure::VolatilityTermStructure;
 pub use yield_term_structure::{YieldTermStructure, YieldTermStructureData};
