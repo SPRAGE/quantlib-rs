@@ -24,7 +24,8 @@
 20. [C++ Pattern → Rust Idiom Reference](#20-c-pattern--rust-idiom-reference)
 21. [Dependency Strategy](#21-dependency-strategy)
 22. [Verification & Quality Gates](#22-verification--quality-gates)
-23. [Risk Register](#23-risk-register)
+23. [Next Steps — Prioritized Work Items](#23-next-steps--prioritized-work-items)
+24. [Risk Register](#24-risk-register)
 
 ---
 
@@ -572,20 +573,55 @@ independently.
 *before or alongside* the implementation. Tests are the specification — they tell
 us when the translation is correct. No phase is complete until its tests pass.
 
-| Phase | Name | Crates | Est. Impl Files | Test Files Ported | Depends On |
-|---|---|---|---|---|---|
-| **0** | Scaffolding | workspace, CI | — | — | — |
-| **1** | Foundation | `ql-core` | ~80 | `errors.cpp`, `observable.cpp` | — |
-| **2** | Time & Calendar | `ql-time` | ~136 | `dates.cpp`, `calendars.cpp`, `daycounters.cpp`, `schedule.cpp` | Phase 1 |
-| **3** | Math Library | `ql-math` | ~272 | `matrices.cpp`, `array.cpp`, `interpolations.cpp`, `distributions.cpp`, `solvers1d.cpp`, `optimizers.cpp`, `rngtraits.cpp`, `statistics.cpp`, `lowdiscrepancysequences.cpp` | Phase 1 |
-| **4** | Core Financial Primitives | `ql-currencies`, `ql-quotes`, `ql-indexes` | ~129 | `currencies.cpp`, `quotes.cpp` | Phases 1–3 |
-| **5** | Term Structures | `ql-termstructures` | ~201 | `termstructures.cpp`, `interestrateindex.cpp`, `piecewiseyieldcurve.cpp`, `fittedbonddiscountcurve.cpp`, `swaptionvolatilitymatrix.cpp` | Phases 1–4 |
-| **6** | Processes & Models | `ql-processes`, `ql-models` | ~323 | `hestonmodel.cpp`, `shortratemodels.cpp`, `marketmodel.cpp`, `marketmodel_smm.cpp`, `marketmodel_cms.cpp` | Phases 1–5 |
-| **7** | Numerical Methods | `ql-methods` | ~237 | `fdm.cpp`, `batesmodel.cpp` (uses FDM), `latticemethods.cpp` | Phases 1–6 |
-| **8** | Instruments & Cash Flows | `ql-cashflows`, `ql-instruments` | ~237 | `bonds.cpp`, `swaps.cpp`, `overnightindexedswap.cpp`, `capfloor.cpp`, `swaptions.cpp`, `creditdefaultswap.cpp`, `cashflows.cpp` | Phases 1–7 |
-| **9** | Pricing Engines | `ql-pricingengines` | ~304 | `europeanoption.cpp`, `americanoption.cpp`, `asianoptions.cpp`, `barrieroption.cpp`, `lookbackoptions.cpp`, `basketoption.cpp`, `cliquetoption.cpp`, `quantooption.cpp`, `forwardoption.cpp` | Phases 1–8 |
-| **10** | Indexes, Currencies & Quotes (advanced) | enrich earlier crates | ~50 | `inflation.cpp`, `inflationcpibond.cpp`, `inflationcpiswap.cpp` | Phases 1–9 |
-| **11** | Experimental | `ql-experimental` | ~421 | `variancegamma.cpp`, `varianceoption.cpp`, `catbonds.cpp`, remaining experimental tests | Phases 1–9 |
+| Phase | Name | Crates | Est. Impl Files | Test Files Ported | Depends On | Status |
+|---|---|---|---|---|---|---|
+| **0** | Scaffolding | workspace, CI | — | — | — | 🟡 ~70% |
+| **1** | Foundation | `ql-core` | ~80 | `errors.cpp`, `observable.cpp` | — | 🟡 ~35% |
+| **2** | Time & Calendar | `ql-time` | ~136 | `dates.cpp`, `calendars.cpp`, `daycounters.cpp`, `schedule.cpp` | Phase 1 | 🟡 ~73% |
+| **3** | Math Library | `ql-math` | ~272 | `matrices.cpp`, `array.cpp`, `interpolations.cpp`, `distributions.cpp`, `solvers1d.cpp`, `optimizers.cpp`, `rngtraits.cpp`, `statistics.cpp`, `lowdiscrepancysequences.cpp` | Phase 1 | 🟡 ~17% |
+| **4** | Core Financial Primitives | `ql-currencies`, `ql-quotes`, `ql-indexes` | ~129 | `currencies.cpp`, `quotes.cpp` | Phases 1–3 | 🟡 ~34% |
+| **5** | Term Structures | `ql-termstructures` | ~201 | `termstructures.cpp`, `interestrateindex.cpp`, `piecewiseyieldcurve.cpp`, `fittedbonddiscountcurve.cpp`, `swaptionvolatilitymatrix.cpp` | Phases 1–4 | 🟡 ~15% |
+| **6** | Processes & Models | `ql-processes`, `ql-models` | ~323 | `hestonmodel.cpp`, `shortratemodels.cpp`, `marketmodel.cpp`, `marketmodel_smm.cpp`, `marketmodel_cms.cpp` | Phases 1–5 | 🟡 ~15% |
+| **7** | Numerical Methods | `ql-methods` | ~237 | `fdm.cpp`, `batesmodel.cpp` (uses FDM), `latticemethods.cpp` | Phases 1–6 | 🔴 ~5% |
+| **8** | Instruments & Cash Flows | `ql-cashflows`, `ql-instruments` | ~237 | `bonds.cpp`, `swaps.cpp`, `overnightindexedswap.cpp`, `capfloor.cpp`, `swaptions.cpp`, `creditdefaultswap.cpp`, `cashflows.cpp` | Phases 1–7 | 🟡 ~13% |
+| **9** | Pricing Engines | `ql-pricingengines` | ~304 | `europeanoption.cpp`, `americanoption.cpp`, `asianoptions.cpp`, `barrieroption.cpp`, `lookbackoptions.cpp`, `basketoption.cpp`, `cliquetoption.cpp`, `quantooption.cpp`, `forwardoption.cpp` | Phases 1–8 | 🔴 ~5% |
+| **10** | Indexes, Currencies & Quotes (advanced) | enrich earlier crates | ~50 | `inflation.cpp`, `inflationcpibond.cpp`, `inflationcpiswap.cpp` | Phases 1–9 | 🟡 ~20% |
+| **11** | Experimental | `ql-experimental` | ~421 | `variancegamma.cpp`, `varianceoption.cpp`, `catbonds.cpp`, remaining experimental tests | Phases 1–9 | 🔴 ~7% |
+
+### 6.1 Current Progress Snapshot (as of 2025-02-25)
+
+**Overall: ~12–15% complete by module coverage, ~39,000 of ~200,000+ estimated Rust LOC.**
+
+| Metric | Value |
+|---|---|
+| Crates scaffolded | 16/16 (100%) |
+| Total Rust source files | 196 |
+| Total lines of code | ~38,970 |
+| Total unit tests | 740 (all passing) |
+| Doc-tests | 9 (all passing) |
+| Integration test files (ported from C++ test-suite) | 0 |
+| Build status | ✅ Clean (0 errors, 1 warning) |
+
+**Per-crate breakdown:**
+
+| Crate | Files | LOC | Tests | Completeness |
+|---|---|---|---|---|
+| `ql-core` | 14 | 1,144 | 31 | ~35% — core types, errors, patterns, handle, settings done; missing some utilities |
+| `ql-time` | 55 | 7,091 | 253 | ~73% — 43/45 calendars, 15+ day counters, Date/Period/Schedule/IMM/ASX/ECB |
+| `ql-math` | 22 | 6,454 | 134 | ~17% — 9/24 interps, 7 dists, basic solvers/optimizers/RNG |
+| `ql-currencies` | 11 | 1,054 | 12 | ~70% — Currency, Money, ExchangeRate, 6 regional modules |
+| `ql-quotes` | 2 | 330 | 9 | ~50% — Quote trait + 8 implementations; missing ~10 quote types |
+| `ql-indexes` | 9 | 1,245 | 26 | ~15% — Core traits + generic IBOR/overnight/inflation/swap; missing 50+ specific index defs |
+| `ql-cashflows` | 7 | 1,601 | 24 | ~30% — Fixed/Floating/Inflation coupons, CashFlows analytics; missing CMS, range accrual |
+| `ql-processes` | 14 | 2,154 | 58 | ~50% — 12 processes (BSM, Heston, HW, G2, Bates, OU, etc.) |
+| `ql-models` | 10 | 1,674 | 30 | ~10% — 7 short-rate/equity models; missing entire Market Model framework (~160 files) |
+| `ql-instruments` | 8 | 1,704 | 27 | ~13% — Bonds, swaps, vanilla options; missing Cap/Floor, Swaption, CDS, exotics |
+| `ql-methods` | 6 | 1,812 | 21 | ~5% — Basic lattice/MC/1D-FDM; missing multi-dim FDM, advanced MC, advanced lattice |
+| `ql-pricingengines` | 7 | 1,632 | 28 | ~5% — 6/170 engines (BS, Heston, BAW, Barrier, Bond, Swap discounting) |
+| `ql-termstructures` | 15 | 4,288 | 54 | ~15% — Flat/interpolated yield, vol surfaces, smile, credit, inflation; missing bootstrapper |
+| `ql-experimental` | 14 | 4,203 | 33 | ~7% — Catbonds, 6 exotics, variance gamma, ZABR; missing credit, commodities, ext. FDM |
+| `ql-legacy` | 1 | 6 | 0 | 0% — Empty stub |
+| `quantlib` (facade) | 1 | 70 | 1 | ✅ Complete — re-exports all crates |
 
 ---
 
@@ -594,13 +630,13 @@ us when the translation is correct. No phase is complete until its tests pass.
 ### Tasks
 
 - [x] `flake.nix` — Nix development environment (done)
-- [ ] Initialize Cargo workspace with all crate stubs
-- [ ] Set up `justfile` with common commands
+- [x] Initialize Cargo workspace with all crate stubs (16 crates, all compiling)
+- [x] Set up `justfile` with common commands
 - [ ] Configure CI (GitHub Actions): `cargo build`, `cargo test`, `cargo clippy`, `cargo fmt --check`
 - [ ] Set up `cargo-llvm-cov` for coverage reporting
 - [ ] Clone QuantLib reference at pinned commit as git submodule under `reference/`
-- [ ] Add `.gitignore`, `LICENSE` (BSD 3-Clause, matching QuantLib), `README.md`
-- [ ] Configure `rustfmt.toml` and `clippy.toml`
+- [x] Add `.gitignore`, `LICENSE` (BSD 3-Clause, matching QuantLib), `README.md`
+- [x] Configure `rustfmt.toml` and `clippy.toml`
 
 ### Deliverables
 
@@ -1512,7 +1548,112 @@ Every performance-critical path gets a `criterion` benchmark:
 
 ---
 
-## 23. Risk Register
+## 23. Next Steps — Prioritized Work Items
+
+Based on the current progress snapshot (§6.1), the following work items are prioritized
+to maximize forward progress. The strategy is to **deepen the most-complete phases
+first** (finish what's started), then fill critical infrastructure gaps.
+
+### 23.1 Immediate Priorities (complete current foundations)
+
+#### A. Finish Phase 2 — Time & Calendar (~73% → 100%)
+- [ ] Add missing calendars: Thailand, Weekends-Only, Null Calendar (if not aliased)
+- [ ] Verify all 45 countries from plan §9.2 are present
+- [ ] Port `test-suite/dates.cpp` → `crates/ql-time/tests/test_dates.rs` (integration tests)
+- [ ] Port `test-suite/calendars.cpp` → `crates/ql-time/tests/test_calendars.rs`
+- [ ] Port `test-suite/daycounters.cpp` → `crates/ql-time/tests/test_day_counters.rs`
+- [ ] Port `test-suite/schedule.cpp` → `crates/ql-time/tests/test_schedule.rs`
+- [ ] Add `DateGeneration::Rule` enum (Forward, Backward, Zero, etc.) if missing
+
+#### B. Finish Phase 0 — Scaffolding
+- [ ] Configure CI (GitHub Actions): `cargo build`, `cargo test`, `cargo clippy`, `cargo fmt --check`
+- [ ] Set up `cargo-llvm-cov` for coverage reporting
+- [ ] Clone QuantLib reference at pinned commit as git submodule under `reference/`
+
+#### C. Deepen Phase 1 — Foundation (`ql-core`, ~35% → 80%)
+- [ ] Port `test-suite/observable.cpp` → `crates/ql-core/tests/test_observable.rs`
+- [ ] Port `test-suite/errors.cpp` → `crates/ql-core/tests/test_errors.rs`
+- [ ] Add `interest_rate.rs` to ql-core (or verify it's in ql-time)
+- [ ] Audit utilities/ for missing helpers from `ql/utilities/`
+
+### 23.2 High-Impact Gaps (next wave)
+
+#### D. Deepen Phase 3 — Math Library (`ql-math`, ~17% → 50%)
+- [ ] Add remaining 15 interpolation schemes: BackwardFlat, ForwardFlat, Chebyshev, ConvexMonotone, Parabolic, FritschButland, Kruger, MixedLinearCubic, LogMixed, CubicNaturalSpline, MonotonicCubicNaturalSpline, etc.
+- [ ] Add missing distributions: InverseCumulative wrappers, BetaPrime if needed
+- [ ] Add Halton quasi-random sequence generator
+- [ ] Add DifferentialEvolution, SimulatedAnnealing, ParticleSwarmOptimization optimizers
+- [ ] Add matrix utilities: SVD, QR decomposition, eigenvalue, pseudo-sqrt wrappers
+- [ ] Port `test-suite/matrices.cpp`, `test-suite/interpolations.cpp`, `test-suite/distributions.cpp`, etc.
+
+#### E. Build PiecewiseYieldCurve Bootstrapper (Phase 5 critical gap)
+- [ ] Implement `BootstrapTraits` trait (ZeroYield, Discount, ForwardRate)
+- [ ] Implement `PiecewiseYieldCurve<Traits, Interpolator>` with iterative bootstrap
+- [ ] Implement rate helpers: `DepositRateHelper`, `FraRateHelper`, `SwapRateHelper`, `FuturesRateHelper`
+- [ ] Port `test-suite/piecewiseyieldcurve.cpp`
+
+#### F. Expand Indexes (`ql-indexes`, ~15% → 50%)
+- [ ] Add specific IBOR index definitions: all Euribor tenors, USD/GBP/JPY LIBOR variants
+- [ ] Add specific overnight index definitions: SOFR, ESTR, SONIA, TONAR, etc.
+- [ ] Add specific inflation index definitions: USCPI, UKRPI, EUHICP, etc.
+- [ ] Add swap index definitions: EuriborSwapIsdaFixA, UsdLiborSwapIsdaFixAm, etc.
+
+### 23.3 Medium-Term Targets (build out instruments & engines)
+
+#### G. Expand Instruments (`ql-instruments`, ~13% → 40%)
+- [ ] Add `CapFloor` (Cap, Floor, Collar)
+- [ ] Add `Swaption` (European, Bermudan)
+- [ ] Add `CreditDefaultSwap`
+- [ ] Add `ForwardRateAgreement`
+- [ ] Add Asian, Lookback, Basket, Cliquet, Quanto option types
+- [ ] Port `test-suite/bonds.cpp`, `test-suite/swaps.cpp`
+
+#### H. Expand Pricing Engines (`ql-pricingengines`, ~5% → 25%)
+- [ ] Add `MCEuropeanEngine`, `MCAmericanEngine`
+- [ ] Add `BinomialEngine` (tree-based vanilla)
+- [ ] Add `FdBlackScholesVanillaEngine`
+- [ ] Add `BlackSwaptionEngine`, `BachelierSwaptionEngine`
+- [ ] Add `BlackCapFloorEngine`
+- [ ] Add `MidPointCdsEngine`, `IsdaCdsEngine`
+- [ ] Port `test-suite/europeanoption.cpp`, `test-suite/americanoption.cpp`
+
+#### I. Expand Numerical Methods (`ql-methods`, ~5% → 25%)
+- [ ] Implement FDM meshers: `Fdm1dMesher`, `FdmMesherComposite`
+- [ ] Implement FDM operators: `FdmLinearOp`, `TripleBandLinearOp`
+- [ ] Implement FDM schemes: Douglas, Crank-Nicolson, Hundsdorfer-Verwer
+- [ ] Implement multi-dimensional FDM solver
+- [ ] Expand MC: `EarlyExercisePathPricer`, Longstaff-Schwartz LSM
+- [ ] Port `test-suite/fdm.cpp`
+
+### 23.4 Longer-Term Work
+
+#### J. Market Model Framework (`ql-models`, ~160 files)
+- [ ] Brownian generators, evolvers, products
+- [ ] Market model calibration
+- [ ] Path-wise Greeks
+- [ ] Port `test-suite/marketmodel.cpp`, `marketmodel_smm.cpp`, `marketmodel_cms.cpp`
+
+#### K. `ql-experimental` Expansion (~7% → 30%)
+- [ ] Credit sub-module: Synthetic CDO, NTD, copula models
+- [ ] Extended FDM: local-vol with jumps, SABR FDM
+- [ ] Callable bond pricing
+- [ ] Range accrual / CMS spread coupons
+
+#### L. `ql-legacy` Implementation
+- [ ] LIBOR Market Model legacy support
+
+#### M. Integration Test Suite
+- [ ] Port all 45+ C++ test-suite files as Rust integration tests (see §19 for full mapping)
+- [ ] Currently 0 integration test files exist — all 740 tests are inline unit tests
+- [ ] Priority: port tests for phases 1–3 first to lock down foundation
+
+#### N. Benchmarks
+- [ ] Flesh out bench stubs in `ql-math/benches/`, `ql-methods/benches/`, `ql-pricingengines/benches/`
+- [ ] Add cross-crate benchmarks under `benches/` at workspace root
+
+---
+
+## 24. Risk Register
 
 | # | Risk | Impact | Mitigation |
 |---|---|---|---|
