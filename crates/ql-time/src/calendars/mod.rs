@@ -39,6 +39,7 @@ pub mod sweden;
 pub mod switzerland;
 pub mod taiwan;
 pub mod target;
+pub mod thailand;
 pub mod turkey;
 pub mod ukraine;
 pub mod united_kingdom;

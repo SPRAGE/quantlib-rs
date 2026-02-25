@@ -43,10 +43,14 @@ impl Calendar for UnitedStatesSettlement {
 }
 
 fn is_us_settlement_holiday(y: u16, m: u8, d: u8, w: Weekday) -> bool {
-    // New Year's Day
+    // New Year's Day (possibly moved to Monday if on Sunday)
     if (d == 1 && m == 1)
         || (d == 2 && m == 1 && w == Weekday::Monday)  // Jan 1 on Sunday → Jan 2
     {
+        return true;
+    }
+    // New Year's Day observed on preceding Friday when Jan 1 is Saturday
+    if d == 31 && m == 12 && w == Weekday::Friday {
         return true;
     }
     // MLK Day (3rd Monday of January, since 1983)
@@ -123,19 +127,110 @@ impl Calendar for UnitedStatesNyse {
         let y = date.year();
         let m = date.month();
         let d = date.day_of_month();
-
-        // NYSE observes the same federal holidays as settlement
-        if is_us_settlement_holiday(y, m, d, w) {
-            return false;
-        }
-        // Good Friday — NYSE is closed
         let dd = date.day_of_year();
         let em = super::target::easter_monday_pub(y);
-        if dd == em - 3 {
+
+        // NYSE does NOT observe Columbus Day or Veterans' Day
+        if is_nyse_holiday(y, m, d, w, dd, em) {
             return false;
         }
         true
     }
+}
+
+fn is_nyse_holiday(y: u16, m: u8, d: u8, w: Weekday, dd: u16, em: u16) -> bool {
+    // New Year's Day (possibly moved to Monday if on Sunday)
+    if (d == 1 && m == 1)
+        || (d == 2 && m == 1 && w == Weekday::Monday)
+    {
+        return true;
+    }
+    // MLK Day (3rd Monday of January, since 1998 for NYSE)
+    if y >= 1998 && m == 1 && w == Weekday::Monday && (15..=21).contains(&d) {
+        return true;
+    }
+    // Presidents' Day / Washington's Birthday (3rd Monday of February)
+    if m == 2 && w == Weekday::Monday && (15..=21).contains(&d) {
+        return true;
+    }
+    // Good Friday
+    if dd == em - 3 {
+        return true;
+    }
+    // Memorial Day (last Monday of May)
+    if m == 5 && w == Weekday::Monday && d >= 25 {
+        return true;
+    }
+    // Juneteenth (June 19, from 2022)
+    if y >= 2022
+        && m == 6
+        && ((d == 19 && !matches!(w, Weekday::Saturday | Weekday::Sunday))
+            || (d == 20 && w == Weekday::Monday)
+            || (d == 18 && w == Weekday::Friday))
+    {
+        return true;
+    }
+    // Independence Day (July 4)
+    if (d == 4 && m == 7)
+        || (d == 5 && m == 7 && w == Weekday::Monday)
+        || (d == 3 && m == 7 && w == Weekday::Friday)
+    {
+        return true;
+    }
+    // Labor Day (1st Monday of September)
+    if m == 9 && w == Weekday::Monday && d <= 7 {
+        return true;
+    }
+    // Thanksgiving (4th Thursday of November)
+    if m == 11 && w == Weekday::Thursday && (22..=28).contains(&d) {
+        return true;
+    }
+    // Christmas (December 25)
+    if (d == 25 && m == 12)
+        || (d == 26 && m == 12 && w == Weekday::Monday)
+        || (d == 24 && m == 12 && w == Weekday::Friday)
+    {
+        return true;
+    }
+    // Historical closings
+    if is_nyse_historical_closing(y, m, d) {
+        return true;
+    }
+    false
+}
+
+fn is_nyse_historical_closing(y: u16, m: u8, d: u8) -> bool {
+    matches!(
+        (y, m, d),
+        // Hurricane Sandy (2012)
+        (2012, 10, 29) | (2012, 10, 30)
+        // President Reagan's funeral (2004)
+        | (2004, 6, 11)
+        // September 11, 2001
+        | (2001, 9, 11) | (2001, 9, 12) | (2001, 9, 13) | (2001, 9, 14)
+        // President Nixon's funeral (1994)
+        | (1994, 4, 27)
+        // Hurricane Gloria (1985)
+        | (1985, 9, 27)
+        // 1977 Blackout
+        | (1977, 7, 14)
+        // President Johnson's funeral (1973)
+        | (1973, 1, 25)
+        // President Truman's funeral (1972)
+        | (1972, 12, 28)
+        // Lunar exploration national day of participation (1969)
+        | (1969, 7, 21)
+        // President Eisenhower's funeral (1969)
+        | (1969, 3, 31)
+        // Heavy snow (1969)
+        | (1969, 2, 10)
+        // Day after Independence Day (1968)
+        | (1968, 7, 5)
+        // Mourning for MLK (1968)
+        | (1968, 4, 9)
+        // President Kennedy's funeral (1963)
+        | (1963, 11, 25)
+    )
 }
 
 #[cfg(test)]

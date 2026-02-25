@@ -50,14 +50,20 @@ impl Calendar for Denmark {
             || (dd == em + 25 && y < 2024)
             // Ascension Thursday
             || (dd == em + 38)
+            // Day after Ascension (from 2009)
+            || (dd == em + 39 && y >= 2009)
             // Whit Monday
             || (dd == em + 49)
             // Constitution Day
             || (d == 5 && m == 6)
+            // Christmas Eve
+            || (d == 24 && m == 12)
             // Christmas Day
             || (d == 25 && m == 12)
             // Boxing Day
             || (d == 26 && m == 12)
+            // New Year's Eve
+            || (d == 31 && m == 12)
         {
             return false;
         }

@@ -5,7 +5,7 @@
 > established conventions, translation methodology, and step-by-step workflow so
 > that work can resume from any point without loss of context.
 >
-> **Last updated:** 2025-02-25
+> **Last updated:** 2025-02-26
 
 ---
 
@@ -51,19 +51,21 @@ plan, including module mappings, phase descriptions, and risk register.
 | Metric | Value |
 |---|---|
 | Crates scaffolded | 16/16 (100%) |
-| Rust source files | 196 |
-| Lines of code | ~38,970 |
-| Unit tests (inline) | 740 (all passing) |
-| Integration test files (ported from C++ test-suite) | 0 |
+| Rust source files | 218 |
+| Lines of code | ~41,309 |
+| Unit tests (inline) | 754 (all passing) |
+| Integration test files (ported from C++ test-suite) | 3 (test_dates, test_calendars, test_day_counters) |
+| Integration tests | 42 (all passing) |
+| Total tests | 796 (all passing) |
 | Build status | ✅ Clean |
-| Overall completion | ~12–15% by module coverage |
+| Overall completion | ~14–17% by module coverage |
 
 ### 2.2 Per-Crate Status
 
 | Crate | Files | LOC | Tests | % Done | Key Gaps |
 |---|---|---|---|---|---|
 | `ql-core` | 14 | 1,144 | 31 | ~35% | Missing some utilities |
-| `ql-time` | 55 | 7,091 | 253 | ~73% | Missing ~2 calendars, integration tests |
+| `ql-time` | 62 | 10,339 | 308 | ~90% | Schedule integration tests remain (test_schedule.rs) |
 | `ql-math` | 22 | 6,454 | 134 | ~17% | 15 of 24 interpolation schemes, Halton, advanced optimizers, matrix utilities |
 | `ql-currencies` | 11 | 1,054 | 12 | ~70% | Mostly complete |
 | `ql-quotes` | 2 | 330 | 9 | ~50% | Missing ~10 quote types |
@@ -629,13 +631,14 @@ Within a phase, prioritize: **(1) port tests → (2) implement types → (3) pas
 - [ ] Port `test-suite/errors.cpp` → integration test
 - [ ] Audit for missing utilities from `ql/utilities/`
 
-### 🟡 Phase 2 — Time & Calendar / `ql-time` (~73%)
+### 🟡 Phase 2 — Time & Calendar / `ql-time` (~90%)
 
-**Done:** Date (serial number), Period, Month, Weekday, TimeUnit, Frequency, BusinessDayConvention, Calendar trait, 43 country/exchange calendars, JointCalendar, BespokeCalendar, WeekendsOnly, NullCalendar, DayCounter (15+ conventions), Schedule/ScheduleBuilder, DateGeneration, IMM, ASX, ECB, InterestRate.
+**Done:** Date (serial number, MAX bug fixed), Period, Month, Weekday, TimeUnit, Frequency, BusinessDayConvention, Calendar trait, **45/45 country/exchange calendars** (including Thailand added 2025-02-26), JointCalendar, BespokeCalendar, WeekendsOnly, NullCalendar, DayCounter (15+ conventions, Thirty360 BondBasis + ActualActualIsda bugs fixed), Schedule/ScheduleBuilder, DateGeneration, IMM, ASX, ECB, InterestRate. **3 integration test files** ported from C++ test-suite: test_dates.rs (13 tests), test_calendars.rs (16 tests), test_day_counters.rs (13 tests).
 **Remaining:**
-- [ ] Verify 45/45 calendars vs plan §9.2 (Thailand may be missing)
-- [ ] Port all 4 C++ test-suite files as integration tests
-- [ ] Cross-check edge cases vs C++ output
+- [ ] Port `test-suite/schedule.cpp` → `crates/ql-time/tests/test_schedule.rs` (in progress — C++ source fetched, ScheduleBuilder API reviewed)
+- [ ] Potential EOM-aware schedule generation refinements (some C++ tests may require improvements to ScheduleBuilder::build)
+- [ ] `cds_maturity()` free function (needed for CDS schedule tests)
+- [ ] `Schedule::until()` and `Schedule::after()` truncation methods (needed for truncation tests)
 
 ### 🟡 Phase 3 — Math / `ql-math` (~17%)
 
@@ -974,16 +977,54 @@ it. If it's done, delete the entry and start fresh from `plan.md` §23.
 
 ### Current Entry
 
-**Date:** 2025-02-25
-**Session:** Initial project audit and documentation
-**Status:** ✅ Complete — no unfinished work
+**Date:** 2025-02-26
+**Session:** Phase 2 Time & Calendar — major push toward 100%
+**Status:** 🟡 In progress — schedule tests not yet written
 
 **Completed:**
-- Created `INSTRUCTIONS.md` with full project conventions, workflows, and state
-- Created `.github/copilot-instructions.md` for automatic AI prompting
-- Updated `plan.md` with §6.1 progress snapshot, §23 next steps, phase status
+- Added Thailand calendar (`crates/ql-time/src/calendars/thailand.rs`, 13 unit tests)
+- Registered Thailand in `calendars/mod.rs`
+- Verified all 45/45 calendars present
+- Fixed `Date::MAX` off-by-one (109_574 → 109_573 in `date.rs`)
+- Ported `test-suite/dates.cpp` → `test_dates.rs` (13 integration tests)
+- Ported `test-suite/calendars.cpp` → `test_calendars.rs` (16 integration tests)
+  - Fixed 12 calendar bugs across 5 files: TARGET, US Settlement, US NYSE, UK Settlement, Denmark, Brazil
+- Ported `test-suite/daycounters.cpp` → `test_day_counters.rs` (13 integration tests)
+  - Fixed Thirty360 BondBasis logic in `day_counter.rs`
+  - Fixed ActualActualIsda d1>d2 handling in `day_counter.rs`
+  - Documented ISMA long-coupon limitation (test case skipped)
+- All 796 workspace tests passing
+
+**Files created:**
+- `crates/ql-time/src/calendars/thailand.rs`
+- `crates/ql-time/tests/test_dates.rs`
+- `crates/ql-time/tests/test_calendars.rs`
+- `crates/ql-time/tests/test_day_counters.rs`
+
+**Files modified:**
+- `crates/ql-time/src/calendars/mod.rs` — added `pub mod thailand`
+- `crates/ql-time/src/date.rs` — Date::MAX fix
+- `crates/ql-time/src/calendars/target.rs` — y>=2000 for holidays, Dec 31 2001
+- `crates/ql-time/src/calendars/united_states.rs` — NYSE rewrite, Settlement Dec 31 Friday
+- `crates/ql-time/src/calendars/united_kingdom.rs` — New Year/Christmas/Boxing Day substitutes
+- `crates/ql-time/src/calendars/denmark.rs` — day-after-ascension, Christmas Eve, New Year's Eve
+- `crates/ql-time/src/calendars/brazil.rs` — removed Ash Wednesday, fixed Corpus Christi
+- `crates/ql-time/src/day_counter.rs` — Thirty360 BondBasis + ActualActualIsda fixes
+
+**What remains for Phase 2:**
+- Port `test-suite/schedule.cpp` → `test_schedule.rs`
+  - C++ source has been fetched and reviewed
+  - Key tests: forward/backward EOM schedules, first/next-to-last date handling,
+    CDS2015/CDS/OldCDS convention grids, daily schedule, four-weeks tenor,
+    once frequency, truncation (until/after), date constructor
+  - May need to implement: `cds_maturity()` function, `Schedule::until()`/`after()`
+    methods, EOM-aware schedule edge cases in ScheduleBuilder::build()
+  - The existing build() handles Forward/Backward/ThirdWednesday/Twentieth/CDS/Zero
+    but some C++ test edge cases (EOM adjustment, dates-past-end dedup) may reveal
+    refinements needed
 
 **Next session should:**
-- Pick the highest-priority item from `plan.md` §23 (currently: finish Phase 2
-  ql-time to 100%, then Phase 0 CI setup)
-- No blockers
+1. Continue from task 6: create `test_schedule.rs` with key tests from C++ schedule.cpp
+2. Fix any ScheduleBuilder bugs revealed by the tests
+3. Run `just check` and finalize INSTRUCTIONS.md/plan.md updates
+4. If Phase 2 reaches 100%, move to plan.md §23.1B (CI setup) or §23.1C (deepen ql-core)

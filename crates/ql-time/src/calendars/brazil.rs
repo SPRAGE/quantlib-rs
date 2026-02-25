@@ -11,11 +11,10 @@ use crate::weekday::Weekday;
 /// Weekends and the following holidays are observed:
 /// * New Year's Day (Jan 1)
 /// * Carnival Monday & Tuesday (em-49, em-48)
-/// * Ash Wednesday (em-46, until noon — treated as full holiday)
 /// * Good Friday (em-3)
 /// * Tiradentes Day (Apr 21)
 /// * Labour Day (May 1)
-/// * Corpus Christi (em+60)
+/// * Corpus Christi (em+59)
 /// * Independence Day (Sep 7)
 /// * Our Lady of Aparecida (Oct 12)
 /// * All Souls' Day (Nov 2)
@@ -46,8 +45,6 @@ impl Calendar for Brazil {
             || (dd == em - 49)
             // Carnival Tuesday
             || (dd == em - 48)
-            // Ash Wednesday
-            || (dd == em - 46)
             // Good Friday
             || (dd == em - 3)
             // Tiradentes Day
@@ -55,7 +52,7 @@ impl Calendar for Brazil {
             // Labour Day
             || (d == 1 && m == 5)
             // Corpus Christi
-            || (dd == em + 60)
+            || (dd == em + 59)
             // Independence Day
             || (d == 7 && m == 9)
             // Our Lady of Aparecida

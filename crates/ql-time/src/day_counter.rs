@@ -147,11 +147,14 @@ impl DayCounter for Thirty360 {
         let m2 = d2.month() as i64;
         let mut dd2 = d2.day_of_month() as i64;
 
-        if dd2 == 31 && dd1 < 30 {
-            dd2 = 1;
-        }
+        // BondBasis rule (C++ Thirty360::BondBasis):
+        // 1. If D1 is 31, change D1 to 30
+        // 2. If D2 is 31 and (adjusted) D1 is 30, change D2 to 30
         if dd1 == 31 {
             dd1 = 30;
+        }
+        if dd2 == 31 && dd1 == 30 {
+            dd2 = 30;
         }
 
         360 * (y2 - y1) + 30 * (m2 - m1) + (dd2 - dd1)
@@ -182,6 +185,10 @@ impl DayCounter for ActualActualIsda {
         use crate::date::is_leap_year;
         if d1 == d2 {
             return 0.0;
+        }
+        // Handle reverse direction
+        if d1 > d2 {
+            return -self.year_fraction(d2, d1);
         }
         let (y1, _, _) = (d1.year(), d1.month(), d1.day_of_month());
         let (y2, _, _) = (d2.year(), d2.month(), d2.day_of_month());

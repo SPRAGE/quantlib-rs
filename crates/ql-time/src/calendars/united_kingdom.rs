@@ -34,9 +34,9 @@ impl Calendar for UnitedKingdomSettlement {
         let dd = date.day_of_year();
         let em = super::target::easter_monday_pub(y);
 
-        // New Year's Day
+        // New Year's Day (possibly moved to Monday)
         if (d == 1 && m == 1)
-            || (d == 2 && m == 1 && w == Weekday::Monday)
+            || ((d == 2 || d == 3) && m == 1 && w == Weekday::Monday)
         {
             return false;
         }
@@ -85,17 +85,15 @@ impl Calendar for UnitedKingdomSettlement {
         if m == 8 && w == Weekday::Monday && d >= 25 {
             return false;
         }
-        // Christmas
+        // Christmas (December 25) or substitute
         if (d == 25 && m == 12)
-            || (d == 26 && m == 12 && w == Weekday::Monday)  // Xmas on Sunday
             || (d == 27 && m == 12 && matches!(w, Weekday::Monday | Weekday::Tuesday))
         {
             return false;
         }
-        // Boxing Day
+        // Boxing Day (December 26) or substitute
         if (d == 26 && m == 12)
-            || (d == 27 && m == 12 && w == Weekday::Monday)  // Boxing Day on Sunday
-            || (d == 28 && m == 12 && w == Weekday::Monday)  // Boxing Day on Saturday
+            || (d == 28 && m == 12 && matches!(w, Weekday::Monday | Weekday::Tuesday))
         {
             return false;
         }

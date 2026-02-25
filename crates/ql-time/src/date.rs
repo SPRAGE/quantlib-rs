@@ -29,7 +29,7 @@ impl Date {
     pub const MIN: Date = Date(367);
 
     /// Maximum valid date: December 31, 2199.
-    pub const MAX: Date = Date(109_574);
+    pub const MAX: Date = Date(109_573);
 
     // ── Constructors ─────────────────────────────────────────────────────────
 

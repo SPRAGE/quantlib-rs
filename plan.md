@@ -577,7 +577,7 @@ us when the translation is correct. No phase is complete until its tests pass.
 |---|---|---|---|---|---|---|
 | **0** | Scaffolding | workspace, CI | — | — | — | 🟡 ~70% |
 | **1** | Foundation | `ql-core` | ~80 | `errors.cpp`, `observable.cpp` | — | 🟡 ~35% |
-| **2** | Time & Calendar | `ql-time` | ~136 | `dates.cpp`, `calendars.cpp`, `daycounters.cpp`, `schedule.cpp` | Phase 1 | 🟡 ~73% |
+| **2** | Time & Calendar | `ql-time` | ~136 | `dates.cpp`, `calendars.cpp`, `daycounters.cpp`, `schedule.cpp` | Phase 1 | 🟡 ~90% |
 | **3** | Math Library | `ql-math` | ~272 | `matrices.cpp`, `array.cpp`, `interpolations.cpp`, `distributions.cpp`, `solvers1d.cpp`, `optimizers.cpp`, `rngtraits.cpp`, `statistics.cpp`, `lowdiscrepancysequences.cpp` | Phase 1 | 🟡 ~17% |
 | **4** | Core Financial Primitives | `ql-currencies`, `ql-quotes`, `ql-indexes` | ~129 | `currencies.cpp`, `quotes.cpp` | Phases 1–3 | 🟡 ~34% |
 | **5** | Term Structures | `ql-termstructures` | ~201 | `termstructures.cpp`, `interestrateindex.cpp`, `piecewiseyieldcurve.cpp`, `fittedbonddiscountcurve.cpp`, `swaptionvolatilitymatrix.cpp` | Phases 1–4 | 🟡 ~15% |
@@ -588,26 +588,26 @@ us when the translation is correct. No phase is complete until its tests pass.
 | **10** | Indexes, Currencies & Quotes (advanced) | enrich earlier crates | ~50 | `inflation.cpp`, `inflationcpibond.cpp`, `inflationcpiswap.cpp` | Phases 1–9 | 🟡 ~20% |
 | **11** | Experimental | `ql-experimental` | ~421 | `variancegamma.cpp`, `varianceoption.cpp`, `catbonds.cpp`, remaining experimental tests | Phases 1–9 | 🔴 ~7% |
 
-### 6.1 Current Progress Snapshot (as of 2025-02-25)
+### 6.1 Current Progress Snapshot (as of 2025-02-26)
 
-**Overall: ~12–15% complete by module coverage, ~39,000 of ~200,000+ estimated Rust LOC.**
+**Overall: ~14–17% complete by module coverage, ~41,300 of ~200,000+ estimated Rust LOC.**
 
 | Metric | Value |
 |---|---|
 | Crates scaffolded | 16/16 (100%) |
-| Total Rust source files | 196 |
-| Total lines of code | ~38,970 |
-| Total unit tests | 740 (all passing) |
-| Doc-tests | 9 (all passing) |
-| Integration test files (ported from C++ test-suite) | 0 |
-| Build status | ✅ Clean (0 errors, 1 warning) |
+| Total Rust source files | 218 |
+| Total lines of code | ~41,309 |
+| Total tests | 796 (all passing) |
+| Doc-tests | 1 (passing) |
+| Integration test files (ported from C++ test-suite) | 3 (test_dates, test_calendars, test_day_counters) |
+| Build status | ✅ Clean (0 errors, 0 warnings) |
 
 **Per-crate breakdown:**
 
 | Crate | Files | LOC | Tests | Completeness |
 |---|---|---|---|---|
 | `ql-core` | 14 | 1,144 | 31 | ~35% — core types, errors, patterns, handle, settings done; missing some utilities |
-| `ql-time` | 55 | 7,091 | 253 | ~73% — 43/45 calendars, 15+ day counters, Date/Period/Schedule/IMM/ASX/ECB |
+| `ql-time` | 62 | 10,339 | 308 | ~90% — 45/45 calendars, 15+ day counters, Date/Period/Schedule/IMM/ASX/ECB; 3 integration test files |
 | `ql-math` | 22 | 6,454 | 134 | ~17% — 9/24 interps, 7 dists, basic solvers/optimizers/RNG |
 | `ql-currencies` | 11 | 1,054 | 12 | ~70% — Currency, Money, ExchangeRate, 6 regional modules |
 | `ql-quotes` | 2 | 330 | 9 | ~50% — Quote trait + 8 implementations; missing ~10 quote types |
@@ -1308,9 +1308,9 @@ implementation in every phase. This is the single most important process decisio
 |---|---|---|
 | `test-suite/observable.cpp` | `crates/ql-core/tests/test_observable.rs` | **1** |
 | `test-suite/errors.cpp` | `crates/ql-core/tests/test_errors.rs` | **1** |
-| `test-suite/dates.cpp` | `crates/ql-time/tests/test_dates.rs` | **2** |
-| `test-suite/calendars.cpp` | `crates/ql-time/tests/test_calendars.rs` | **2** |
-| `test-suite/daycounters.cpp` | `crates/ql-time/tests/test_day_counters.rs` | **2** |
+| `test-suite/dates.cpp` | `crates/ql-time/tests/test_dates.rs` | **2** ✅ |
+| `test-suite/calendars.cpp` | `crates/ql-time/tests/test_calendars.rs` | **2** ✅ |
+| `test-suite/daycounters.cpp` | `crates/ql-time/tests/test_day_counters.rs` | **2** ✅ |
 | `test-suite/schedule.cpp` | `crates/ql-time/tests/test_schedule.rs` | **2** |
 | `test-suite/matrices.cpp` | `crates/ql-math/tests/test_matrices.rs` | **3** |
 | `test-suite/array.cpp` | `crates/ql-math/tests/test_array.rs` | **3** |
@@ -1556,14 +1556,15 @@ first** (finish what's started), then fill critical infrastructure gaps.
 
 ### 23.1 Immediate Priorities (complete current foundations)
 
-#### A. Finish Phase 2 — Time & Calendar (~73% → 100%)
-- [ ] Add missing calendars: Thailand, Weekends-Only, Null Calendar (if not aliased)
-- [ ] Verify all 45 countries from plan §9.2 are present
-- [ ] Port `test-suite/dates.cpp` → `crates/ql-time/tests/test_dates.rs` (integration tests)
-- [ ] Port `test-suite/calendars.cpp` → `crates/ql-time/tests/test_calendars.rs`
-- [ ] Port `test-suite/daycounters.cpp` → `crates/ql-time/tests/test_day_counters.rs`
-- [ ] Port `test-suite/schedule.cpp` → `crates/ql-time/tests/test_schedule.rs`
-- [ ] Add `DateGeneration::Rule` enum (Forward, Backward, Zero, etc.) if missing
+#### A. Finish Phase 2 — Time & Calendar (~90% → 100%)
+- [x] Add missing calendars: Thailand _(added 2025-02-26, 13 unit tests)_
+- [x] Verify all 45 countries from plan §9.2 are present _(all 45 confirmed)_
+- [x] Port `test-suite/dates.cpp` → `crates/ql-time/tests/test_dates.rs` _(13 integration tests, all passing)_
+- [x] Port `test-suite/calendars.cpp` → `crates/ql-time/tests/test_calendars.rs` _(16 integration tests, all passing; fixed 12 calendar bugs)_
+- [x] Port `test-suite/daycounters.cpp` → `crates/ql-time/tests/test_day_counters.rs` _(13 integration tests, all passing; fixed Thirty360 BondBasis + ActualActualIsda bugs)_
+- [ ] Port `test-suite/schedule.cpp` → `crates/ql-time/tests/test_schedule.rs` _(in progress — C++ source fetched, API reviewed)_
+- [x] Add `DateGeneration::Rule` enum (Forward, Backward, Zero, etc.) _(already present)_
+- [x] Fix `Date::MAX` off-by-one (109_574 → 109_573)
 
 #### B. Finish Phase 0 — Scaffolding
 - [ ] Configure CI (GitHub Actions): `cargo build`, `cargo test`, `cargo clippy`, `cargo fmt --check`
