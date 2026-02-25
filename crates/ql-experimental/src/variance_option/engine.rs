@@ -176,7 +176,7 @@ fn ivop_one_dim(
             Complex64::new(eprice * eprice * 0.5, 0.0)
         };
 
-        ff[j + 1] = ff[j + 1] * contrib;
+        ff[j + 1] *= contrib;
     }
 
     // Inverse FFT-like summation (Bailey-Swarztrauber)
@@ -192,11 +192,11 @@ fn ivop_one_dim(
     }
 
     let sign_mm = (-1.0_f64).powi(mm as i32);
-    csum = csum * Complex64::new(sign_mm.sqrt() * nris / pi2, 0.0);
+    csum *= Complex64::new(sign_mm.sqrt() * nris / pi2, 0.0);
 
     // Add deterministic part
     let vero = i0 - eprice + theta * tau + (1.0 - (-chi * tau).exp()) * (v0 - theta) / chi;
-    csum = csum + Complex64::new(vero, 0.0);
+    csum += Complex64::new(vero, 0.0);
 
     // Option value
     let option = (-rtax * tau).exp() * csum.re;

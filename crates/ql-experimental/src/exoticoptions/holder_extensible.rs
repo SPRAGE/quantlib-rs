@@ -78,8 +78,7 @@ impl AnalyticHolderExtensibleOptionEngine {
             // BSM call value for the base option
             let bsm = self.bs_call(s, x1, growth, discount, vol, t1);
 
-            let result = bsm
-                + s * ((b - r) * t2).exp() * self.m2(y1, y2, f64::NEG_INFINITY, z1, rho)
+            bsm + s * ((b - r) * t2).exp() * self.m2(y1, y2, f64::NEG_INFINITY, z1, rho)
                 - x2 * (-r * t2).exp()
                     * self.m2(
                         y1 - vol * t1.sqrt(),
@@ -90,9 +89,7 @@ impl AnalyticHolderExtensibleOptionEngine {
                     )
                 - s * ((b - r) * t1).exp() * self.n2(y1, z2)
                 + x1 * (-r * t1).exp() * self.n2(y1 - vol * t1.sqrt(), z2 - vol * t1.sqrt())
-                - a * (-r * t1).exp() * self.n2(y1 - vol * t1.sqrt(), y2 - vol * t1.sqrt());
-
-            result
+                - a * (-r * t1).exp() * self.n2(y1 - vol * t1.sqrt(), y2 - vol * t1.sqrt())
         } else {
             let i1 = self.i1_put(args);
             let i2 = self.i2_put(args);
@@ -102,8 +99,7 @@ impl AnalyticHolderExtensibleOptionEngine {
 
             let bsm = self.bs_put(s, x1, growth, discount, vol, t1);
 
-            let result = bsm
-                - s * ((b - r) * t2).exp() * self.m2(y1, y2, f64::NEG_INFINITY, -z1, rho)
+            bsm - s * ((b - r) * t2).exp() * self.m2(y1, y2, f64::NEG_INFINITY, -z1, rho)
                 + x2 * (-r * t2).exp()
                     * self.m2(
                         y1 - vol * t1.sqrt(),
@@ -114,9 +110,7 @@ impl AnalyticHolderExtensibleOptionEngine {
                     )
                 + s * ((b - r) * t1).exp() * self.n2(z2, y2)
                 - x1 * (-r * t1).exp() * self.n2(z2 - vol * t1.sqrt(), y2 - vol * t1.sqrt())
-                - a * (-r * t1).exp() * self.n2(y1 - vol * t1.sqrt(), y2 - vol * t1.sqrt());
-
-            result
+                - a * (-r * t1).exp() * self.n2(y1 - vol * t1.sqrt(), y2 - vol * t1.sqrt())
         }
     }
 
@@ -227,12 +221,10 @@ impl AnalyticHolderExtensibleOptionEngine {
         let forward = spot * growth / discount;
         let d1 = if std_dev > 1e-15 {
             (forward / x2).ln() / std_dev + 0.5 * std_dev
+        } else if forward > x2 {
+            1e15
         } else {
-            if forward > x2 {
-                1e15
-            } else {
-                -1e15
-            }
+            -1e15
         };
         let d2 = d1 - std_dev;
 
@@ -254,12 +246,10 @@ impl AnalyticHolderExtensibleOptionEngine {
         let forward = s * growth / discount;
         let d1 = if std_dev > 1e-15 {
             (forward / k).ln() / std_dev + 0.5 * std_dev
+        } else if forward > k {
+            1e15
         } else {
-            if forward > k {
-                1e15
-            } else {
-                -1e15
-            }
+            -1e15
         };
         let d2 = d1 - std_dev;
         discount * (forward * normal_cdf(d1) - k * normal_cdf(d2))
@@ -270,12 +260,10 @@ impl AnalyticHolderExtensibleOptionEngine {
         let forward = s * growth / discount;
         let d1 = if std_dev > 1e-15 {
             (forward / k).ln() / std_dev + 0.5 * std_dev
+        } else if forward > k {
+            1e15
         } else {
-            if forward > k {
-                1e15
-            } else {
-                -1e15
-            }
+            -1e15
         };
         let d2 = d1 - std_dev;
         discount * (k * normal_cdf(-d2) - forward * normal_cdf(-d1))

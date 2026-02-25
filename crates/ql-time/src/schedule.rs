@@ -5,7 +5,7 @@
 //! business-day conventions.
 
 use crate::business_day_convention::BusinessDayConvention;
-use crate::calendar::Calendar;
+use crate::calendar::{Calendar, NullCalendar};
 use crate::date::Date;
 use crate::period::Period;
 use crate::weekday::Weekday;
@@ -88,6 +88,94 @@ impl Schedule {
             dates,
         }
     }
+
+    /// Build a schedule from an explicit list of dates and regularity flags.
+    pub fn from_dates_with_regular(dates: Vec<Date>, is_regular: Vec<bool>) -> Self {
+        Self { dates, is_regular }
+    }
+
+    /// Return a truncated schedule containing all dates before `truncation_date`.
+    ///
+    /// If `truncation_date` falls on an existing schedule date, that date
+    /// becomes the new terminal date.  Otherwise `truncation_date` is appended
+    /// and the last period is marked irregular.
+    pub fn until(&self, truncation_date: Date) -> Self {
+        let mut dates = Vec::new();
+        let mut is_regular = Vec::new();
+        for (i, &d) in self.dates.iter().enumerate() {
+            if d < truncation_date {
+                dates.push(d);
+                if i > 0 {
+                    is_regular.push(self.is_regular(i));
+                }
+            } else if d == truncation_date {
+                dates.push(d);
+                if i > 0 {
+                    is_regular.push(self.is_regular(i));
+                }
+                break;
+            } else {
+                // d > truncation_date — append truncation_date as irregular end
+                dates.push(truncation_date);
+                is_regular.push(false);
+                break;
+            }
+        }
+        Self { dates, is_regular }
+    }
+
+    /// Return a truncated schedule containing all dates after `truncation_date`.
+    ///
+    /// If `truncation_date` falls on an existing schedule date, that date
+    /// becomes the new start date.  Otherwise `truncation_date` is prepended
+    /// and the first period is marked irregular.
+    pub fn after(&self, truncation_date: Date) -> Self {
+        let mut dates = Vec::new();
+        let mut is_regular = Vec::new();
+        let mut found = false;
+        for (i, &d) in self.dates.iter().enumerate() {
+            if d < truncation_date {
+                continue;
+            }
+            if d == truncation_date {
+                dates.push(d);
+                found = true;
+            } else {
+                // d > truncation_date
+                if !found {
+                    dates.push(truncation_date);
+                    is_regular.push(false);
+                    found = true;
+                }
+                dates.push(d);
+                if dates.len() > 1 && is_regular.len() < dates.len() - 1 {
+                    // For dates that came from the original schedule, use their
+                    // regularity.  The period spanning the truncation boundary
+                    // was already marked above.
+                    is_regular.push(self.is_regular(i));
+                }
+            }
+        }
+        Self { dates, is_regular }
+    }
+
+    /// Return the full is_regular vector (one entry per period).
+    pub fn is_regular_vec(&self) -> &[bool] {
+        &self.is_regular
+    }
+}
+
+/// Advance a date using NullCalendar semantics, optionally snapping to
+/// end-of-month.  This mirrors the C++ pattern:
+///     `NullCalendar().advance(seed, n*tenor, convention, endOfMonth)`
+fn null_advance_eom(seed: Date, tenor: &Period, n: i32, end_of_month: bool) -> Result<Date> {
+    let mut next = seed
+        .advance(n * tenor.length, tenor.unit)
+        .map_err(|e| Error::Date(e.to_string()))?;
+    if end_of_month && NullCalendar.is_end_of_month(seed) {
+        next = next.end_of_month();
+    }
+    Ok(next)
 }
 
 /// Builder for [`Schedule`].
@@ -166,9 +254,21 @@ impl<'a> ScheduleBuilder<'a> {
     }
 
     /// Build the `Schedule`.
+    ///
+    /// The implementation follows the same two-phase approach as the C++
+    /// `QuantLib::Schedule` constructor:
+    ///
+    /// 1. **Generation** — raw dates are produced using `NullCalendar`-style
+    ///    arithmetic (pure date advance, with optional end-of-month snap if the
+    ///    seed *is* the last calendar day of its month).
+    /// 2. **Adjustment** — a shared post-processing pass applies business-day
+    ///    conventions, end-of-month snapping via the actual calendar, and
+    ///    safety clean-ups.
     pub fn build(self) -> Result<Schedule> {
         let start = self.effective_date;
         let end = self.termination_date;
+        let conv = self.convention;
+        let term_conv = self.termination_convention;
 
         if start >= end {
             return Err(Error::InvalidArgument(
@@ -179,8 +279,8 @@ impl<'a> ScheduleBuilder<'a> {
         // Zero coupon — just start and end.
         if self.tenor.length == 0 || self.rule == DateGeneration::Zero {
             let dates = vec![
-                self.calendar.adjust(start, self.convention),
-                self.calendar.adjust(end, self.termination_convention),
+                self.calendar.adjust(start, conv),
+                self.calendar.adjust(end, term_conv),
             ];
             return Ok(Schedule {
                 is_regular: vec![false],
@@ -190,55 +290,112 @@ impl<'a> ScheduleBuilder<'a> {
 
         let mut dates: Vec<Date> = Vec::new();
         let mut is_regular: Vec<bool> = Vec::new();
+        // `seed` is used after the match for the EOM adjustment check.
+        // Forward sets it to `start`; Backward sets it to `end`.
+        let mut seed = start;
 
         match self.rule {
+            // ── Forward ────────────────────────────────────────────────
             DateGeneration::Forward => {
                 dates.push(start);
-                let mut seed = start;
+
                 if let Some(fd) = self.first_date {
-                    dates.push(self.calendar.adjust(fd, self.convention));
-                    is_regular.push(false);
-                    seed = fd;
+                    if fd != end {
+                        dates.push(fd);
+                        let expected = null_advance_eom(seed, &self.tenor, 1, self.end_of_month)?;
+                        is_regular.push(expected == fd);
+                        seed = fd;
+                    }
                 }
-                let mut n = 1i32;
+
+                let exit_date = self.next_to_last_date.unwrap_or(end);
+
+                let mut periods = 1i32;
                 loop {
-                    let next = seed
-                        .advance(n * self.tenor.length, self.tenor.unit)
-                        .map_err(|e| Error::Date(e.to_string()))?;
-                    if next >= end {
+                    let temp = null_advance_eom(seed, &self.tenor, periods, self.end_of_month)?;
+                    if temp > exit_date {
+                        if let Some(ntl) = self.next_to_last_date {
+                            let adj_last = dates.last().map(|d| self.calendar.adjust(*d, conv));
+                            let adj_ntl = self.calendar.adjust(ntl, conv);
+                            if adj_last != Some(adj_ntl) {
+                                dates.push(ntl);
+                                is_regular.push(false);
+                            }
+                        }
                         break;
                     }
-                    let adj = self.calendar.adjust(next, self.convention);
-                    if self.end_of_month && self.calendar.is_end_of_month(adj) {
-                        let eom = self.calendar.end_of_month(next);
-                        dates.push(eom);
-                    } else {
-                        dates.push(adj);
+                    // Skip dates that would result in duplicates after
+                    // adjustment.
+                    let adj_last = dates.last().map(|d| self.calendar.adjust(*d, conv));
+                    let adj_temp = self.calendar.adjust(temp, conv);
+                    if adj_last != Some(adj_temp) {
+                        dates.push(temp);
+                        is_regular.push(true);
                     }
-                    is_regular.push(true);
-                    n += 1;
+                    periods += 1;
                 }
-                // Add next-to-last if provided
-                if let Some(ntl) = self.next_to_last_date {
-                    if dates.last().copied() != Some(self.calendar.adjust(ntl, self.convention)) {
-                        dates.push(self.calendar.adjust(ntl, self.convention));
-                        is_regular.push(false);
-                    }
+
+                // Terminal date.
+                let adj_last = dates.last().map(|d| self.calendar.adjust(*d, conv));
+                let adj_term = self.calendar.adjust(end, term_conv);
+                if adj_last != Some(adj_term) {
+                    dates.push(end);
+                    is_regular.push(false);
                 }
-                // Terminal date
-                let term = self.calendar.adjust(end, self.termination_convention);
-                // Regular if the last intermediate date is exactly one tenor before end
-                let expected_last = end
-                    .advance(-self.tenor.length, self.tenor.unit)
-                    .ok()
-                    .map(|d| self.calendar.adjust(d, self.convention));
-                is_regular.push(dates.last().copied() == expected_last);
-                dates.push(term);
             }
 
+            // ── Backward ───────────────────────────────────────────────
+            DateGeneration::Backward => {
+                dates.push(end);
+                seed = end;
+
+                if let Some(ntl) = self.next_to_last_date {
+                    dates.push(ntl);
+                    let expected = null_advance_eom(seed, &self.tenor, -1, self.end_of_month)?;
+                    is_regular.push(expected == ntl);
+                    seed = ntl;
+                }
+
+                let exit_date = self.first_date.unwrap_or(start);
+
+                let mut periods = 1i32;
+                loop {
+                    let temp = null_advance_eom(seed, &self.tenor, -periods, self.end_of_month)?;
+                    if temp < exit_date {
+                        if let Some(fd) = self.first_date {
+                            let adj_head = dates.last().map(|d| self.calendar.adjust(*d, conv));
+                            let adj_fd = self.calendar.adjust(fd, conv);
+                            if adj_head != Some(adj_fd) {
+                                dates.push(fd);
+                                is_regular.push(false);
+                            }
+                        }
+                        break;
+                    }
+                    // Skip duplicates (after adjustment).
+                    let adj_head = dates.last().map(|d| self.calendar.adjust(*d, conv));
+                    let adj_temp = self.calendar.adjust(temp, conv);
+                    if adj_head != Some(adj_temp) {
+                        dates.push(temp);
+                        is_regular.push(true);
+                    }
+                    periods += 1;
+                }
+
+                // Start date.
+                let adj_head = dates.last().map(|d| self.calendar.adjust(*d, conv));
+                let adj_start = self.calendar.adjust(start, conv);
+                if adj_head != Some(adj_start) {
+                    dates.push(start);
+                    is_regular.push(false);
+                }
+
+                dates.reverse();
+                is_regular.reverse();
+            }
+
+            // ── ThirdWednesday ─────────────────────────────────────────
             DateGeneration::ThirdWednesday => {
-                // Generate dates forward, then snap every intermediate date to
-                // the third Wednesday of its month.
                 dates.push(start);
                 let mut n = 1i32;
                 loop {
@@ -248,7 +405,6 @@ impl<'a> ScheduleBuilder<'a> {
                     if next >= end {
                         break;
                     }
-                    // Snap to 3rd Wednesday
                     let tw = Date::nth_weekday(3, Weekday::Wednesday, next.year(), next.month())
                         .map_err(|e| Error::Date(e.to_string()))?;
                     dates.push(tw);
@@ -257,11 +413,15 @@ impl<'a> ScheduleBuilder<'a> {
                 }
                 is_regular.push(true);
                 dates.push(end);
+                // ThirdWednesday dates are not subject to the shared
+                // adjustment; intermediate dates are snapped to the 3rd
+                // Wednesday which overrides business-day conventions.
+                dates.dedup();
+                return Ok(Schedule { dates, is_regular });
             }
 
+            // ── Twentieth / TwentiethIMM ───────────────────────────────
             DateGeneration::Twentieth | DateGeneration::TwentiethIMM => {
-                // Generate dates forward, snapping intermediate dates to the
-                // 20th of the month.
                 dates.push(start);
                 let mut n = 1i32;
                 loop {
@@ -271,7 +431,6 @@ impl<'a> ScheduleBuilder<'a> {
                     if next >= end {
                         break;
                     }
-                    // Snap to the 20th
                     let twentieth = Date::from_ymd(next.year(), next.month(), 20)
                         .map_err(|e| Error::Date(e.to_string()))?;
                     dates.push(twentieth);
@@ -280,21 +439,18 @@ impl<'a> ScheduleBuilder<'a> {
                 }
                 is_regular.push(true);
                 dates.push(end);
+                // Twentieth rule typically uses Unadjusted; return directly.
+                dates.dedup();
+                return Ok(Schedule { dates, is_regular });
             }
 
+            // ── CDS / CDS2015 / OldCDS ────────────────────────────────
             DateGeneration::CDS | DateGeneration::CDS2015 | DateGeneration::OldCDS => {
-                // CDS schedules: generate quarterly dates snapped to the 20th
-                // of Mar, Jun, Sep, Dec (the standard IMM months).
-                // For CDS/CDS2015, the stub is at the front (short first).
                 let cds_months = [3u8, 6, 9, 12];
                 let mut raw = Vec::new();
-                // Walk backwards from end, stepping 3 months at a time on
-                // the 20th of CDS months.
                 let mut y = end.year();
                 let mut m = end.month();
-                // Find the CDS month on or before the end
                 if !cds_months.contains(&m) {
-                    // Find the most recent CDS month
                     for &cm in cds_months.iter().rev() {
                         if cm <= m {
                             m = cm;
@@ -302,22 +458,18 @@ impl<'a> ScheduleBuilder<'a> {
                         }
                     }
                     if m > end.month() {
-                        // Wrapped around year — previous December
                         m = 12;
                         y -= 1;
                     }
                 }
 
-                // Generate dates backward from the CDS month on or before end
                 loop {
                     let d = Date::from_ymd(y, m, 20).map_err(|e| Error::Date(e.to_string()))?;
                     if d <= start {
-                        // Include one more for CDS (the previous 20th before start)
                         raw.push(d);
                         break;
                     }
                     raw.push(d);
-                    // Move back 3 months
                     if m <= 3 {
                         m = m + 12 - 3;
                         y -= 1;
@@ -327,69 +479,92 @@ impl<'a> ScheduleBuilder<'a> {
                 }
                 raw.reverse();
 
-                // Ensure start and end are included
                 dates = raw;
-                // If the first date is before start, keep it (it becomes the
-                // effective date for the stub).
-                // Always include the termination date.
                 if dates.last().map(|d| *d < end).unwrap_or(true) {
                     dates.push(end);
                 }
 
-                // Build is_regular (all regular for CDS)
                 is_regular = vec![true; dates.len().saturating_sub(1)];
-                // First period might be a stub
                 if dates.len() > 1 {
                     is_regular[0] = false;
                 }
-            }
 
-            DateGeneration::Backward => {
-                dates.push(end);
-                let mut seed = end;
-                if let Some(ntl) = self.next_to_last_date {
-                    dates.insert(0, self.calendar.adjust(ntl, self.convention));
-                    is_regular.push(false);
-                    seed = ntl;
-                }
-                let mut n = 1i32;
-                loop {
-                    let prev = seed
-                        .advance(-n * self.tenor.length, self.tenor.unit)
-                        .map_err(|e| Error::Date(e.to_string()))?;
-                    if prev <= start {
-                        break;
-                    }
-                    let adj = self.calendar.adjust(prev, self.convention);
-                    dates.insert(0, adj);
-                    is_regular.push(true);
-                    n += 1;
-                }
-                // Add first date if provided and not already present
-                if let Some(fd) = self.first_date {
-                    let adj_fd = self.calendar.adjust(fd, self.convention);
-                    if dates.first().copied() != Some(adj_fd) {
-                        dates.insert(0, adj_fd);
-                        is_regular.push(false);
-                    }
-                }
-                // Start date — is regular if next date is exactly one tenor after start
-                let expected_next = start
-                    .advance(self.tenor.length, self.tenor.unit)
-                    .ok()
-                    .map(|d| self.calendar.adjust(d, self.convention));
-                is_regular.push(dates.first().copied() == expected_next);
-                dates.insert(0, self.calendar.adjust(start, self.convention));
-                is_regular.reverse();
+                // CDS rules have their own adjustment; skip the shared
+                // post-processing below.
+                dates.dedup();
+                return Ok(Schedule { dates, is_regular });
             }
 
             DateGeneration::Zero => {
-                // Already handled above; this arm is unreachable.
                 unreachable!("Zero coupon is handled before the match");
             }
         }
 
-        // Deduplicate adjacent equal dates
+        // ── Shared adjustment pass (Forward / Backward) ───────────────
+        //
+        // 1. Adjust first date (unless Unadjusted).
+        // 2. Adjust intermediate dates; if EOM mode and the calendar considers
+        //    the seed an end-of-month date, snap each to Date::end_of_month()
+        //    first, then apply convention.
+        // 3. Adjust last date (unless Unadjusted).
+        // 4. Safety: remove date[n-2] if >= date[n-1]; remove date[1] if <=
+        //    date[0].
+
+        let n = dates.len();
+        if n == 0 {
+            return Ok(Schedule { dates, is_regular });
+        }
+
+        // First date.
+        if conv != BusinessDayConvention::Unadjusted {
+            dates[0] = self.calendar.adjust(dates[0], conv);
+        }
+
+        // Last date.
+        if n > 1 && term_conv != BusinessDayConvention::Unadjusted {
+            let last = n - 1;
+            dates[last] = self.calendar.adjust(dates[last], term_conv);
+        }
+
+        // Intermediate dates.
+        let eom_calendar = self.end_of_month && self.calendar.is_end_of_month(seed);
+        if n > 2 {
+            for d in dates.iter_mut().take(n - 1).skip(1) {
+                if eom_calendar {
+                    *d = self.calendar.adjust(d.end_of_month(), conv);
+                } else {
+                    *d = self.calendar.adjust(*d, conv);
+                }
+            }
+        }
+
+        // Safety: if second-to-last date >= last date (can happen with EOM
+        // snap pushing past end), merge them.
+        if dates.len() >= 2 {
+            let last_idx = dates.len() - 1;
+            let penult = last_idx - 1;
+            if dates[penult] >= dates[last_idx] {
+                if is_regular.len() >= 2 {
+                    let idx = is_regular.len() - 2;
+                    is_regular[idx] = dates[penult] == dates[last_idx];
+                }
+                dates[penult] = dates[last_idx];
+                dates.pop();
+                is_regular.pop();
+            }
+        }
+
+        // Safety: if second date <= first date, merge them.
+        if dates.len() >= 2 && dates[1] <= dates[0] {
+            if is_regular.len() >= 2 {
+                is_regular[1] = dates[1] == dates[0];
+            }
+            dates[1] = dates[0];
+            dates.remove(0);
+            is_regular.remove(0);
+        }
+
+        // Final dedup (belt-and-suspenders).
         dates.dedup();
 
         Ok(Schedule { dates, is_regular })
@@ -430,6 +605,8 @@ mod tests {
             &cal,
         )
         .with_rule(DateGeneration::Backward)
+        .with_convention(BusinessDayConvention::Unadjusted)
+        .with_termination_convention(BusinessDayConvention::Unadjusted)
         .build()
         .unwrap();
         // Should have: 2020-01-01, 2021-01-01, 2022-01-01, 2023-01-01
@@ -448,6 +625,8 @@ mod tests {
             &cal,
         )
         .with_rule(DateGeneration::Forward)
+        .with_convention(BusinessDayConvention::Unadjusted)
+        .with_termination_convention(BusinessDayConvention::Unadjusted)
         .build()
         .unwrap();
         assert_eq!(sched.size(), 4);

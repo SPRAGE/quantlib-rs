@@ -246,7 +246,7 @@ fn implied_vol_from_call(forward: Real, strike: Real, t: Real, price: Real) -> O
 
     // Initial guess from Brenner-Subrahmanyam
     let mut vol = (2.0 * std::f64::consts::PI / t).sqrt() * price / forward;
-    vol = vol.max(0.01).min(5.0);
+    vol = vol.clamp(0.01, 5.0);
 
     for _ in 0..100 {
         let c = black_call(forward, strike, vol, t);
@@ -262,7 +262,7 @@ fn implied_vol_from_call(forward: Real, strike: Real, t: Real, price: Real) -> O
         if (new_vol - vol).abs() < 1e-12 {
             return Some(new_vol.max(0.0));
         }
-        vol = new_vol.max(1e-6).min(10.0);
+        vol = new_vol.clamp(1e-6, 10.0);
     }
 
     Some(vol.max(0.0))

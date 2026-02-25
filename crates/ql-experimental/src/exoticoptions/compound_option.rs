@@ -189,12 +189,10 @@ impl AnalyticCompoundOptionEngine {
             let forward = s * dd_md / rd_md;
             let d1 = if sd_md > 1e-15 {
                 (forward / strike_d).ln() / sd_md + 0.5 * sd_md
+            } else if forward > strike_d {
+                1e15
             } else {
-                if forward > strike_d {
-                    1e15
-                } else {
-                    -1e15
-                }
+                -1e15
             };
             let d2 = d1 - sd_md;
             let val = phi

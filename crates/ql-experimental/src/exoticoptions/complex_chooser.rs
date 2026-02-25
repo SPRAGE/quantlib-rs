@@ -136,12 +136,10 @@ impl AnalyticComplexChooserEngine {
         let forward = spot * growth / discount;
         let d1 = if std_dev > 1e-15 {
             (forward / strike).ln() / std_dev + 0.5 * std_dev
+        } else if forward > strike {
+            1e15
         } else {
-            if forward > strike {
-                1e15
-            } else {
-                -1e15
-            }
+            -1e15
         };
         let d2 = d1 - std_dev;
 

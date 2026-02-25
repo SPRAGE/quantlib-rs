@@ -116,12 +116,12 @@ impl PricingEngine<VanillaOptionArguments> for VarianceGammaEngine {
         // GaussKronrod fallback for short-dated options with singularity at zero.
         let price = {
             let integrator = SimpsonIntegral::new(self.abs_err, 10000);
-            match integrator.integrate(&integrand, 0.0, infinity) {
+            match integrator.integrate(integrand, 0.0, infinity) {
                 Ok(v) => v,
                 Err(_) => {
                     // Simpson failed (likely singularity near zero) — use adaptive Gauss-Kronrod
                     let gk = GaussKronrodAdaptive::new(self.abs_err, 100_000);
-                    gk.integrate(&integrand, 0.0, infinity)?
+                    gk.integrate(integrand, 0.0, infinity)?
                 }
             }
         };
