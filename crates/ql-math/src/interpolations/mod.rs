@@ -1,11 +1,18 @@
-//! 1D interpolation trait and implementations (translates
+//! 1D and 2D interpolation traits and implementations (translates
 //! `ql/math/interpolation.hpp` and `ql/math/interpolations/`).
 //!
-//! Implementations: Linear, LogLinear, Flat (backward), ForwardFlat,
-//! CubicNaturalSpline, LagrangeInterpolation, AkimaSpline, MonotoneCubicSpline,
-//! SABR interpolation.
+//! **1D interpolations:** Linear, LogLinear, Flat (backward), ForwardFlat,
+//! CubicNaturalSpline, Lagrange, Akima, MonotoneCubic (Fritsch-Carlson),
+//! FritschButland, Kruger, Parabolic, Chebyshev, LogCubic, SABR.
+//!
+//! **2D interpolations:** Bilinear, Bicubic.
 
 pub mod akima;
+pub mod bicubic;
+pub mod bilinear;
+pub mod chebyshev;
+pub mod cubic;
+pub mod log_cubic;
 pub mod monotone_cubic;
 pub mod sabr;
 

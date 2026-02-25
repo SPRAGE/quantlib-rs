@@ -445,54 +445,88 @@ impl<'a> ScheduleBuilder<'a> {
             }
 
             // ── CDS / CDS2015 / OldCDS ────────────────────────────────
+            //
+            // These rules use Forward generation starting from
+            // previousTwentieth (for CDS/CDS2015) or the effective date
+            // (for OldCDS).  The implementation follows the C++ QuantLib
+            // constructor exactly.
             DateGeneration::CDS | DateGeneration::CDS2015 | DateGeneration::OldCDS => {
-                let cds_months = [3u8, 6, 9, 12];
-                let mut raw = Vec::new();
-                let mut y = end.year();
-                let mut m = end.month();
-                if !cds_months.contains(&m) {
-                    for &cm in cds_months.iter().rev() {
-                        if cm <= m {
-                            m = cm;
-                            break;
-                        }
+                let rule_val = self.rule;
+
+                // ── Start date(s) ──
+                if matches!(rule_val, DateGeneration::CDS | DateGeneration::CDS2015) {
+                    let prev20th = previous_twentieth(start, rule_val)?;
+                    if self.calendar.adjust(prev20th, conv) > start {
+                        // Extra period before the previous 20th.
+                        let extra = prev20th
+                            .advance(-3, crate::time_unit::TimeUnit::Months)
+                            .map_err(|e| Error::Date(e.to_string()))?;
+                        dates.push(extra);
+                        is_regular.push(true);
                     }
-                    if m > end.month() {
-                        m = 12;
-                        y -= 1;
-                    }
+                    dates.push(prev20th);
+                } else {
+                    // OldCDS: start with the original effective date.
+                    dates.push(start);
                 }
 
+                seed = *dates.last().unwrap();
+
+                // ── First period ──
+                let mut nxt = next_twentieth(start, rule_val)?;
+                if rule_val == DateGeneration::OldCDS {
+                    // 30-day stub distance rule (natural days).
+                    let stub_days = 30;
+                    if nxt - start < stub_days {
+                        nxt = next_twentieth(
+                            nxt.advance(1, crate::time_unit::TimeUnit::Days)
+                                .map_err(|e| Error::Date(e.to_string()))?,
+                            rule_val,
+                        )?;
+                    }
+                }
+                if nxt != start {
+                    dates.push(nxt);
+                    is_regular.push(matches!(
+                        rule_val,
+                        DateGeneration::CDS | DateGeneration::CDS2015
+                    ));
+                    seed = nxt;
+                }
+
+                // ── Forward loop (quarterly steps from seed) ──
+                let mut periods = 1i32;
                 loop {
-                    let d = Date::from_ymd(y, m, 20).map_err(|e| Error::Date(e.to_string()))?;
-                    if d <= start {
-                        raw.push(d);
+                    let temp = seed
+                        .advance(periods * 3, crate::time_unit::TimeUnit::Months)
+                        .map_err(|e| Error::Date(e.to_string()))?;
+                    // Snap to 20th (safety against month-length quirks).
+                    let temp = Date::from_ymd(temp.year(), temp.month(), 20)
+                        .map_err(|e| Error::Date(e.to_string()))?;
+                    if temp > end {
                         break;
                     }
-                    raw.push(d);
-                    if m <= 3 {
-                        m = m + 12 - 3;
-                        y -= 1;
-                    } else {
-                        m -= 3;
+                    // Skip dates that would duplicate the previous one
+                    // after adjustment.
+                    if self.calendar.adjust(*dates.last().unwrap(), conv)
+                        != self.calendar.adjust(temp, conv)
+                    {
+                        dates.push(temp);
+                        is_regular.push(true);
                     }
-                }
-                raw.reverse();
-
-                dates = raw;
-                if dates.last().map(|d| *d < end).unwrap_or(true) {
-                    dates.push(end);
+                    periods += 1;
                 }
 
-                is_regular = vec![true; dates.len().saturating_sub(1)];
-                if dates.len() > 1 {
-                    is_regular[0] = false;
+                // ── Termination ──
+                if self.calendar.adjust(*dates.last().unwrap(), term_conv)
+                    != self.calendar.adjust(end, term_conv)
+                {
+                    let next20 = next_twentieth(end, rule_val)?;
+                    dates.push(next20);
+                    is_regular.push(true);
                 }
 
-                // CDS rules have their own adjustment; skip the shared
-                // post-processing below.
-                dates.dedup();
-                return Ok(Schedule { dates, is_regular });
+                // Fall through to the shared adjustment pass.
             }
 
             DateGeneration::Zero => {
@@ -500,13 +534,13 @@ impl<'a> ScheduleBuilder<'a> {
             }
         }
 
-        // ── Shared adjustment pass (Forward / Backward) ───────────────
+        // ── Shared adjustment pass (Forward / Backward / CDS) ─────────
         //
-        // 1. Adjust first date (unless Unadjusted).
+        // 1. Adjust first date (unless Unadjusted or OldCDS).
         // 2. Adjust intermediate dates; if EOM mode and the calendar considers
         //    the seed an end-of-month date, snap each to Date::end_of_month()
         //    first, then apply convention.
-        // 3. Adjust last date (unless Unadjusted).
+        // 3. Adjust last date (unless Unadjusted or CDS/CDS2015).
         // 4. Safety: remove date[n-2] if >= date[n-1]; remove date[1] if <=
         //    date[0].
 
@@ -515,13 +549,16 @@ impl<'a> ScheduleBuilder<'a> {
             return Ok(Schedule { dates, is_regular });
         }
 
-        // First date.
-        if conv != BusinessDayConvention::Unadjusted {
+        // First date: NOT adjusted for OldCDS schedules.
+        if conv != BusinessDayConvention::Unadjusted && self.rule != DateGeneration::OldCDS {
             dates[0] = self.calendar.adjust(dates[0], conv);
         }
 
-        // Last date.
-        if n > 1 && term_conv != BusinessDayConvention::Unadjusted {
+        // Last date: NOT adjusted for CDS/CDS2015 (ISDA spec).
+        if n > 1
+            && term_conv != BusinessDayConvention::Unadjusted
+            && !matches!(self.rule, DateGeneration::CDS | DateGeneration::CDS2015)
+        {
             let last = n - 1;
             dates[last] = self.calendar.adjust(dates[last], term_conv);
         }
@@ -569,6 +606,142 @@ impl<'a> ScheduleBuilder<'a> {
 
         Ok(Schedule { dates, is_regular })
     }
+}
+
+// ── Free functions ────────────────────────────────────────────────────────
+
+/// Return the 20th of the current or previous IMM quarter-month
+/// (Mar/Jun/Sep/Dec) on or before `date`.
+///
+/// For `Twentieth` and `TwentiethIMM` rules the months do not need to be
+/// quarterly.  For `OldCDS`, `CDS`, and `CDS2015` the result is rounded
+/// down to the nearest quarter-month 20th.
+///
+/// Corresponds to `QuantLib::previousTwentieth()`.
+pub fn previous_twentieth(d: Date, rule: DateGeneration) -> Result<Date> {
+    let mut result =
+        Date::from_ymd(d.year(), d.month(), 20).map_err(|e| Error::Date(e.to_string()))?;
+    if result > d {
+        result = result
+            .advance(-1, crate::time_unit::TimeUnit::Months)
+            .map_err(|e| Error::Date(e.to_string()))?;
+    }
+    if matches!(
+        rule,
+        DateGeneration::TwentiethIMM
+            | DateGeneration::OldCDS
+            | DateGeneration::CDS
+            | DateGeneration::CDS2015
+    ) {
+        let m = result.month();
+        if m % 3 != 0 {
+            let skip = (m % 3) as i32;
+            result = result
+                .advance(-skip, crate::time_unit::TimeUnit::Months)
+                .map_err(|e| Error::Date(e.to_string()))?;
+        }
+    }
+    Ok(result)
+}
+
+/// Return the 20th of the next IMM quarter-month (Mar/Jun/Sep/Dec) on or
+/// after `date`.
+///
+/// Corresponds to `QuantLib::nextTwentieth()`.
+pub fn next_twentieth(d: Date, rule: DateGeneration) -> Result<Date> {
+    let mut result =
+        Date::from_ymd(d.year(), d.month(), 20).map_err(|e| Error::Date(e.to_string()))?;
+    if result < d {
+        result = result
+            .advance(1, crate::time_unit::TimeUnit::Months)
+            .map_err(|e| Error::Date(e.to_string()))?;
+    }
+    if matches!(
+        rule,
+        DateGeneration::TwentiethIMM
+            | DateGeneration::OldCDS
+            | DateGeneration::CDS
+            | DateGeneration::CDS2015
+    ) {
+        let m = result.month();
+        if m % 3 != 0 {
+            let skip = (3 - m % 3) as i32;
+            result = result
+                .advance(skip, crate::time_unit::TimeUnit::Months)
+                .map_err(|e| Error::Date(e.to_string()))?;
+        }
+    }
+    Ok(result)
+}
+
+/// Compute the CDS maturity date for a given trade date, tenor, and CDS
+/// date generation rule.
+///
+/// The tenor must be a multiple of 3 months (or a whole number of years).
+/// The rule must be one of `CDS2015`, `CDS`, or `OldCDS`.
+///
+/// Corresponds to `QuantLib::cdsMaturity()`.
+pub fn cds_maturity(
+    trade_date: Date,
+    tenor: &Period,
+    rule: DateGeneration,
+) -> Result<Option<Date>> {
+    if !matches!(
+        rule,
+        DateGeneration::CDS2015 | DateGeneration::CDS | DateGeneration::OldCDS
+    ) {
+        return Err(Error::InvalidArgument(
+            "cds_maturity should only be used with CDS2015, CDS, or OldCDS".into(),
+        ));
+    }
+    if tenor.unit != crate::time_unit::TimeUnit::Years
+        && !(tenor.unit == crate::time_unit::TimeUnit::Months && tenor.length % 3 == 0)
+    {
+        return Err(Error::InvalidArgument(
+            "cds_maturity expects a tenor that is a multiple of 3 months".into(),
+        ));
+    }
+    if rule == DateGeneration::OldCDS
+        && tenor.length == 0
+        && tenor.unit == crate::time_unit::TimeUnit::Months
+    {
+        return Err(Error::InvalidArgument(
+            "A tenor of 0M is not supported for OldCDS".into(),
+        ));
+    }
+
+    let mut anchor = previous_twentieth(trade_date, rule)?;
+
+    if rule == DateGeneration::CDS2015 {
+        let dec20 =
+            Date::from_ymd(anchor.year(), 12, 20).map_err(|e| Error::Date(e.to_string()))?;
+        let jun20 = Date::from_ymd(anchor.year(), 6, 20).map_err(|e| Error::Date(e.to_string()))?;
+        if anchor == dec20 || anchor == jun20 {
+            if tenor.length == 0 {
+                return Ok(None); // matured
+            }
+            anchor = anchor
+                .advance(-3, crate::time_unit::TimeUnit::Months)
+                .map_err(|e| Error::Date(e.to_string()))?;
+        }
+    }
+
+    // maturity = anchor + tenor + 3M
+    let step1 = anchor
+        .advance(tenor.length, tenor.unit)
+        .map_err(|e| Error::Date(e.to_string()))?;
+    let maturity = step1
+        .advance(3, crate::time_unit::TimeUnit::Months)
+        .map_err(|e| Error::Date(e.to_string()))?;
+
+    if maturity <= trade_date {
+        return Err(Error::InvalidArgument(format!(
+            "CDS maturity {} <= trade date {}",
+            maturity, trade_date
+        )));
+    }
+
+    Ok(Some(maturity))
 }
 
 #[cfg(test)]

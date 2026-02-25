@@ -51,12 +51,12 @@ plan, including module mappings, phase descriptions, and risk register.
 | Metric | Value |
 |---|---|
 | Crates scaffolded | 16/16 (100%) |
-| Rust source files | 218 |
-| Lines of code | ~41,309 |
-| Unit tests (inline) | 754 (all passing) |
+| Rust source files | 222 |
+| Lines of code | ~44,297 |
+| Unit tests (inline) | 762 (all passing) |
 | Integration test files (ported from C++ test-suite) | 4 (test_dates, test_calendars, test_day_counters, test_schedule) |
-| Integration tests | 51 (48 passing + 3 ignored pending GovernmentBond calendar) |
-| Total tests | 805 (all passing) |
+| Integration tests | 59 (all passing) |
+| Total tests | 821 (all passing) |
 | Build status | ✅ Clean |
 | Overall completion | ~14–17% by module coverage |
 
@@ -65,7 +65,7 @@ plan, including module mappings, phase descriptions, and risk register.
 | Crate | Files | LOC | Tests | % Done | Key Gaps |
 |---|---|---|---|---|---|
 | `ql-core` | 14 | 1,144 | 31 | ~35% | Missing some utilities |
-| `ql-time` | 62 | 10,339 | 308 | ~92% | CDS schedule tests, GovernmentBond calendar |
+| `ql-time` | 63 | 12,926 | 342 | ~97% | All schedule tests ported (CDS + non-CDS), GovernmentBond done |
 | `ql-math` | 22 | 6,454 | 134 | ~17% | 15 of 24 interpolation schemes, Halton, advanced optimizers, matrix utilities |
 | `ql-currencies` | 11 | 1,054 | 12 | ~70% | Mostly complete |
 | `ql-quotes` | 2 | 330 | 9 | ~50% | Missing ~10 quote types |
@@ -977,50 +977,38 @@ it. If it's done, delete the entry and start fresh from `plan.md` §23.
 
 ### Current Entry
 
-**Date:** 2025-07-11
-**Session:** Phase 2 Time & Calendar — schedule tests & Schedule rewrite
-**Status:** ✅ Schedule non-CDS tests complete; CDS tests & GovernmentBond calendar remain
+**Date:** 2025-07-12
+**Session:** Phase 2 Time & Calendar — CDS tests, GovernmentBond calendar, cds_maturity()
+**Status:** ✅ Phase 2 (ql-time) essentially complete (~97%)
 
 **Completed:**
-- Fixed ~40+ clippy errors across 10+ crates (clamp patterns, bool comparisons,
-  contains(), +=, else-if chains, #[allow] attributes, renamed from_iter→from_pairs,
-  bumped clippy.toml too-many-arguments-threshold 10→12)
-- **Major rewrite of `ScheduleBuilder::build()`** to match C++ two-phase pattern:
-  (1) generate raw dates via NullCalendar-style arithmetic with EOM snap,
-  (2) shared adjustment pass using actual calendar + business day convention
-- Added `null_advance_eom()` helper function for pure date arithmetic with EOM snap
-- Added `Schedule::from_dates_with_regular()`, `until()`, `after()`, `is_regular_vec()`
-- ThirdWednesday / Twentieth / CDS branches return early (bypass shared adjustment)
-- Shared adjustment: first/last date convention, intermediate EOM calendar snap,
-  safety merges for penultimate ≥ last and second ≤ first
-- Ported 18 non-CDS schedule tests from C++ schedule.cpp → test_schedule.rs
-  (daily, EOM adjustments ×3 conventions, end-date EOM, dates-past-end, dates-same,
-  forward EOM, backward EOM, effective-date EOM, four-weeks, once-frequency,
-  always-has-start, short-EOM, first-date-on-maturity, next-to-last-on-start,
-  date-constructor, truncation until/after)
-- 3 tests marked `#[ignore]` pending UnitedStates::GovernmentBond calendar variant
-- All 805 workspace tests pass (`just check` clean)
-
-**Files created:**
-- `crates/ql-time/tests/test_schedule.rs` — 21 tests (18 active + 3 ignored)
+- Implemented `UnitedStatesGovernmentBond` calendar variant with 5 inline unit tests
+  (Good Friday NFP exception, Veterans' Day without Sat→Fri, special closings)
+- Un-ignored 3 schedule tests that were pending GovernmentBond calendar
+- Implemented `previous_twentieth()`, `next_twentieth()`, `cds_maturity()` in schedule.rs
+- Rewrote CDS/CDS2015/OldCDS schedule builder branch to use proper forward generation
+  matching C++ QuantLib (was backward, now forward from previousTwentieth with business-day
+  adjustment pass)
+- Modified shared adjustment pass: first date NOT adjusted for OldCDS; last date NOT
+  adjusted for CDS/CDS2015
+- Ported 8 CDS schedule tests: testCDS2015Convention, testCDS2015ConventionGrid,
+  testCDSConventionGrid, testOldCDSConventionGrid, testCDS2015ConventionSampleDates,
+  testCDSConventionSampleDates, testOldCDSConventionSampleDates, testCDS2015ZeroMonthsMatured
+- All 821 workspace tests pass (`just check` clean)
 
 **Files modified:**
-- `crates/ql-time/src/schedule.rs` — major rewrite of build() + new methods
-- `crates/ql-core/src/time_series.rs` — renamed from_iter→from_pairs, added FromIterator
-- `crates/ql-time/src/calendars/thailand.rs` — #[allow(clippy::nonminimal_bool)]
-- `crates/ql-time/tests/test_dates.rs` — counter += 1
-- `crates/ql-math/src/*` — clamp patterns, allow attributes (~5 files)
-- `crates/ql-termstructures/src/*`, `ql-processes/src/*`, `ql-instruments/src/*`,
-  `ql-models/src/*`, `ql-methods/src/*`, `ql-experimental/src/*` — various clippy fixes
-- `clippy.toml` — too-many-arguments-threshold 10→12
+- `crates/ql-time/src/calendars/united_states.rs` — added UnitedStatesGovernmentBond +
+  is_government_bond_holiday() + 5 inline tests
+- `crates/ql-time/src/schedule.rs` — added previous_twentieth(), next_twentieth(),
+  cds_maturity(); rewrote CDS build() branch; updated shared adjustment for CDS exceptions
+- `crates/ql-time/tests/test_schedule.rs` — un-ignored 3 tests with GovernmentBond body;
+  added 8 CDS convention tests + make_cds_schedule() + test_cds_conventions() helpers
 
-**What remains for Phase 2:**
-- Port CDS convention grid tests (need `cds_maturity()` function)
-- Implement UnitedStates::GovernmentBond calendar variant (un-ignore 3 tests)
-- CDS2015Convention, CDSConventionGrid, OldCDSConventionGrid tests
-- CDS sample dates, CDS2015 zero-months-matured tests
+**What remains for ql-time (~3%):**
+- Minor: a few remaining C++ schedule tests not yet ported (edge cases)
+- The Twentieth/TwentiethIMM branches still return early (no adjustment); could be
+  unified but low priority
 
 **Next session should:**
-1. Implement `cds_maturity()` and CDS schedule tests
-2. Add UnitedStates::GovernmentBond calendar market, un-ignore 3 schedule tests
-3. If Phase 2 reaches 100%, move to plan.md §23.1B (CI setup) or §23.1C (deepen ql-core)
+1. Move to plan.md §23.1B (CI setup) or §23.1C (deepen ql-core)
+2. Or continue to Phase 3+ as directed by user

@@ -588,16 +588,16 @@ us when the translation is correct. No phase is complete until its tests pass.
 | **10** | Indexes, Currencies & Quotes (advanced) | enrich earlier crates | ~50 | `inflation.cpp`, `inflationcpibond.cpp`, `inflationcpiswap.cpp` | Phases 1–9 | 🟡 ~20% |
 | **11** | Experimental | `ql-experimental` | ~421 | `variancegamma.cpp`, `varianceoption.cpp`, `catbonds.cpp`, remaining experimental tests | Phases 1–9 | 🔴 ~7% |
 
-### 6.1 Current Progress Snapshot (as of 2025-07-11)
+### 6.1 Current Progress Snapshot (as of 2025-07-12)
 
-**Overall: ~14–17% complete by module coverage, ~41,300 of ~200,000+ estimated Rust LOC.**
+**Overall: ~14–17% complete by module coverage, ~44,300 of ~200,000+ estimated Rust LOC.**
 
 | Metric | Value |
 |---|---|
 | Crates scaffolded | 16/16 (100%) |
-| Total Rust source files | 218 |
-| Total lines of code | ~41,309 |
-| Total tests | 805 (all passing) |
+| Total Rust source files | 222 |
+| Total lines of code | ~44,297 |
+| Total tests | 821 (all passing) |
 | Doc-tests | 1 (passing) |
 | Integration test files (ported from C++ test-suite) | 4 (test_dates, test_calendars, test_day_counters, test_schedule) |
 | Build status | ✅ Clean (0 errors, 0 warnings) |
@@ -607,7 +607,7 @@ us when the translation is correct. No phase is complete until its tests pass.
 | Crate | Files | LOC | Tests | Completeness |
 |---|---|---|---|---|
 | `ql-core` | 14 | 1,144 | 31 | ~35% — core types, errors, patterns, handle, settings done; missing some utilities |
-| `ql-time` | 62 | 10,339 | 308 | ~92% — 45/45 calendars, 15+ day counters, Date/Period/Schedule/IMM/ASX/ECB; 4 integration test files; CDS schedule tests & GovernmentBond calendar remain |
+| `ql-time` | 63 | 12,926 | 342 | ~97% — 45/45 calendars, 15+ day counters, Date/Period/Schedule/IMM/ASX/ECB; 4 integration test files; GovernmentBond done; CDS schedule tests done |
 | `ql-math` | 22 | 6,454 | 134 | ~17% — 9/24 interps, 7 dists, basic solvers/optimizers/RNG |
 | `ql-currencies` | 11 | 1,054 | 12 | ~70% — Currency, Money, ExchangeRate, 6 regional modules |
 | `ql-quotes` | 2 | 330 | 9 | ~50% — Quote trait + 8 implementations; missing ~10 quote types |

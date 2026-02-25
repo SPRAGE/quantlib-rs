@@ -235,6 +235,142 @@ fn is_nyse_historical_closing(y: u16, m: u8, d: u8) -> bool {
     )
 }
 
+/// United States — Government Bond market calendar.
+///
+/// Holidays (as observed by the SIFMA holiday schedule):
+/// * New Year's Day (Jan 1; if Sun → Mon; if Sat → Fri)
+/// * Martin Luther King Jr. Day (3rd Mon in Jan, from 1983)
+/// * Presidents' Day (3rd Mon in Feb)
+/// * Good Friday — but since 1996, *not* when it falls on the first Friday
+///   of the month (NFP release day)
+/// * Memorial Day (last Mon in May)
+/// * Juneteenth (Jun 19, from 2022; if Sun → Mon; if Sat → Fri)
+/// * Independence Day (Jul 4; if Sun → Mon; if Sat → Fri)
+/// * Labor Day (1st Mon in Sep)
+/// * Columbus Day (2nd Mon in Oct)
+/// * Veterans' Day (Nov 11; if Sun → Mon; **no** Saturday-to-Friday shift)
+/// * Thanksgiving Day (4th Thu in Nov)
+/// * Christmas Day (Dec 25; if Sun → Mon; if Sat → Fri)
+///
+/// Special closings: Bush funeral (2018-12-05), Hurricane Sandy (2012-10-30),
+/// Reagan funeral (2004-06-11).
+#[derive(Debug, Clone, Copy, Default)]
+pub struct UnitedStatesGovernmentBond;
+
+impl Calendar for UnitedStatesGovernmentBond {
+    fn name(&self) -> &str {
+        "US (GovernmentBond)"
+    }
+
+    fn is_business_day(&self, date: Date) -> bool {
+        let w = date.weekday();
+        if matches!(w, Weekday::Saturday | Weekday::Sunday) {
+            return false;
+        }
+        let y = date.year();
+        let m = date.month();
+        let d = date.day_of_month();
+        let dd = date.day_of_year();
+        let em = super::target::easter_monday_pub(y);
+
+        if is_government_bond_holiday(y, m, d, w, dd, em) {
+            return false;
+        }
+        true
+    }
+}
+
+fn is_government_bond_holiday(y: u16, m: u8, d: u8, w: Weekday, dd: u16, em: u16) -> bool {
+    // New Year's Day (possibly moved to Monday if on Sunday)
+    if (d == 1 && m == 1) || (d == 2 && m == 1 && w == Weekday::Monday) {
+        return true;
+    }
+    // New Year's Day observed on preceding Friday when Jan 1 is Saturday
+    if d == 31 && m == 12 && w == Weekday::Friday {
+        return true;
+    }
+    // MLK Day (3rd Monday of January, since 1983)
+    if y >= 1983 && m == 1 && w == Weekday::Monday && (15..=21).contains(&d) {
+        return true;
+    }
+    // Presidents' Day / Washington's Birthday (3rd Monday of February)
+    if m == 2 && w == Weekday::Monday && (15..=21).contains(&d) {
+        return true;
+    }
+    // Good Friday.
+    // Since 1996 it's an early close and not a full holiday when it coincides
+    // with the NFP release date (first Friday of the month, i.e. d <= 7).
+    if dd == em - 3 && (y < 1996 || d > 7) {
+        return true;
+    }
+    // Memorial Day (last Monday of May)
+    if m == 5 && w == Weekday::Monday && d >= 25 {
+        return true;
+    }
+    // Juneteenth (June 19, from 2022)
+    if y >= 2022
+        && m == 6
+        && ((d == 19 && !matches!(w, Weekday::Saturday | Weekday::Sunday))
+            || (d == 20 && w == Weekday::Monday)  // Jun 19 on Sunday
+            || (d == 18 && w == Weekday::Friday))
+    // Jun 19 on Saturday
+    {
+        return true;
+    }
+    // Independence Day (July 4)
+    if (d == 4 && m == 7)
+        || (d == 5 && m == 7 && w == Weekday::Monday)  // Jul 4 on Sunday
+        || (d == 3 && m == 7 && w == Weekday::Friday)
+    // Jul 4 on Saturday
+    {
+        return true;
+    }
+    // Labor Day (1st Monday of September)
+    if m == 9 && w == Weekday::Monday && d <= 7 {
+        return true;
+    }
+    // Columbus Day (2nd Monday of October)
+    if m == 10 && w == Weekday::Monday && (8..=14).contains(&d) {
+        return true;
+    }
+    // Veterans' Day (Nov 11) — Sunday → Monday ONLY; no Saturday → Friday.
+    if y <= 1970 || y >= 1978 {
+        if (d == 11 && m == 11) || (d == 12 && m == 11 && w == Weekday::Monday) {
+            return true;
+        }
+    } else {
+        // 1971–1977: 4th Monday of October
+        if m == 10 && w == Weekday::Monday && (22..=28).contains(&d) {
+            return true;
+        }
+    }
+    // Thanksgiving (4th Thursday of November)
+    if m == 11 && w == Weekday::Thursday && (22..=28).contains(&d) {
+        return true;
+    }
+    // Christmas (December 25)
+    if (d == 25 && m == 12)
+        || (d == 26 && m == 12 && w == Weekday::Monday)  // Dec 25 on Sunday
+        || (d == 24 && m == 12 && w == Weekday::Friday)
+    // Dec 25 on Saturday
+    {
+        return true;
+    }
+    // Special closings
+    if matches!(
+        (y, m, d),
+        // President Bush's Funeral (2018)
+        (2018, 12, 5)
+        // Hurricane Sandy (2012) — only Oct 30 for gov bonds
+        | (2012, 10, 30)
+        // President Reagan's funeral (2004)
+        | (2004, 6, 11)
+    ) {
+        return true;
+    }
+    false
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -261,5 +397,53 @@ mod tests {
     fn normal_day() {
         let cal = UnitedStatesSettlement;
         assert!(cal.is_business_day(date(2023, 6, 15)));
+    }
+
+    // ── GovernmentBond-specific tests ──
+
+    #[test]
+    fn gov_bond_good_friday_pre_1996() {
+        let cal = UnitedStatesGovernmentBond;
+        // Good Friday 1995 = April 14 (day > 7) — holiday
+        assert!(!cal.is_business_day(date(1995, 4, 14)));
+    }
+
+    #[test]
+    fn gov_bond_good_friday_first_fri_of_month() {
+        let cal = UnitedStatesGovernmentBond;
+        // Good Friday 2018 = March 30 (d=30 > 7) — still a holiday
+        assert!(!cal.is_business_day(date(2018, 3, 30)));
+        // Good Friday 2021 = April 2 (d=2 <= 7, year >= 1996) — NOT a holiday
+        assert!(cal.is_business_day(date(2021, 4, 2)));
+    }
+
+    #[test]
+    fn gov_bond_veterans_day_saturday() {
+        let cal = UnitedStatesGovernmentBond;
+        let settle = UnitedStatesSettlement;
+        // Nov 11, 2023 is Saturday.
+        // GovernmentBond: no move to Friday → Nov 10 is a business day
+        assert!(cal.is_business_day(date(2023, 11, 10)));
+        // Settlement DOES move to Friday:
+        assert!(!settle.is_business_day(date(2023, 11, 10)));
+    }
+
+    #[test]
+    fn gov_bond_veterans_day_sunday() {
+        let cal = UnitedStatesGovernmentBond;
+        // Nov 11, 2018 is Sunday → observed Monday Nov 12
+        assert!(!cal.is_business_day(date(2018, 11, 12)));
+    }
+
+    #[test]
+    fn gov_bond_special_closings() {
+        let cal = UnitedStatesGovernmentBond;
+        // Bush funeral
+        assert!(!cal.is_business_day(date(2018, 12, 5)));
+        // Sandy — only Oct 30 (not 29)
+        assert!(cal.is_business_day(date(2012, 10, 29)));
+        assert!(!cal.is_business_day(date(2012, 10, 30)));
+        // Reagan
+        assert!(!cal.is_business_day(date(2004, 6, 11)));
     }
 }
