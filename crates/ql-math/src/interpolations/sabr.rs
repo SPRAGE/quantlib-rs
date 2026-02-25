@@ -140,6 +140,7 @@ impl SabrSmile {
 /// * `initial_alpha`, `initial_nu`, `initial_rho` — starting guess
 ///
 /// Returns calibrated `SabrParameters`.
+#[allow(clippy::needless_range_loop)]
 pub fn calibrate_sabr(
     forward: Real,
     expiry: Real,
@@ -161,7 +162,7 @@ pub fn calibrate_sabr(
             alpha: params[0].max(1e-10),
             beta,
             nu: params[1].max(1e-10),
-            rho: params[2].max(-0.999).min(0.999),
+            rho: params[2].clamp(-0.999, 0.999),
         };
         let mut sse = 0.0;
         for i in 0..n {
@@ -271,7 +272,7 @@ pub fn calibrate_sabr(
         alpha: best[0].max(1e-10),
         beta,
         nu: best[1].max(1e-10),
-        rho: best[2].max(-0.999).min(0.999),
+        rho: best[2].clamp(-0.999, 0.999),
     }
 }
 

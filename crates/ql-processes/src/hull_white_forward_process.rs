@@ -28,6 +28,7 @@ pub struct HullWhiteForwardProcess {
 }
 
 impl HullWhiteForwardProcess {
+    /// Create a new Hull-White forward process.
     pub fn new(
         yield_curve: Arc<dyn YieldTermStructure>,
         a: Real,

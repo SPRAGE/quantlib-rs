@@ -40,6 +40,7 @@ impl Calendar for Thailand {
         "Thailand stock exchange"
     }
 
+    #[allow(clippy::nonminimal_bool)]
     fn is_business_day(&self, date: Date) -> bool {
         let w = date.weekday();
         if matches!(w, Weekday::Saturday | Weekday::Sunday) {

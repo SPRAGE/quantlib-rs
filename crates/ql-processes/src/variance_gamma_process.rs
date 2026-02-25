@@ -40,6 +40,7 @@ pub struct VarianceGammaProcess {
 }
 
 impl VarianceGammaProcess {
+    /// Create a new Variance Gamma process.
     pub fn new(
         s0: Real,
         risk_free: Arc<dyn YieldTermStructure>,

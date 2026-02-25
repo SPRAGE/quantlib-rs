@@ -543,7 +543,7 @@ pub fn calibrate_svi(
             a: x[0],
             b: x[1].max(0.0),
             sigma: x[2].max(1e-6),
-            rho: x[3].max(-0.999).min(0.999),
+            rho: x[3].clamp(-0.999, 0.999),
             m: x[4],
         };
         let min_var = p.a + p.b * p.sigma * (1.0 - p.rho * p.rho).sqrt();
@@ -569,12 +569,13 @@ pub fn calibrate_svi(
         a: result[0],
         b: result[1].max(0.0),
         sigma: result[2].max(1e-6),
-        rho: result[3].max(-0.999).min(0.999),
+        rho: result[3].clamp(-0.999, 0.999),
         m: result[4],
     }
 }
 
 /// 5-dimensional Nelder-Mead simplex optimizer.
+#[allow(clippy::needless_range_loop)]
 fn nelder_mead_5d(
     f: impl Fn(&[Real; 5]) -> Real,
     x0: [Real; 5],

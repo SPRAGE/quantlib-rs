@@ -575,6 +575,7 @@ impl SequenceStatistics {
     }
 
     /// Covariance matrix (sample covariance).
+    #[allow(clippy::needless_range_loop)]
     pub fn covariance(&self) -> Vec<Vec<Real>> {
         if self.n < 2 {
             return vec![vec![0.0; self.dim]; self.dim];

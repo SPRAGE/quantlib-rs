@@ -9,9 +9,7 @@
 
 use crate::term_structure::TermStructure;
 use ql_core::{Rate, Time};
-use ql_time::{
-    Actual365Fixed, Calendar, Date, DayCounter, Frequency, NullCalendar, Period, TimeUnit,
-};
+use ql_time::{Actual365Fixed, Calendar, Date, DayCounter, Frequency, NullCalendar, Period};
 
 // ── Base trait ────────────────────────────────────────────────────────────────
 
@@ -200,6 +198,7 @@ impl YoYInflationTermStructure for FlatYoYInflationCurve {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ql_time::TimeUnit;
 
     #[test]
     fn flat_zero_inflation_curve() {

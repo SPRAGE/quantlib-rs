@@ -102,6 +102,7 @@ impl Parameter {
 }
 
 // We need Clone for Constraint boxes
+#[allow(dead_code)]
 impl Clone for Box<dyn Constraint> {
     fn clone(&self) -> Self {
         // We use a simple approach: wrap in a struct

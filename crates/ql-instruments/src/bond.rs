@@ -263,7 +263,7 @@ pub fn floating_rate_bond(
 /// This is a simplified approach — QuantLib uses dynamic_cast.
 /// We store FixedRateCoupon (which implements both) behind `Box<dyn CashFlow>`,
 /// so we need a workaround.
-fn cf_as_coupon<'a>(_cf: &'a dyn CashFlow) -> Option<&'a dyn Coupon> {
+fn cf_as_coupon(_cf: &dyn CashFlow) -> Option<&dyn Coupon> {
     // Use trait-object downcast via Any if available; for now assume
     // accrued is zero for non-coupon flows.
     // This is a known simplification — we'll improve with proper Any-based

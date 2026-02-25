@@ -21,6 +21,14 @@ impl<K: Ord + Clone, V: Clone> Default for TimeSeries<K, V> {
     }
 }
 
+impl<K: Ord + Clone, V: Clone> std::iter::FromIterator<(K, V)> for TimeSeries<K, V> {
+    fn from_iter<I: IntoIterator<Item = (K, V)>>(iter: I) -> Self {
+        Self {
+            data: iter.into_iter().collect(),
+        }
+    }
+}
+
 impl<K: Ord + Clone, V: Clone> TimeSeries<K, V> {
     // ── Constructors ─────────────────────────────────────────────────────
 
@@ -49,7 +57,7 @@ impl<K: Ord + Clone, V: Clone> TimeSeries<K, V> {
     }
 
     /// Build from an iterator of `(K, V)` pairs.
-    pub fn from_iter(iter: impl IntoIterator<Item = (K, V)>) -> Self {
+    pub fn from_pairs(iter: impl IntoIterator<Item = (K, V)>) -> Self {
         Self {
             data: iter.into_iter().collect(),
         }

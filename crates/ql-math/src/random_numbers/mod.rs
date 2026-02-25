@@ -206,7 +206,7 @@ mod tests {
         let mut rng = MersenneTwisterUniformRng::new(42);
         for _ in 0..1_000 {
             let x = rng.next_real();
-            assert!(x >= 0.0 && x < 1.0);
+            assert!((0.0..1.0).contains(&x));
         }
     }
 
@@ -226,7 +226,7 @@ mod tests {
         let seq = rsg.next_sequence();
         assert_eq!(seq.len(), 5);
         for &v in &seq {
-            assert!(v >= 0.0 && v < 1.0, "value {v} out of range");
+            assert!((0.0..1.0).contains(&v), "value {v} out of range");
         }
     }
 
@@ -251,7 +251,7 @@ mod tests {
         for _ in 0..100 {
             let pt = halton.next_sequence();
             for &v in &pt {
-                assert!(v >= 0.0 && v < 1.0, "value {v} out of [0, 1)");
+                assert!((0.0..1.0).contains(&v), "value {v} out of [0, 1)");
             }
         }
     }

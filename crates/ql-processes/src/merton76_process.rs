@@ -15,7 +15,7 @@
 //! in the pricing engine.
 
 use crate::black_scholes_process::GeneralizedBlackScholesProcess;
-use crate::stochastic_process::{StochasticProcess, StochasticProcess1D};
+use crate::stochastic_process::StochasticProcess;
 use ql_core::{Real, Time};
 use ql_math::{Array, Matrix};
 use std::sync::Arc;

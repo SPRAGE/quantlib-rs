@@ -153,7 +153,7 @@ mod tests {
             let x = 3.0 * (i as f64) / 100.0;
             let v = s.operator(x);
             assert!(
-                v >= -1e-10 && v <= 1.0 + 1e-10,
+                (-1e-10..=1.0 + 1e-10).contains(&v),
                 "out of range at x={x}: {v}"
             );
         }

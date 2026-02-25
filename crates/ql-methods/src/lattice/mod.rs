@@ -154,6 +154,7 @@ pub fn price_american(tree: &BinomialTree, payoff: &dyn Fn(Real) -> Real, discou
 }
 
 /// Price a European option on a trinomial tree by backward induction.
+#[allow(clippy::needless_range_loop)]
 pub fn price_european_trinomial(
     tree: &TrinomialTree,
     payoff: &dyn Fn(Real) -> Real,
@@ -184,6 +185,7 @@ pub fn price_european_trinomial(
 }
 
 /// Price an American option on a trinomial tree by backward induction.
+#[allow(clippy::needless_range_loop)]
 pub fn price_american_trinomial(
     tree: &TrinomialTree,
     payoff: &dyn Fn(Real) -> Real,

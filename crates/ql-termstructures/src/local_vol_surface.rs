@@ -79,6 +79,7 @@ impl LocalVolSurface {
     }
 
     /// Forward price for time `t`.
+    #[allow(dead_code)]
     fn forward(&self, t: Time) -> Real {
         let df_r = self.risk_free_rate.discount(t);
         let df_q = self.dividend_yield.discount(t);

@@ -31,7 +31,7 @@ impl SobolRsg {
     /// Optionally skip the first `skip` points (useful for variance reduction).
     pub fn new(dimension: usize, skip: u64) -> Self {
         assert!(
-            dimension >= 1 && dimension <= MAX_DIMENSION,
+            (1..=MAX_DIMENSION).contains(&dimension),
             "Sobol dimension must be in [1, {MAX_DIMENSION}], got {dimension}"
         );
 
@@ -101,15 +101,15 @@ impl SobolRsg {
     /// Dimension 0 uses the Van der Corput sequence (powers of 2).
     /// Dimensions 1+ use the Joe-Kuo initial direction numbers with
     /// primitive polynomials.
+    #[allow(clippy::needless_range_loop)]
     fn init_direction_numbers(dimension: usize) -> Vec<Vec<u32>> {
         let mut dn = Vec::with_capacity(dimension);
 
         // Dimension 0: Van der Corput (base 2)
         {
-            let mut v = vec![0u32; Self::BITS];
-            for i in 0..Self::BITS {
-                v[i] = 1u32 << (Self::BITS - 1 - i);
-            }
+            let v: Vec<u32> = (0..Self::BITS)
+                .map(|i| 1u32 << (Self::BITS - 1 - i))
+                .collect();
             dn.push(v);
         }
 
@@ -247,7 +247,7 @@ mod tests {
             let v = rsg.next_sequence();
             assert_eq!(v.len(), 5);
             for &x in &v {
-                assert!(x >= 0.0 && x < 1.0, "value {x} out of [0, 1)");
+                assert!((0.0..1.0).contains(&x), "value {x} out of [0, 1)");
             }
         }
     }
@@ -281,8 +281,8 @@ mod tests {
             sum[0] += v[0];
             sum[1] += v[1];
         }
-        for d in 0..2 {
-            let mean = sum[d] / n as f64;
+        for (d, s) in sum.iter().enumerate() {
+            let mean = s / n as f64;
             assert!(
                 (mean - 0.5).abs() < 0.01,
                 "dim {d} mean {mean} too far from 0.5"

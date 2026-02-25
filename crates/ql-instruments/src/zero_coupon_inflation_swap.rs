@@ -150,7 +150,7 @@ mod tests {
         .with_market_data(340.0, 0.95);
         let infl = swap.inflation_leg_amount().unwrap();
         // 1M * (340/300 - 1) = 1M * 0.13333 = 133_333.33
-        assert!((infl - 133_333.33333).abs() < 1.0);
+        assert!((infl - 133_333.333_33).abs() < 1.0);
     }
 
     #[test]

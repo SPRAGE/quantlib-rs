@@ -52,6 +52,7 @@ pub struct GaussLegendreIntegration;
 
 impl GaussLegendreIntegration {
     /// Build a Gauss-Legendre quadrature of given `order`.
+    #[allow(clippy::new_ret_no_self)]
     pub fn new(order: usize) -> GaussianQuadrature {
         gauss_jacobi_nodes_weights(order, 0.0, 0.0)
     }
@@ -84,6 +85,7 @@ impl GaussHermiteIntegration {
     ///
     /// Uses the Golub-Welsch algorithm with the recurrence relation for
     /// Hermite polynomials: Hₙ₊₁(x) = x Hₙ(x) − n Hₙ₋₁(x).
+    #[allow(clippy::new_ret_no_self)]
     pub fn new(order: usize) -> GaussianQuadrature {
         let n = order;
         // Tridiagonal: α_i = 0, β_i = i  (H_{i+1}(x) = x H_i(x) - i H_{i-1}(x))
@@ -108,6 +110,7 @@ impl GaussLaguerreIntegration {
     /// Build a Gauss-Laguerre quadrature with generalized parameter `s` (default 0).
     ///
     /// For the generalized Laguerre weight x^s e^{-x}.
+    #[allow(clippy::new_ret_no_self)]
     pub fn new(order: usize, s: Real) -> GaussianQuadrature {
         let n = order;
         // Recurrence: α_i = 2i + 1 + s, β_i = i(i + s)
@@ -139,6 +142,7 @@ impl GaussChebyshevIntegration {
     /// Build a Gauss-Chebyshev (first-kind) quadrature of given `order`.
     ///
     /// Nodes are xᵢ = cos((2i+1)π / (2n)), weights are wᵢ = π/n.
+    #[allow(clippy::new_ret_no_self)]
     pub fn new(order: usize) -> GaussianQuadrature {
         let n = order;
         let w_val = PI / (n as Real);
@@ -158,6 +162,7 @@ pub struct GaussChebyshev2ndIntegration;
 
 impl GaussChebyshev2ndIntegration {
     /// Build a Gauss-Chebyshev-2nd quadrature of given `order`.
+    #[allow(clippy::new_ret_no_self)]
     pub fn new(order: usize) -> GaussianQuadrature {
         let n = order;
         let x: Vec<Real> = (0..n)
@@ -351,11 +356,11 @@ fn symmetric_tridiagonal_qr(
             off[k] = d_val * c * s + (c * c - s * s) * off[k];
 
             // Update eigenvectors
-            for j in 0..n {
-                let t0 = z[j][k];
-                let t1 = z[j][k + 1];
-                z[j][k] = c * t0 - s * t1;
-                z[j][k + 1] = s * t0 + c * t1;
+            for row in z.iter_mut() {
+                let t0 = row[k];
+                let t1 = row[k + 1];
+                row[k] = c * t0 - s * t1;
+                row[k + 1] = s * t0 + c * t1;
             }
 
             x = off[k];

@@ -66,7 +66,7 @@ fn imm_dates() {
         let code = IMM::code(imm);
         assert!(code.is_some(), "IMM::code returned None for IMM date {imm}");
 
-        counter = counter + 1;
+        counter += 1;
     }
 }
 
@@ -114,7 +114,7 @@ fn asx_dates() {
         let code = ASX::code(asx);
         assert!(code.is_some(), "ASX::code returned None for ASX date {asx}");
 
-        counter = counter + 1;
+        counter += 1;
     }
 }
 

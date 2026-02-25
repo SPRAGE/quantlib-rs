@@ -128,7 +128,7 @@ impl BinomialTree {
         let pu = 0.5 + 0.5 * dps / dx;
         let pd = 1.0 - pu;
         assert!(
-            pu >= 0.0 && pu <= 1.0,
+            (0.0..=1.0).contains(&pu),
             "CRR: invalid probability {pu} (try more steps)"
         );
         Self {
@@ -171,7 +171,7 @@ impl BinomialTree {
         let pu = 0.5 + 0.5 * dps / dx;
         let pd = 1.0 - pu;
         assert!(
-            pu >= 0.0 && pu <= 1.0,
+            (0.0..=1.0).contains(&pu),
             "Trigeorgis: invalid probability {pu}"
         );
         Self {

@@ -67,9 +67,9 @@ impl HullWhite {
         let b_val = self.b_function(t, big_t);
         let ts = &self.term_structure;
 
-        let ln_pt = (-ts.zero_rate_impl(big_t) * big_t).min(0.0).max(-500.0);
+        let ln_pt = (-ts.zero_rate_impl(big_t) * big_t).clamp(-500.0, 0.0);
         let ln_p0 = if t > 1e-12 {
-            (-ts.zero_rate_impl(t) * t).min(0.0).max(-500.0)
+            (-ts.zero_rate_impl(t) * t).clamp(-500.0, 0.0)
         } else {
             0.0
         };
