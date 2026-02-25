@@ -39,8 +39,9 @@ impl Calendar for Poland {
         let dd = date.day_of_year();
         let em = super::target::easter_monday_pub(y);
 
-        if // New Year's Day
-           (d == 1 && m == 1)
+        if
+        // New Year's Day
+        (d == 1 && m == 1)
             // Epiphany (since 2011)
             || (d == 6 && m == 1 && y >= 2011)
             // Easter Monday

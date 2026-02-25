@@ -7,10 +7,7 @@
 pub mod bfgs;
 
 use crate::array::Array;
-use ql_core::{
-    errors::Result,
-    Real,
-};
+use ql_core::{errors::Result, Real};
 
 // ── Cost function trait ───────────────────────────────────────────────────────
 
@@ -556,13 +553,14 @@ mod tests {
         let opt = Simplex::new(0.5);
         let ec = EndCriteria::new(1000, 100, 1e-12, 1e-12, 1e-12);
         let result = opt
-            .minimize(&SimpleQuadratic, &NoConstraint, &Array::from_slice(&[0.0]), &ec)
+            .minimize(
+                &SimpleQuadratic,
+                &NoConstraint,
+                &Array::from_slice(&[0.0]),
+                &ec,
+            )
             .unwrap();
-        assert!(
-            (result.x[0] - 3.0).abs() < 1e-4,
-            "got x = {}",
-            result.x[0]
-        );
+        assert!((result.x[0] - 3.0).abs() < 1e-4, "got x = {}", result.x[0]);
     }
 
     #[test]
@@ -577,16 +575,8 @@ mod tests {
                 &ec,
             )
             .unwrap();
-        assert!(
-            (result.x[0] - 1.0).abs() < 0.1,
-            "x[0] = {}",
-            result.x[0]
-        );
-        assert!(
-            (result.x[1] - 1.0).abs() < 0.1,
-            "x[1] = {}",
-            result.x[1]
-        );
+        assert!((result.x[0] - 1.0).abs() < 0.1, "x[0] = {}", result.x[0]);
+        assert!((result.x[1] - 1.0).abs() < 0.1, "x[1] = {}", result.x[1]);
     }
 
     #[test]
@@ -594,13 +584,14 @@ mod tests {
         let opt = LevenbergMarquardt::new(1e-8, 1e-12, 1e-12);
         let ec = EndCriteria::new(1000, 100, 1e-12, 1e-12, 1e-12);
         let result = opt
-            .minimize(&SimpleQuadratic, &NoConstraint, &Array::from_slice(&[0.0]), &ec)
+            .minimize(
+                &SimpleQuadratic,
+                &NoConstraint,
+                &Array::from_slice(&[0.0]),
+                &ec,
+            )
             .unwrap();
-        assert!(
-            (result.x[0] - 3.0).abs() < 0.1,
-            "got x = {}",
-            result.x[0]
-        );
+        assert!((result.x[0] - 3.0).abs() < 0.1, "got x = {}", result.x[0]);
     }
 
     #[test]

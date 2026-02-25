@@ -70,8 +70,9 @@ impl HullWhiteProcess {
         let f_t_plus = self.yield_curve.forward_rate_impl(t + dt);
         let df_dt = (f_t_plus - f_t) / dt;
 
-        df_dt + self.a * f_t + self.sigma * self.sigma / (2.0 * self.a)
-            * (1.0 - (-2.0 * self.a * t).exp())
+        df_dt
+            + self.a * f_t
+            + self.sigma * self.sigma / (2.0 * self.a) * (1.0 - (-2.0 * self.a * t).exp())
     }
 }
 

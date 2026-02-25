@@ -70,7 +70,12 @@ pub struct FlatZeroInflationCurve {
 
 impl FlatZeroInflationCurve {
     /// Create a flat zero-inflation curve.
-    pub fn new(reference_date: Date, rate: Rate, frequency: Frequency, observation_lag: Period) -> Self {
+    pub fn new(
+        reference_date: Date,
+        rate: Rate,
+        frequency: Frequency,
+        observation_lag: Period,
+    ) -> Self {
         Self {
             reference_date,
             rate,
@@ -142,7 +147,12 @@ pub struct FlatYoYInflationCurve {
 
 impl FlatYoYInflationCurve {
     /// Create a flat YoY inflation curve.
-    pub fn new(reference_date: Date, rate: Rate, frequency: Frequency, observation_lag: Period) -> Self {
+    pub fn new(
+        reference_date: Date,
+        rate: Rate,
+        frequency: Frequency,
+        observation_lag: Period,
+    ) -> Self {
         Self {
             reference_date,
             rate,

@@ -42,8 +42,9 @@ impl Calendar for China {
         let m = date.month();
         let d = date.day_of_month();
 
-        if // New Year's Day
-           (d == 1 && m == 1)
+        if
+        // New Year's Day
+        (d == 1 && m == 1)
             // Qingming Festival (approximate fixed date)
             || (d == 5 && m == 4)
             // Labour Day

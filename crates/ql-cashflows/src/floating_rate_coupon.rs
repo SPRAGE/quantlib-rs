@@ -7,9 +7,7 @@ use crate::cashflow::{CashFlow, Leg, Redemption};
 use crate::coupon::Coupon;
 use ql_core::{errors::Result, Real};
 use ql_indexes::{IborIndex, Index, InterestRateIndex};
-use ql_time::{
-    Actual365Fixed, BusinessDayConvention, Date, DayCounter, Schedule,
-};
+use ql_time::{Actual365Fixed, BusinessDayConvention, Date, DayCounter, Schedule};
 use std::sync::Arc;
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -250,7 +248,8 @@ impl Coupon for IborCoupon {
     }
 
     fn rate(&self) -> Real {
-        self.effective_rate_result().unwrap_or(self.inner.effective_rate())
+        self.effective_rate_result()
+            .unwrap_or(self.inner.effective_rate())
     }
 }
 
@@ -408,8 +407,17 @@ mod tests {
     fn floating_rate_coupon_with_rate() {
         let start = Date::from_ymd(2025, 1, 15).unwrap();
         let end = Date::from_ymd(2025, 7, 15).unwrap();
-        let c = FloatingRateCoupon::new(end, 1_000_000.0, start, end, start, 1.0, 0.0, Actual365Fixed)
-            .with_rate(0.05);
+        let c = FloatingRateCoupon::new(
+            end,
+            1_000_000.0,
+            start,
+            end,
+            start,
+            1.0,
+            0.0,
+            Actual365Fixed,
+        )
+        .with_rate(0.05);
         // Simple: amount = N * r * t
         let t = Actual365Fixed.year_fraction(start, end);
         let expected = 1_000_000.0 * 0.05 * t;
@@ -420,8 +428,17 @@ mod tests {
     fn floating_rate_coupon_with_gearing_and_spread() {
         let start = Date::from_ymd(2025, 1, 15).unwrap();
         let end = Date::from_ymd(2025, 7, 15).unwrap();
-        let c = FloatingRateCoupon::new(end, 1_000_000.0, start, end, start, 2.0, 0.01, Actual365Fixed)
-            .with_rate(0.03);
+        let c = FloatingRateCoupon::new(
+            end,
+            1_000_000.0,
+            start,
+            end,
+            start,
+            2.0,
+            0.01,
+            Actual365Fixed,
+        )
+        .with_rate(0.03);
         // rate = 2.0 * 0.03 + 0.01 = 0.07
         let t = Actual365Fixed.year_fraction(start, end);
         let expected = 1_000_000.0 * 0.07 * t;
@@ -434,7 +451,16 @@ mod tests {
         let start = Date::from_ymd(2025, 1, 15).unwrap();
         let end = Date::from_ymd(2025, 4, 15).unwrap();
 
-        let coupon = IborCoupon::new(end, 1_000_000.0, start, end, 2, Arc::clone(&index), 1.0, 0.0);
+        let coupon = IborCoupon::new(
+            end,
+            1_000_000.0,
+            start,
+            end,
+            2,
+            Arc::clone(&index),
+            1.0,
+            0.0,
+        );
 
         // Store a fixing on the fixing date
         let fixing_date = coupon.inner.fixing_date;
@@ -452,7 +478,9 @@ mod tests {
         let end = Date::from_ymd(2027, 1, 15).unwrap();
         let tenor = Period::new(3, TimeUnit::Months);
         let cal = NullCalendar;
-        let schedule = ScheduleBuilder::new(start, end, tenor, &cal).build().unwrap();
+        let schedule = ScheduleBuilder::new(start, end, tenor, &cal)
+            .build()
+            .unwrap();
 
         let leg = IborLegBuilder::new(&schedule, Arc::clone(&index))
             .with_notionals(vec![100.0])
@@ -473,7 +501,9 @@ mod tests {
         let end = Date::from_ymd(2030, 1, 15).unwrap();
         let tenor = Period::new(6, TimeUnit::Months);
         let cal = NullCalendar;
-        let schedule = ScheduleBuilder::new(start, end, tenor, &cal).build().unwrap();
+        let schedule = ScheduleBuilder::new(start, end, tenor, &cal)
+            .build()
+            .unwrap();
 
         let leg = IborLegBuilder::new(&schedule, Arc::clone(&index))
             .with_notionals(vec![1_000_000.0])

@@ -35,9 +35,7 @@ impl Calendar for UnitedKingdomSettlement {
         let em = super::target::easter_monday_pub(y);
 
         // New Year's Day (possibly moved to Monday)
-        if (d == 1 && m == 1)
-            || ((d == 2 || d == 3) && m == 1 && w == Weekday::Monday)
-        {
+        if (d == 1 && m == 1) || ((d == 2 || d == 3) && m == 1 && w == Weekday::Monday) {
             return false;
         }
         // Good Friday
@@ -61,7 +59,7 @@ impl Calendar for UnitedKingdomSettlement {
                 (y, m, d),
                 (2002, 5, 27) |  // Golden Jubilee substitute (last Mon May)
                 (2020, 5, 8)  |  // VE Day (May Day moved to May 8)
-                (2023, 5, 8)     // Coronation (May Day moved to May 8)
+                (2023, 5, 8) // Coronation (May Day moved to May 8)
             );
             // Normal first Monday in May is a bank holiday unless moved elsewhere
             if is_first_monday && !is_moved_year {
@@ -74,7 +72,10 @@ impl Calendar for UnitedKingdomSettlement {
         }
         // Royal Wedding 2011 (April 29), Diamond Jubilee 2012 (June 4–5),
         // Golden Jubilee 2002 (June 3)
-        if matches!((y, m, d), (2011, 4, 29) | (2002, 6, 3) | (2012, 6, 4) | (2012, 6, 5)) {
+        if matches!(
+            (y, m, d),
+            (2011, 4, 29) | (2002, 6, 3) | (2012, 6, 4) | (2012, 6, 5)
+        ) {
             return false;
         }
         // Spring Bank Holiday (last Monday in May) — in 2002 moved to Jun 3 above

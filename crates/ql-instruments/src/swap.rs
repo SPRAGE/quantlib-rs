@@ -4,15 +4,10 @@
 //! `ql/instruments/overnightindexedswap.hpp`.
 
 use crate::instrument::{Instrument, PricingEngine, PricingResults};
-use ql_cashflows::{
-    FixedRateLegBuilder, IborLegBuilder, Leg,
-};
+use ql_cashflows::{FixedRateLegBuilder, IborLegBuilder, Leg};
 use ql_core::{errors::Result, Compounding, Real};
 use ql_indexes::IborIndex;
-use ql_time::{
-    Actual365Fixed, Date, Frequency,
-    Schedule,
-};
+use ql_time::{Actual365Fixed, Date, Frequency, Schedule};
 use std::sync::Arc;
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -250,8 +245,12 @@ mod tests {
         let float_tenor = Period::new(3, TimeUnit::Months);
         let cal = NullCalendar;
 
-        let fixed_schedule = ScheduleBuilder::new(start, end, fixed_tenor, &cal).build().unwrap();
-        let float_schedule = ScheduleBuilder::new(start, end, float_tenor, &cal).build().unwrap();
+        let fixed_schedule = ScheduleBuilder::new(start, end, fixed_tenor, &cal)
+            .build()
+            .unwrap();
+        let float_schedule = ScheduleBuilder::new(start, end, float_tenor, &cal)
+            .build()
+            .unwrap();
 
         let swap = VanillaSwap::new(
             SwapType::Payer,
@@ -265,7 +264,7 @@ mod tests {
             0.0,
         );
 
-        assert_eq!(swap.fixed_leg.len(), 5);  // 5 annual coupons
+        assert_eq!(swap.fixed_leg.len(), 5); // 5 annual coupons
         assert_eq!(swap.floating_leg.len(), 20); // 20 quarterly coupons
         assert!((swap.nominal - 1_000_000.0).abs() < 1e-15);
     }

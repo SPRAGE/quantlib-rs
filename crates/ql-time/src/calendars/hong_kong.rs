@@ -40,8 +40,9 @@ impl Calendar for HongKong {
         let dd = date.day_of_year();
         let em = super::target::easter_monday_pub(y);
 
-        if // New Year's Day / Lunar New Year (simplified fixed dates)
-           ((d == 1 || (22..=24).contains(&d)) && m == 1)
+        if
+        // New Year's Day / Lunar New Year (simplified fixed dates)
+        ((d == 1 || (22..=24).contains(&d)) && m == 1)
             // Good Friday
             || (dd == em - 3)
             // Easter Saturday (day before Easter Monday)
@@ -81,8 +82,8 @@ mod tests {
     fn good_friday_and_easter_monday_2023() {
         let cal = HongKong;
         // Easter Monday 2023: April 10 → Good Friday April 7
-        assert!(!cal.is_business_day(date(2023, 4, 7)));  // Good Friday
-        assert!(!cal.is_business_day(date(2023, 4, 8)));  // Easter Saturday (Sat, already weekend)
+        assert!(!cal.is_business_day(date(2023, 4, 7))); // Good Friday
+        assert!(!cal.is_business_day(date(2023, 4, 8))); // Easter Saturday (Sat, already weekend)
         assert!(!cal.is_business_day(date(2023, 4, 10))); // Easter Monday
     }
 

@@ -86,7 +86,14 @@ impl PricingEngine<VanillaOptionArguments> for VarianceGammaEngine {
             }
 
             // Black-Scholes price using the adjusted parameters
-            let bs_price = black_price(option_type, s0_adj, strike, risk_free_discount, dividend_discount, vol_adj);
+            let bs_price = black_price(
+                option_type,
+                s0_adj,
+                strike,
+                risk_free_discount,
+                dividend_discount,
+                vol_adj,
+            );
 
             // Gamma PDF (unnormalized shape, then divide by denominator)
             let gamp = (x.powf(shape - 1.0) * (-x / nu).exp()) / gamma_denom;
@@ -180,8 +187,22 @@ mod tests {
             theta: Real,
         }
         let processes = [
-            ProcessData { s: 6000.0, q: 0.00, r: 0.05, sigma: 0.20, nu: 0.05, theta: -0.50 },
-            ProcessData { s: 6000.0, q: 0.02, r: 0.05, sigma: 0.15, nu: 0.01, theta: -0.50 },
+            ProcessData {
+                s: 6000.0,
+                q: 0.00,
+                r: 0.05,
+                sigma: 0.20,
+                nu: 0.05,
+                theta: -0.50,
+            },
+            ProcessData {
+                s: 6000.0,
+                q: 0.02,
+                r: 0.05,
+                sigma: 0.15,
+                nu: 0.01,
+                theta: -0.50,
+            },
         ];
 
         struct OptionData {
@@ -189,43 +210,107 @@ mod tests {
             strike: Real,
         }
         let options = [
-            OptionData { opt_type: OptionType::Call, strike: 5550.0 },
-            OptionData { opt_type: OptionType::Call, strike: 5600.0 },
-            OptionData { opt_type: OptionType::Call, strike: 5650.0 },
-            OptionData { opt_type: OptionType::Call, strike: 5700.0 },
-            OptionData { opt_type: OptionType::Call, strike: 5750.0 },
-            OptionData { opt_type: OptionType::Call, strike: 5800.0 },
-            OptionData { opt_type: OptionType::Call, strike: 5850.0 },
-            OptionData { opt_type: OptionType::Call, strike: 5900.0 },
-            OptionData { opt_type: OptionType::Call, strike: 5950.0 },
-            OptionData { opt_type: OptionType::Call, strike: 6000.0 },
-            OptionData { opt_type: OptionType::Call, strike: 6050.0 },
-            OptionData { opt_type: OptionType::Call, strike: 6100.0 },
-            OptionData { opt_type: OptionType::Call, strike: 6150.0 },
-            OptionData { opt_type: OptionType::Call, strike: 6200.0 },
-            OptionData { opt_type: OptionType::Call, strike: 6250.0 },
-            OptionData { opt_type: OptionType::Call, strike: 6300.0 },
-            OptionData { opt_type: OptionType::Call, strike: 6350.0 },
-            OptionData { opt_type: OptionType::Call, strike: 6400.0 },
-            OptionData { opt_type: OptionType::Call, strike: 6450.0 },
-            OptionData { opt_type: OptionType::Call, strike: 6500.0 },
-            OptionData { opt_type: OptionType::Call, strike: 6550.0 },
-            OptionData { opt_type: OptionType::Put,  strike: 5550.0 },
+            OptionData {
+                opt_type: OptionType::Call,
+                strike: 5550.0,
+            },
+            OptionData {
+                opt_type: OptionType::Call,
+                strike: 5600.0,
+            },
+            OptionData {
+                opt_type: OptionType::Call,
+                strike: 5650.0,
+            },
+            OptionData {
+                opt_type: OptionType::Call,
+                strike: 5700.0,
+            },
+            OptionData {
+                opt_type: OptionType::Call,
+                strike: 5750.0,
+            },
+            OptionData {
+                opt_type: OptionType::Call,
+                strike: 5800.0,
+            },
+            OptionData {
+                opt_type: OptionType::Call,
+                strike: 5850.0,
+            },
+            OptionData {
+                opt_type: OptionType::Call,
+                strike: 5900.0,
+            },
+            OptionData {
+                opt_type: OptionType::Call,
+                strike: 5950.0,
+            },
+            OptionData {
+                opt_type: OptionType::Call,
+                strike: 6000.0,
+            },
+            OptionData {
+                opt_type: OptionType::Call,
+                strike: 6050.0,
+            },
+            OptionData {
+                opt_type: OptionType::Call,
+                strike: 6100.0,
+            },
+            OptionData {
+                opt_type: OptionType::Call,
+                strike: 6150.0,
+            },
+            OptionData {
+                opt_type: OptionType::Call,
+                strike: 6200.0,
+            },
+            OptionData {
+                opt_type: OptionType::Call,
+                strike: 6250.0,
+            },
+            OptionData {
+                opt_type: OptionType::Call,
+                strike: 6300.0,
+            },
+            OptionData {
+                opt_type: OptionType::Call,
+                strike: 6350.0,
+            },
+            OptionData {
+                opt_type: OptionType::Call,
+                strike: 6400.0,
+            },
+            OptionData {
+                opt_type: OptionType::Call,
+                strike: 6450.0,
+            },
+            OptionData {
+                opt_type: OptionType::Call,
+                strike: 6500.0,
+            },
+            OptionData {
+                opt_type: OptionType::Call,
+                strike: 6550.0,
+            },
+            OptionData {
+                opt_type: OptionType::Put,
+                strike: 5550.0,
+            },
         ];
 
         // Expected values from the C++ QuantLib test suite
         let expected: [[Real; 22]; 2] = [
             [
-                955.1637, 922.7529, 890.9872, 859.8739, 829.4197, 799.6303,
-                770.5104, 742.0640, 714.2943, 687.2032, 660.7921, 635.0613,
-                610.0103, 585.6379, 561.9416, 538.9186, 516.5649, 494.8760,
-                473.8464, 453.4700, 433.7400, 234.4870,
+                955.1637, 922.7529, 890.9872, 859.8739, 829.4197, 799.6303, 770.5104, 742.0640,
+                714.2943, 687.2032, 660.7921, 635.0613, 610.0103, 585.6379, 561.9416, 538.9186,
+                516.5649, 494.8760, 473.8464, 453.4700, 433.7400, 234.4870,
             ],
             [
-                732.8705, 698.5542, 665.1404, 632.6498, 601.1002, 570.5068,
-                540.8824, 512.2367, 484.5766, 457.9064, 432.2273, 407.5381,
-                383.8346, 361.1102, 339.3559, 318.5599, 298.7087, 279.7864,
-                261.7751, 244.6552, 228.4057, 130.9974,
+                732.8705, 698.5542, 665.1404, 632.6498, 601.1002, 570.5068, 540.8824, 512.2367,
+                484.5766, 457.9064, 432.2273, 407.5381, 383.8346, 361.1102, 339.3559, 318.5599,
+                298.7087, 279.7864, 261.7751, 244.6552, 228.4057, 130.9974,
             ],
         ];
 
@@ -277,10 +362,7 @@ mod tests {
         let dividend = flat_ts(0.0, today);
 
         let process = Arc::new(VarianceGammaProcess::new(
-            100.0,
-            risk_free,
-            dividend,
-            0.12,  // sigma
+            100.0, risk_free, dividend, 0.12,  // sigma
             0.2,   // nu (kappa in C++ test)
             -0.14, // theta (mu in C++ test)
         ));

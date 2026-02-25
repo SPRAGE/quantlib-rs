@@ -36,7 +36,11 @@ pub struct ZabrParameters {
 impl ZabrParameters {
     /// Validate the ZABR parameters.
     pub fn validate(&self) {
-        assert!(self.alpha > 0.0, "ZABR: alpha must be > 0, got {}", self.alpha);
+        assert!(
+            self.alpha > 0.0,
+            "ZABR: alpha must be > 0, got {}",
+            self.alpha
+        );
         assert!(
             (0.0..=1.0).contains(&self.beta),
             "ZABR: beta must be in [0, 1], got {}",
@@ -110,15 +114,9 @@ impl ZabrModel {
     /// Compute implied Black volatility for a given strike.
     pub fn implied_volatility(&self, strike: Real) -> Volatility {
         match self.method {
-            ZabrEvaluationMethod::ShortMaturityLognormal => {
-                self.short_maturity_lognormal(strike)
-            }
-            ZabrEvaluationMethod::ShortMaturityNormal => {
-                self.short_maturity_normal(strike)
-            }
-            ZabrEvaluationMethod::LocalVolatility => {
-                self.local_vol_expansion(strike)
-            }
+            ZabrEvaluationMethod::ShortMaturityLognormal => self.short_maturity_lognormal(strike),
+            ZabrEvaluationMethod::ShortMaturityNormal => self.short_maturity_normal(strike),
+            ZabrEvaluationMethod::LocalVolatility => self.local_vol_expansion(strike),
         }
     }
 
@@ -443,10 +441,10 @@ mod tests {
         let t = 1.0;
         let k = 0.03;
 
-        let model_ln = ZabrModel::new(f, t, params)
-            .with_method(ZabrEvaluationMethod::ShortMaturityLognormal);
-        let model_lv = ZabrModel::new(f, t, params)
-            .with_method(ZabrEvaluationMethod::LocalVolatility);
+        let model_ln =
+            ZabrModel::new(f, t, params).with_method(ZabrEvaluationMethod::ShortMaturityLognormal);
+        let model_lv =
+            ZabrModel::new(f, t, params).with_method(ZabrEvaluationMethod::LocalVolatility);
 
         let vol_ln = model_ln.implied_volatility(k);
         let vol_lv = model_lv.implied_volatility(k);

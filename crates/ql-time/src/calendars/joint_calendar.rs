@@ -44,7 +44,10 @@ impl JointCalendar {
     /// # Panics
     /// Panics if `calendars` is empty.
     pub fn new(calendars: Vec<Box<dyn Calendar>>, rule: JointCalendarRule) -> Self {
-        assert!(!calendars.is_empty(), "JointCalendar requires at least one calendar");
+        assert!(
+            !calendars.is_empty(),
+            "JointCalendar requires at least one calendar"
+        );
         let names: Vec<&str> = calendars.iter().map(|c| c.name()).collect();
         let joiner = match rule {
             JointCalendarRule::JoinHolidays => ", ",

@@ -3,7 +3,7 @@
 //! Wraps the `statrs` crate's Student-t implementation.
 
 use ql_core::Real;
-use statrs::distribution::{ContinuousCDF, Continuous, StudentsT};
+use statrs::distribution::{Continuous, ContinuousCDF, StudentsT};
 
 /// Student's t-distribution with `df` degrees of freedom.
 ///
@@ -59,11 +59,7 @@ mod tests {
     fn student_t_symmetry() {
         let d = StudentTDistribution::new(5.0);
         // CDF(0) should be 0.5 by symmetry
-        assert!(
-            (d.cdf(0.0) - 0.5).abs() < 1e-12,
-            "CDF(0) = {}",
-            d.cdf(0.0)
-        );
+        assert!((d.cdf(0.0) - 0.5).abs() < 1e-12, "CDF(0) = {}", d.cdf(0.0));
         // PDF is symmetric: pdf(-x) == pdf(x)
         let x = 1.5;
         assert!(

@@ -14,7 +14,6 @@ use ql_instruments::{
 use ql_math::distributions::normal_cdf;
 use ql_processes::GeneralizedBlackScholesProcess;
 
-
 /// Analytic barrier option engine (Reiner-Rubinstein).
 ///
 /// Prices single-barrier European vanilla options (knock-in and knock-out,
@@ -80,7 +79,8 @@ pub fn analytic_barrier_price(
 
     let x1 = (spot / strike).ln() / (sigma * sqrt_t) + (1.0 + mu) * sigma * sqrt_t;
     let x2 = (spot / barrier).ln() / (sigma * sqrt_t) + (1.0 + mu) * sigma * sqrt_t;
-    let y1 = (barrier * barrier / (spot * strike)).ln() / (sigma * sqrt_t) + (1.0 + mu) * sigma * sqrt_t;
+    let y1 =
+        (barrier * barrier / (spot * strike)).ln() / (sigma * sqrt_t) + (1.0 + mu) * sigma * sqrt_t;
     let y2 = (barrier / spot).ln() / (sigma * sqrt_t) + (1.0 + mu) * sigma * sqrt_t;
 
     let df_r = (-r * t).exp();
@@ -93,22 +93,14 @@ pub fn analytic_barrier_price(
     let b = phi * spot * df_q * normal_cdf(phi * x2)
         - phi * strike * df_r * normal_cdf(phi * x2 - phi * sigma * sqrt_t);
 
-    let c = phi
-        * spot
-        * df_q
-        * (barrier / spot).powf(2.0 * (mu + 1.0))
-        * normal_cdf(eta * y1)
+    let c = phi * spot * df_q * (barrier / spot).powf(2.0 * (mu + 1.0)) * normal_cdf(eta * y1)
         - phi
             * strike
             * df_r
             * (barrier / spot).powf(2.0 * mu)
             * normal_cdf(eta * y1 - eta * sigma * sqrt_t);
 
-    let d = phi
-        * spot
-        * df_q
-        * (barrier / spot).powf(2.0 * (mu + 1.0))
-        * normal_cdf(eta * y2)
+    let d = phi * spot * df_q * (barrier / spot).powf(2.0 * (mu + 1.0)) * normal_cdf(eta * y2)
         - phi
             * strike
             * df_r
@@ -205,8 +197,30 @@ mod tests {
         let barrier = 90.0; // down barrier
         let rebate = 0.0;
 
-        let di = analytic_barrier_price(OptionType::Call, BarrierType::DownIn, s, k, barrier, rebate, r, q, sigma, t);
-        let do_ = analytic_barrier_price(OptionType::Call, BarrierType::DownOut, s, k, barrier, rebate, r, q, sigma, t);
+        let di = analytic_barrier_price(
+            OptionType::Call,
+            BarrierType::DownIn,
+            s,
+            k,
+            barrier,
+            rebate,
+            r,
+            q,
+            sigma,
+            t,
+        );
+        let do_ = analytic_barrier_price(
+            OptionType::Call,
+            BarrierType::DownOut,
+            s,
+            k,
+            barrier,
+            rebate,
+            r,
+            q,
+            sigma,
+            t,
+        );
         let (vanilla, ..) = black_scholes_merton(OptionType::Call, s, k, r, q, sigma, t);
 
         assert!(
@@ -222,8 +236,30 @@ mod tests {
         let barrier = 110.0; // up barrier
         let rebate = 0.0;
 
-        let ui = analytic_barrier_price(OptionType::Put, BarrierType::UpIn, s, k, barrier, rebate, r, q, sigma, t);
-        let uo = analytic_barrier_price(OptionType::Put, BarrierType::UpOut, s, k, barrier, rebate, r, q, sigma, t);
+        let ui = analytic_barrier_price(
+            OptionType::Put,
+            BarrierType::UpIn,
+            s,
+            k,
+            barrier,
+            rebate,
+            r,
+            q,
+            sigma,
+            t,
+        );
+        let uo = analytic_barrier_price(
+            OptionType::Put,
+            BarrierType::UpOut,
+            s,
+            k,
+            barrier,
+            rebate,
+            r,
+            q,
+            sigma,
+            t,
+        );
         let (vanilla, ..) = black_scholes_merton(OptionType::Put, s, k, r, q, sigma, t);
 
         assert!(
@@ -238,7 +274,18 @@ mod tests {
         let (s, k, r, q, sigma, t) = params();
         let barrier = 90.0;
 
-        let do_ = analytic_barrier_price(OptionType::Call, BarrierType::DownOut, s, k, barrier, 0.0, r, q, sigma, t);
+        let do_ = analytic_barrier_price(
+            OptionType::Call,
+            BarrierType::DownOut,
+            s,
+            k,
+            barrier,
+            0.0,
+            r,
+            q,
+            sigma,
+            t,
+        );
         let (vanilla, ..) = black_scholes_merton(OptionType::Call, s, k, r, q, sigma, t);
 
         assert!(do_ < vanilla, "do={do_}, vanilla={vanilla}");
@@ -251,10 +298,35 @@ mod tests {
         let barrier = 120.0;
         let rebate = 3.0;
 
-        let with_rebate = analytic_barrier_price(OptionType::Call, BarrierType::UpOut, s, k, barrier, rebate, r, q, sigma, t);
-        let without = analytic_barrier_price(OptionType::Call, BarrierType::UpOut, s, k, barrier, 0.0, r, q, sigma, t);
+        let with_rebate = analytic_barrier_price(
+            OptionType::Call,
+            BarrierType::UpOut,
+            s,
+            k,
+            barrier,
+            rebate,
+            r,
+            q,
+            sigma,
+            t,
+        );
+        let without = analytic_barrier_price(
+            OptionType::Call,
+            BarrierType::UpOut,
+            s,
+            k,
+            barrier,
+            0.0,
+            r,
+            q,
+            sigma,
+            t,
+        );
 
-        assert!(with_rebate > without, "with_rebate={with_rebate}, without={without}");
+        assert!(
+            with_rebate > without,
+            "with_rebate={with_rebate}, without={without}"
+        );
     }
 
     #[test]

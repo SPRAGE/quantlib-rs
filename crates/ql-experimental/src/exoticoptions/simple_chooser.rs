@@ -73,13 +73,10 @@ impl AnalyticSimpleChooserEngine {
         let sqrt_t = t_maturity.sqrt();
         let sqrt_tc = t_choosing.sqrt();
 
-        let d = ((spot / strike).ln()
-            + (r - q + 0.5 * sigma * sigma) * t_maturity)
-            / (sigma * sqrt_t);
+        let d =
+            ((spot / strike).ln() + (r - q + 0.5 * sigma * sigma) * t_maturity) / (sigma * sqrt_t);
 
-        let y = ((spot / strike).ln()
-            + (r - q) * t_maturity
-            + 0.5 * sigma * sigma * t_choosing)
+        let y = ((spot / strike).ln() + (r - q) * t_maturity + 0.5 * sigma * sigma * t_choosing)
             / (sigma * sqrt_tc);
 
         // V = S·exp(-q·T)·N(d)  - K·exp(-r·T)·N(d - σ√T)

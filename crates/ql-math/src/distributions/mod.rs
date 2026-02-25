@@ -12,8 +12,8 @@ pub mod poisson;
 pub mod student_t;
 
 pub use beta::{
-    BetaDistribution, error_function, erfc, gamma_function, incomplete_beta,
-    inverse_error_function, log_gamma,
+    erfc, error_function, gamma_function, incomplete_beta, inverse_error_function, log_gamma,
+    BetaDistribution,
 };
 pub use binomial::BinomialDistribution;
 pub use chi_square::ChiSquareDistribution;

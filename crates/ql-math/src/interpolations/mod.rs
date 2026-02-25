@@ -48,10 +48,7 @@ impl LinearInterpolation {
     /// Returns an error if the slices have different lengths or fewer than 2 points.
     pub fn new(xs: &[Real], ys: &[Real]) -> Result<Self> {
         ql_core::ensure!(xs.len() >= 2, "need at least 2 points for interpolation");
-        ql_core::ensure!(
-            xs.len() == ys.len(),
-            "xs and ys must have the same length"
-        );
+        ql_core::ensure!(xs.len() == ys.len(), "xs and ys must have the same length");
         Ok(Self {
             xs: xs.to_vec(),
             ys: ys.to_vec(),
@@ -255,10 +252,7 @@ impl CubicNaturalSpline {
     /// Returns an error if fewer than 3 points are provided or lengths differ.
     pub fn new(xs: &[Real], ys: &[Real]) -> Result<Self> {
         ql_core::ensure!(xs.len() >= 3, "need at least 3 points for cubic spline");
-        ql_core::ensure!(
-            xs.len() == ys.len(),
-            "xs and ys must have the same length"
-        );
+        ql_core::ensure!(xs.len() == ys.len(), "xs and ys must have the same length");
         let n = xs.len();
         let m = Self::compute_second_derivatives(xs, ys, n);
         Ok(Self {
@@ -278,8 +272,7 @@ impl CubicNaturalSpline {
         // RHS of the tridiagonal system
         let mut rhs = vec![0.0; n];
         for i in 1..nm1 {
-            rhs[i] = 6.0
-                * ((ys[i + 1] - ys[i]) / h[i] - (ys[i] - ys[i - 1]) / h[i - 1]);
+            rhs[i] = 6.0 * ((ys[i + 1] - ys[i]) / h[i] - (ys[i] - ys[i - 1]) / h[i - 1]);
         }
 
         // Natural boundary: m[0] = m[n-1] = 0
@@ -346,8 +339,7 @@ impl Interpolation1D for CubicNaturalSpline {
         let t = x - self.xs[i];
         let a = (self.m[i + 1] - self.m[i]) / (6.0 * h);
         let b = self.m[i] / 2.0;
-        let c = (self.ys[i + 1] - self.ys[i]) / h
-            - h * (2.0 * self.m[i] + self.m[i + 1]) / 6.0;
+        let c = (self.ys[i + 1] - self.ys[i]) / h - h * (2.0 * self.m[i] + self.m[i + 1]) / 6.0;
         let d = self.ys[i];
         d + t * (c + t * (b + t * a))
     }
@@ -373,10 +365,7 @@ impl LagrangeInterpolation {
     /// Returns an error if fewer than 2 points or lengths differ.
     pub fn new(xs: &[Real], ys: &[Real]) -> Result<Self> {
         ql_core::ensure!(xs.len() >= 2, "need at least 2 points");
-        ql_core::ensure!(
-            xs.len() == ys.len(),
-            "xs and ys must have the same length"
-        );
+        ql_core::ensure!(xs.len() == ys.len(), "xs and ys must have the same length");
         let n = xs.len();
         // Barycentric weights: w[j] = 1 / prod_{k≠j} (x[j] - x[k])
         let mut weights = vec![1.0; n];

@@ -36,8 +36,9 @@ impl Calendar for Target {
         let dd = date.day_of_year();
         let em = easter_monday_pub(y);
 
-        if // New Year's Day
-           (d == 1 && m == 1)
+        if
+        // New Year's Day
+        (d == 1 && m == 1)
             // Good Friday (from 2000)
             || (dd == em - 3 && y >= 2000)
             // Easter Monday (from 2000)
@@ -120,9 +121,9 @@ mod tests {
     fn easter_2023() {
         // Easter Sunday 2023: April 9 → Good Friday April 7, Easter Monday April 10
         let cal = Target;
-        assert!(!cal.is_business_day(date(2023, 4, 7)));  // Good Friday
+        assert!(!cal.is_business_day(date(2023, 4, 7))); // Good Friday
         assert!(!cal.is_business_day(date(2023, 4, 10))); // Easter Monday
-        assert!(cal.is_business_day(date(2023, 4, 11)));  // Tuesday after Easter
+        assert!(cal.is_business_day(date(2023, 4, 11))); // Tuesday after Easter
     }
 
     #[test]

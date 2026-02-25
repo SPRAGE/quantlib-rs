@@ -86,9 +86,8 @@ mod tests {
         let engine = DiscountingBondEngine::new(curve);
 
         let maturity = Date::from_ymd(2026, 1, 15).unwrap();
-        let cashflows: Vec<Box<dyn CashFlow>> = vec![
-            Box::new(SimpleCashFlow::new(105.0, maturity)),
-        ];
+        let cashflows: Vec<Box<dyn CashFlow>> =
+            vec![Box::new(SimpleCashFlow::new(105.0, maturity))];
 
         let result = engine.price(&cashflows, ref_date).unwrap();
         // NPV ≈ 105 * exp(-0.05)
@@ -136,9 +135,8 @@ mod tests {
         let engine = DiscountingBondEngine::new(curve);
 
         let maturity = Date::from_ymd(2030, 1, 15).unwrap();
-        let cashflows: Vec<Box<dyn CashFlow>> = vec![
-            Box::new(SimpleCashFlow::new(100.0, maturity)),
-        ];
+        let cashflows: Vec<Box<dyn CashFlow>> =
+            vec![Box::new(SimpleCashFlow::new(100.0, maturity))];
 
         let result = engine.price(&cashflows, ref_date).unwrap();
         // 5-year zero: NPV = 100 * exp(-0.03 * 5)

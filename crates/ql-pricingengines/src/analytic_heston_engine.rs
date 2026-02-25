@@ -135,8 +135,7 @@ fn heston_char_func(
     // C = κθ/σ² * [(c - d)T - 2*ln((1 - g_m*exp(-dT)) / (1 - g_m))]
     let cmdt_r = cmd_r * t;
     let cmdt_i = cmd_i * t;
-    let (log_arg_r, log_arg_i) =
-        complex_div(one_m_gme_r, one_m_gme_i, one_m_gm_r, one_m_gm_i);
+    let (log_arg_r, log_arg_i) = complex_div(one_m_gme_r, one_m_gme_i, one_m_gm_r, one_m_gm_i);
     let (log_r, log_i) = complex_log(log_arg_r, log_arg_i);
 
     let big_c_r = kappa * theta / sigma2 * (cmdt_r - 2.0 * log_r);
@@ -212,8 +211,34 @@ pub fn heston_price(
 ) -> Real {
     let _phi = option_type.sign();
 
-    let p1 = compute_pj(1, spot, strike, t, r, q, v0, kappa, theta, sigma, rho, integration_order);
-    let p2 = compute_pj(2, spot, strike, t, r, q, v0, kappa, theta, sigma, rho, integration_order);
+    let p1 = compute_pj(
+        1,
+        spot,
+        strike,
+        t,
+        r,
+        q,
+        v0,
+        kappa,
+        theta,
+        sigma,
+        rho,
+        integration_order,
+    );
+    let p2 = compute_pj(
+        2,
+        spot,
+        strike,
+        t,
+        r,
+        q,
+        v0,
+        kappa,
+        theta,
+        sigma,
+        rho,
+        integration_order,
+    );
 
     let df_q = (-q * t).exp();
     let df_r = (-r * t).exp();
@@ -315,17 +340,24 @@ mod tests {
 
         let heston = heston_price(
             OptionType::Call,
-            spot, strike, r, q, t, v0, kappa, theta, sigma_v, rho, 128,
+            spot,
+            strike,
+            r,
+            q,
+            t,
+            v0,
+            kappa,
+            theta,
+            sigma_v,
+            rho,
+            128,
         );
 
         // Compare to BS — with σ_v=0.1 there's a small correction
         use crate::analytic_european_engine::black_scholes_merton;
         let (bs, ..) = black_scholes_merton(OptionType::Call, spot, strike, r, q, 0.20, t);
 
-        assert!(
-            (heston - bs).abs() < 1.0,
-            "heston={heston}, bs={bs}"
-        );
+        assert!((heston - bs).abs() < 1.0, "heston={heston}, bs={bs}");
     }
 
     /// Heston put-call parity.
@@ -342,24 +374,47 @@ mod tests {
         let sigma_v = 0.3;
         let rho = -0.7;
 
-        let call = heston_price(OptionType::Call, spot, strike, r, q, t, v0, kappa, theta, sigma_v, rho, 128);
-        let put = heston_price(OptionType::Put, spot, strike, r, q, t, v0, kappa, theta, sigma_v, rho, 128);
+        let call = heston_price(
+            OptionType::Call,
+            spot,
+            strike,
+            r,
+            q,
+            t,
+            v0,
+            kappa,
+            theta,
+            sigma_v,
+            rho,
+            128,
+        );
+        let put = heston_price(
+            OptionType::Put,
+            spot,
+            strike,
+            r,
+            q,
+            t,
+            v0,
+            kappa,
+            theta,
+            sigma_v,
+            rho,
+            128,
+        );
 
         // C - P = S*exp(-qT) - K*exp(-rT)
         let lhs = call - put;
         let rhs = spot * (-q * t).exp() - strike * (-r * t).exp();
-        assert!(
-            (lhs - rhs).abs() < 0.01,
-            "parity: lhs={lhs}, rhs={rhs}"
-        );
+        assert!((lhs - rhs).abs() < 0.01, "parity: lhs={lhs}, rhs={rhs}");
     }
 
     /// Heston engine via model.
     #[test]
     fn heston_engine_via_model() {
+        use ql_processes::HestonProcess;
         use ql_termstructures::FlatForward;
         use ql_time::{Actual365Fixed, Date};
-        use ql_processes::HestonProcess;
 
         let ref_date = Date::from_ymd(2025, 1, 15).unwrap();
         let rf = Arc::new(FlatForward::continuous(ref_date, 0.05, Actual365Fixed));
@@ -371,13 +426,20 @@ mod tests {
 
         let expiry = Date::from_ymd(2026, 1, 15).unwrap();
         let args = VanillaOptionArguments {
-            payoff: Arc::new(ql_instruments::PlainVanillaPayoff::new(OptionType::Call, 100.0)),
+            payoff: Arc::new(ql_instruments::PlainVanillaPayoff::new(
+                OptionType::Call,
+                100.0,
+            )),
             exercise: ql_instruments::Exercise::european(expiry),
         };
 
         let result = engine.calculate(&args).unwrap();
         // Heston price should be in reasonable range for ATM call
-        assert!(result.npv > 5.0 && result.npv < 20.0, "npv = {}", result.npv);
+        assert!(
+            result.npv > 5.0 && result.npv < 20.0,
+            "npv = {}",
+            result.npv
+        );
     }
 
     /// Heston negative correlation produces implied vol skew.
@@ -394,8 +456,34 @@ mod tests {
         let rho = -0.7;
 
         // OTM put (K=90) should have higher implied vol than ATM
-        let otm_put = heston_price(OptionType::Put, spot, 90.0, r, q, t, v0, kappa, theta, sigma_v, rho, 128);
-        let atm_call = heston_price(OptionType::Call, spot, 100.0, r, q, t, v0, kappa, theta, sigma_v, rho, 128);
+        let otm_put = heston_price(
+            OptionType::Put,
+            spot,
+            90.0,
+            r,
+            q,
+            t,
+            v0,
+            kappa,
+            theta,
+            sigma_v,
+            rho,
+            128,
+        );
+        let atm_call = heston_price(
+            OptionType::Call,
+            spot,
+            100.0,
+            r,
+            q,
+            t,
+            v0,
+            kappa,
+            theta,
+            sigma_v,
+            rho,
+            128,
+        );
 
         // Both should be positive
         assert!(otm_put > 0.0, "otm_put = {otm_put}");

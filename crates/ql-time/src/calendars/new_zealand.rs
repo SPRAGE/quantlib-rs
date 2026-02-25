@@ -39,8 +39,9 @@ impl Calendar for NewZealand {
         let dd = date.day_of_year();
         let em = super::target::easter_monday_pub(y);
 
-        if // New Year's Day (adjusted: if Sat → Mon, if Sun → Mon, if Mon → Tue)
-           (d == 1 && m == 1)
+        if
+        // New Year's Day (adjusted: if Sat → Mon, if Sun → Mon, if Mon → Tue)
+        (d == 1 && m == 1)
             || (d == 3 && m == 1 && w == Weekday::Monday)   // Jan 1 = Sat
             || (d == 2 && m == 1 && w == Weekday::Monday)   // Jan 1 = Sun
             // Day after New Year's (Jan 2, adjusted)
@@ -94,7 +95,7 @@ mod tests {
     #[test]
     fn good_friday_and_easter_monday_2023() {
         let cal = NewZealand;
-        assert!(!cal.is_business_day(date(2023, 4, 7)));  // Good Friday
+        assert!(!cal.is_business_day(date(2023, 4, 7))); // Good Friday
         assert!(!cal.is_business_day(date(2023, 4, 10))); // Easter Monday
     }
 

@@ -86,9 +86,7 @@ pub trait Calendar: std::fmt::Debug + Send + Sync {
                     bwd
                 }
             }
-            BusinessDayConvention::EndOfMonth => {
-                self.end_of_month(date)
-            }
+            BusinessDayConvention::EndOfMonth => self.end_of_month(date),
         }
     }
 
@@ -209,7 +207,7 @@ mod tests {
         let cal = WeekendsOnly;
         let d1 = date(2023, 9, 4); // Monday
         let d2 = date(2023, 9, 8); // Friday
-        // Tue, Wed, Thu, Fri = 4 business days (d1 exclusive)
+                                   // Tue, Wed, Thu, Fri = 4 business days (d1 exclusive)
         assert_eq!(cal.business_days_between(d1, d2), 4);
     }
 }

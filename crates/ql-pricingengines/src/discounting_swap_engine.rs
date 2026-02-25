@@ -46,11 +46,7 @@ impl DiscountingSwapEngine {
     }
 
     /// Price a vanilla swap.
-    pub fn price_swap(
-        &self,
-        swap: &VanillaSwap,
-        reference: Date,
-    ) -> Result<PricingResults> {
+    pub fn price_swap(&self, swap: &VanillaSwap, reference: Date) -> Result<PricingResults> {
         let fixed_npv = self.leg_npv(&swap.fixed_leg, reference);
         let floating_npv = self.leg_npv(&swap.floating_leg, reference);
 

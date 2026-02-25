@@ -93,12 +93,7 @@ pub trait YieldTermStructure: TermStructure {
     }
 
     /// Zero rate for time `t`, expressed under the given conventions.
-    fn zero_rate_time(
-        &self,
-        t: Time,
-        comp: Compounding,
-        freq: Frequency,
-    ) -> InterestRate {
+    fn zero_rate_time(&self, t: Time, comp: Compounding, freq: Frequency) -> InterestRate {
         let df = self.discount_impl(t);
         InterestRate::implied_rate_time(if df > 0.0 { 1.0 / df } else { 1.0 }, comp, freq, t)
     }

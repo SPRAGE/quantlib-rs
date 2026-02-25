@@ -3,7 +3,7 @@
 //! Wraps the `statrs` crate's chi-squared implementation to match the QuantLib API.
 
 use ql_core::Real;
-use statrs::distribution::{ChiSquared, ContinuousCDF, Continuous};
+use statrs::distribution::{ChiSquared, Continuous, ContinuousCDF};
 
 /// Chi-square distribution with `df` degrees of freedom.
 ///

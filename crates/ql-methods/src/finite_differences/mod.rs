@@ -255,9 +255,7 @@ impl Fdm1dSolver {
                     let mut rhs = values.clone();
                     for i in 1..n - 1 {
                         rhs[i] = values[i]
-                            + 0.5
-                                * dt
-                                * (a * values[i - 1] + b * values[i] + c * values[i + 1]);
+                            + 0.5 * dt * (a * values[i - 1] + b * values[i] + c * values[i + 1]);
                     }
 
                     // LHS: (I - 0.5·dt·L) · V^n = rhs
@@ -296,7 +294,8 @@ mod tests {
     fn bs_call_ref() -> Real {
         use ql_instruments::OptionType;
         use ql_pricingengines::analytic_european_engine::black_scholes_merton;
-        let (price, ..) = black_scholes_merton(OptionType::Call, 100.0, 100.0, 0.05, 0.0, 0.20, 1.0);
+        let (price, ..) =
+            black_scholes_merton(OptionType::Call, 100.0, 100.0, 0.05, 0.0, 0.20, 1.0);
         price
     }
 

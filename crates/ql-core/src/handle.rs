@@ -212,8 +212,8 @@ mod tests {
 
     #[test]
     fn handle_get() {
-        let h = Handle::new(3.14_f64);
-        assert!((h.unwrap() - 3.14).abs() < f64::EPSILON);
+        let h = Handle::new(3.125_f64);
+        assert!((h.unwrap() - 3.125).abs() < f64::EPSILON);
         let null: Handle<f64> = Handle::null();
         assert!(null.get().is_none());
     }

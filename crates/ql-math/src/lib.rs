@@ -56,15 +56,12 @@ pub mod statistics;
 pub use array::Array;
 pub use comparison::{close, close_enough};
 pub use distributions::{
-    normal_cdf, normal_cdf_inverse, normal_pdf,
-    BetaDistribution, BinomialDistribution, ChiSquareDistribution, GammaDistribution,
-    PoissonDistribution, StudentTDistribution,
+    normal_cdf, normal_cdf_inverse, normal_pdf, BetaDistribution, BinomialDistribution,
+    ChiSquareDistribution, GammaDistribution, PoissonDistribution, StudentTDistribution,
 };
 pub use interpolations::{
-    akima::AkimaSpline,
-    monotone_cubic::MonotoneCubicSpline,
-    CubicNaturalSpline, FlatInterpolation, ForwardFlatInterpolation,
-    Interpolation1D, LagrangeInterpolation, LinearInterpolation,
+    akima::AkimaSpline, monotone_cubic::MonotoneCubicSpline, CubicNaturalSpline, FlatInterpolation,
+    ForwardFlatInterpolation, Interpolation1D, LagrangeInterpolation, LinearInterpolation,
     LogLinearInterpolation,
 };
 pub use matrix::Matrix;

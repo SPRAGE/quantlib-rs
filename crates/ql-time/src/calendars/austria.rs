@@ -41,8 +41,9 @@ impl Calendar for Austria {
         let dd = date.day_of_year();
         let em = super::target::easter_monday_pub(y);
 
-        if // New Year's Day / Epiphany
-           ((d == 1 || d == 6) && m == 1)
+        if
+        // New Year's Day / Epiphany
+        ((d == 1 || d == 6) && m == 1)
             // Easter Monday
             || (dd == em)
             // Labour Day

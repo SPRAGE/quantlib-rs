@@ -42,8 +42,9 @@ impl Calendar for Romania {
         let dd = date.day_of_year();
         let em = super::target::easter_monday_pub(y);
 
-        if // New Year's Day (Jan 1–2)
-           ((d == 1 || d == 2) && m == 1)
+        if
+        // New Year's Day (Jan 1–2)
+        ((d == 1 || d == 2) && m == 1)
             // Unification Day (since 2016)
             || (d == 24 && m == 1 && y >= 2016)
             // Easter Monday

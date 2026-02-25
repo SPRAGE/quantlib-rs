@@ -226,9 +226,9 @@ mod tests {
 
     #[test]
     fn display_format() {
-        let ts = TimeSeries::from_key_values(&[1, 2], &[3.14, 2.72]);
+        let ts = TimeSeries::from_key_values(&[1, 2], &[3.125, 2.625]);
         let s = format!("{ts}");
-        assert!(s.contains("3.14"));
-        assert!(s.contains("2.72"));
+        assert!(s.contains("3.125"));
+        assert!(s.contains("2.625"));
     }
 }

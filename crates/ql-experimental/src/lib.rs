@@ -34,7 +34,7 @@ pub use catbonds::{
 pub use variance_option::IntegralHestonVarianceOptionEngine;
 
 pub use exoticoptions::{
-    AnalyticCompoundOptionEngine, AnalyticComplexChooserEngine,
+    AnalyticComplexChooserEngine, AnalyticCompoundOptionEngine,
     AnalyticHolderExtensibleOptionEngine, AnalyticSimpleChooserEngine,
     AnalyticTwoAssetCorrelationEngine, AnalyticWriterExtensibleOptionEngine,
 };

@@ -15,9 +15,7 @@ impl IMM {
         let m = date.month();
         let d = date.day_of_month();
         let w = date.weekday();
-        matches!(m, 3 | 6 | 9 | 12)
-            && w == Weekday::Wednesday
-            && (15..=21).contains(&d)
+        matches!(m, 3 | 6 | 9 | 12) && w == Weekday::Wednesday && (15..=21).contains(&d)
     }
 
     /// Return the next IMM date on or after `date`.

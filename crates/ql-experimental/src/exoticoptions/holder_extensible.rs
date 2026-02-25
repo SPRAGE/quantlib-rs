@@ -10,8 +10,8 @@
 //!
 //! Reference: Haug (2007).
 
-use ql_core::Real;
 use super::bivariate_normal::bivariate_normal_cdf_dr78;
+use ql_core::Real;
 use ql_math::distributions::normal_cdf;
 use ql_processes::GeneralizedBlackScholesProcess;
 use std::sync::Arc;
@@ -79,8 +79,7 @@ impl AnalyticHolderExtensibleOptionEngine {
             let bsm = self.bs_call(s, x1, growth, discount, vol, t1);
 
             let result = bsm
-                + s * ((b - r) * t2).exp()
-                    * self.m2(y1, y2, f64::NEG_INFINITY, z1, rho)
+                + s * ((b - r) * t2).exp() * self.m2(y1, y2, f64::NEG_INFINITY, z1, rho)
                 - x2 * (-r * t2).exp()
                     * self.m2(
                         y1 - vol * t1.sqrt(),
@@ -89,12 +88,9 @@ impl AnalyticHolderExtensibleOptionEngine {
                         z1 - vol * t2.sqrt(),
                         rho,
                     )
-                - s * ((b - r) * t1).exp()
-                    * self.n2(y1, z2)
-                + x1 * (-r * t1).exp()
-                    * self.n2(y1 - vol * t1.sqrt(), z2 - vol * t1.sqrt())
-                - a * (-r * t1).exp()
-                    * self.n2(y1 - vol * t1.sqrt(), y2 - vol * t1.sqrt());
+                - s * ((b - r) * t1).exp() * self.n2(y1, z2)
+                + x1 * (-r * t1).exp() * self.n2(y1 - vol * t1.sqrt(), z2 - vol * t1.sqrt())
+                - a * (-r * t1).exp() * self.n2(y1 - vol * t1.sqrt(), y2 - vol * t1.sqrt());
 
             result
         } else {
@@ -107,8 +103,7 @@ impl AnalyticHolderExtensibleOptionEngine {
             let bsm = self.bs_put(s, x1, growth, discount, vol, t1);
 
             let result = bsm
-                - s * ((b - r) * t2).exp()
-                    * self.m2(y1, y2, f64::NEG_INFINITY, -z1, rho)
+                - s * ((b - r) * t2).exp() * self.m2(y1, y2, f64::NEG_INFINITY, -z1, rho)
                 + x2 * (-r * t2).exp()
                     * self.m2(
                         y1 - vol * t1.sqrt(),
@@ -117,12 +112,9 @@ impl AnalyticHolderExtensibleOptionEngine {
                         -z1 + vol * t2.sqrt(),
                         rho,
                     )
-                + s * ((b - r) * t1).exp()
-                    * self.n2(z2, y2)
-                - x1 * (-r * t1).exp()
-                    * self.n2(z2 - vol * t1.sqrt(), y2 - vol * t1.sqrt())
-                - a * (-r * t1).exp()
-                    * self.n2(y1 - vol * t1.sqrt(), y2 - vol * t1.sqrt());
+                + s * ((b - r) * t1).exp() * self.n2(z2, y2)
+                - x1 * (-r * t1).exp() * self.n2(z2 - vol * t1.sqrt(), y2 - vol * t1.sqrt())
+                - a * (-r * t1).exp() * self.n2(y1 - vol * t1.sqrt(), y2 - vol * t1.sqrt());
 
             result
         }
@@ -217,7 +209,12 @@ impl AnalyticHolderExtensibleOptionEngine {
     }
 
     /// BS value and delta for the extension period option (from T1 to T2).
-    fn bs_value_delta_ext(&self, spot: Real, args: &HolderExtensibleOptionArgs, is_call: bool) -> (Real, Real) {
+    fn bs_value_delta_ext(
+        &self,
+        spot: Real,
+        args: &HolderExtensibleOptionArgs,
+        is_call: bool,
+    ) -> (Real, Real) {
         let x2 = args.strike2;
         let t1 = args.t1;
         let t2 = args.t2;
@@ -231,7 +228,11 @@ impl AnalyticHolderExtensibleOptionEngine {
         let d1 = if std_dev > 1e-15 {
             (forward / x2).ln() / std_dev + 0.5 * std_dev
         } else {
-            if forward > x2 { 1e15 } else { -1e15 }
+            if forward > x2 {
+                1e15
+            } else {
+                -1e15
+            }
         };
         let d2 = d1 - std_dev;
 
@@ -254,7 +255,11 @@ impl AnalyticHolderExtensibleOptionEngine {
         let d1 = if std_dev > 1e-15 {
             (forward / k).ln() / std_dev + 0.5 * std_dev
         } else {
-            if forward > k { 1e15 } else { -1e15 }
+            if forward > k {
+                1e15
+            } else {
+                -1e15
+            }
         };
         let d2 = d1 - std_dev;
         discount * (forward * normal_cdf(d1) - k * normal_cdf(d2))
@@ -266,7 +271,11 @@ impl AnalyticHolderExtensibleOptionEngine {
         let d1 = if std_dev > 1e-15 {
             (forward / k).ln() / std_dev + 0.5 * std_dev
         } else {
-            if forward > k { 1e15 } else { -1e15 }
+            if forward > k {
+                1e15
+            } else {
+                -1e15
+            }
         };
         let d2 = d1 - std_dev;
         discount * (k * normal_cdf(-d2) - forward * normal_cdf(-d1))

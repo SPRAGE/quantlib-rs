@@ -106,11 +106,7 @@ impl TimeGrid {
 /// * `tree` — the binomial tree (already constructed)
 /// * `payoff` — payoff function `S → value` (e.g. `|s| (s - K).max(0.0)`)
 /// * `discount` — per-step discount factor, typically `exp(−r · Δt)`
-pub fn price_european(
-    tree: &BinomialTree,
-    payoff: &dyn Fn(Real) -> Real,
-    discount: Real,
-) -> Real {
+pub fn price_european(tree: &BinomialTree, payoff: &dyn Fn(Real) -> Real, discount: Real) -> Real {
     let n = tree.steps();
 
     // Terminal values at maturity
@@ -135,11 +131,7 @@ pub fn price_european(
 /// Price an American option by backward induction on a binomial tree.
 ///
 /// Same as European pricing, but allows early exercise at every node.
-pub fn price_american(
-    tree: &BinomialTree,
-    payoff: &dyn Fn(Real) -> Real,
-    discount: Real,
-) -> Real {
+pub fn price_american(tree: &BinomialTree, payoff: &dyn Fn(Real) -> Real, discount: Real) -> Real {
     let n = tree.steps();
 
     let mut values: Vec<Real> = (0..tree.size(n))
@@ -212,8 +204,7 @@ pub fn price_american_trinomial(
             let d_down = tree.descendant(i, j, 0);
             let d_mid = tree.descendant(i, j, 1);
             let d_up = tree.descendant(i, j, 2);
-            let hold =
-                discount * (pd * values[d_down] + pm * values[d_mid] + pu * values[d_up]);
+            let hold = discount * (pd * values[d_down] + pm * values[d_mid] + pu * values[d_up]);
             let exercise = payoff(tree.underlying(i, j));
             new_values[j] = hold.max(exercise);
         }

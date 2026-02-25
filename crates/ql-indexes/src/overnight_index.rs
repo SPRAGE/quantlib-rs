@@ -2,15 +2,10 @@
 //! `OvernightIndex` subclass).
 
 use crate::index::{FixingStore, Index};
-use crate::interest_rate_index::{
-    advance_fixing_days, InterestRateIndex, InterestRateIndexData,
-};
+use crate::interest_rate_index::{advance_fixing_days, InterestRateIndex, InterestRateIndexData};
 use ql_core::{errors::Result, Real};
 use ql_currencies::Currency;
-use ql_time::{
-    BusinessDayConvention, Calendar, Date, DayCounter, Frequency, Period,
-    TimeUnit,
-};
+use ql_time::{BusinessDayConvention, Calendar, Date, DayCounter, Frequency, Period, TimeUnit};
 
 /// An overnight rate index (e.g. SOFR, ESTR, SONIA).
 ///

@@ -292,10 +292,7 @@ mod tests {
         // ATM vol from the full formula should match the dedicated ATM formula
         let v1 = sabr_volatility(f, f * (1.0 + 1e-10), t, &p);
         let v2 = sabr_volatility_atm(f, t, &p);
-        assert!(
-            (v1 - v2).abs() < 1e-6,
-            "ATM vol mismatch: {v1} vs {v2}"
-        );
+        assert!((v1 - v2).abs() < 1e-6, "ATM vol mismatch: {v1} vs {v2}");
     }
 
     #[test]

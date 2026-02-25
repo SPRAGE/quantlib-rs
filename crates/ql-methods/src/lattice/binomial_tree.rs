@@ -122,11 +122,7 @@ impl BinomialTree {
     ///
     /// `dx = σ √Δt`, `p_up = ½ + ½ μΔt / dx`.
     /// Drift is captured entirely by the probabilities, not in node values.
-    pub fn cox_ross_rubinstein(
-        process: &dyn StochasticProcess1D,
-        end: Real,
-        steps: usize,
-    ) -> Self {
+    pub fn cox_ross_rubinstein(process: &dyn StochasticProcess1D, end: Real, steps: usize) -> Self {
         let (x0, dt, dps, std) = log_params(process, end, steps);
         let dx = std;
         let pu = 0.5 + 0.5 * dps / dx;
@@ -272,8 +268,7 @@ impl BinomialTree {
 
         let pu = joshi4_up_prob((odd_steps as Real - 1.0) / 2.0, d2);
         let pd = 1.0 - pu;
-        let pdash =
-            joshi4_up_prob((odd_steps as Real - 1.0) / 2.0, d2 + total_var.sqrt());
+        let pdash = joshi4_up_prob((odd_steps as Real - 1.0) / 2.0, d2 + total_var.sqrt());
         let up = ermqdt * pdash / pu;
         let down = (ermqdt - pu * up) / (1.0 - pu);
         Self {
@@ -373,8 +368,15 @@ mod tests {
     /// BS price for reference: ATM call S=100, K=100, r=5%, σ=20%, T=1.
     fn bs_call_reference() -> Real {
         use ql_pricingengines::analytic_european_engine::black_scholes_merton;
-        let (price, ..) =
-            black_scholes_merton(ql_instruments::OptionType::Call, 100.0, 100.0, 0.05, 0.0, 0.20, 1.0);
+        let (price, ..) = black_scholes_merton(
+            ql_instruments::OptionType::Call,
+            100.0,
+            100.0,
+            0.05,
+            0.0,
+            0.20,
+            1.0,
+        );
         price
     }
 

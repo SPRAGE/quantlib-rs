@@ -36,8 +36,9 @@ impl Calendar for Singapore {
         let dd = date.day_of_year();
         let em = super::target::easter_monday_pub(y);
 
-        if // New Year's Day
-           (d == 1 && m == 1)
+        if
+        // New Year's Day
+        (d == 1 && m == 1)
             // Good Friday
             || (dd == em - 3)
             // Labour Day

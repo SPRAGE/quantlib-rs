@@ -37,8 +37,9 @@ impl Calendar for Australia {
         let dd = date.day_of_year();
         let em = super::target::easter_monday_pub(y);
 
-        if // New Year's Day (adjusted)
-           (d == 1 && m == 1)
+        if
+        // New Year's Day (adjusted)
+        (d == 1 && m == 1)
             || (d == 2 && m == 1 && w == Weekday::Monday)  // Sun -> Mon
             || (d == 3 && m == 1 && w == Weekday::Monday)  // Sat -> Mon (via Sun adj)
             // Australia Day (Jan 26, adjusted)
@@ -92,8 +93,8 @@ mod tests {
     fn good_friday_and_easter_2023() {
         // Easter Monday 2023: April 10 → Good Friday April 7, Easter Saturday April 8
         let cal = Australia;
-        assert!(!cal.is_business_day(date(2023, 4, 7)));  // Good Friday
-        assert!(!cal.is_business_day(date(2023, 4, 8)));  // Easter Saturday (also Saturday)
+        assert!(!cal.is_business_day(date(2023, 4, 7))); // Good Friday
+        assert!(!cal.is_business_day(date(2023, 4, 8))); // Easter Saturday (also Saturday)
         assert!(!cal.is_business_day(date(2023, 4, 10))); // Easter Monday
     }
 

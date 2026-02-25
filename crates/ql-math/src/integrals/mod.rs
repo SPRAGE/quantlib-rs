@@ -174,11 +174,7 @@ impl GaussKronrodAdaptive {
 
         // 7-point Gauss and 15-point Kronrod nodes and weights (scaled to [-1,1])
         // Using a simpler 3+7 rule for illustration (G3/K7 pair)
-        static G_NODES: [Real; 3] = [
-            0.0,
-            0.774_596_669_241_483_4,
-            -0.774_596_669_241_483_4,
-        ];
+        static G_NODES: [Real; 3] = [0.0, 0.774_596_669_241_483_4, -0.774_596_669_241_483_4];
         static G_WEIGHTS: [Real; 3] = [
             0.888_888_888_888_888_8,
             0.555_555_555_555_555_6,
@@ -352,31 +348,24 @@ mod tests {
         let s = SimpsonIntegral::new(1e-10, 10_000);
         // ∫₀¹ x² dx = 1/3
         let result = s.integrate(|x| x * x, 0.0, 1.0).unwrap();
-        assert!(
-            (result - 1.0 / 3.0).abs() < 1e-8,
-            "got {result}"
-        );
+        assert!((result - 1.0 / 3.0).abs() < 1e-8, "got {result}");
     }
 
     #[test]
     fn trapezoid_x_squared() {
         let t = TrapezoidIntegral::new(1e-8, 100_000);
         let result = t.integrate(|x| x * x, 0.0, 1.0).unwrap();
-        assert!(
-            (result - 1.0 / 3.0).abs() < 1e-6,
-            "got {result}"
-        );
+        assert!((result - 1.0 / 3.0).abs() < 1e-6, "got {result}");
     }
 
     #[test]
     fn gauss_kronrod_sin() {
         let gk = GaussKronrodAdaptive::new(1e-10, 100_000);
         // ∫₀^π sin(x) dx = 2
-        let result = gk.integrate(|x| x.sin(), 0.0, std::f64::consts::PI).unwrap();
-        assert!(
-            (result - 2.0).abs() < 1e-6,
-            "got {result}"
-        );
+        let result = gk
+            .integrate(|x| x.sin(), 0.0, std::f64::consts::PI)
+            .unwrap();
+        assert!((result - 2.0).abs() < 1e-6, "got {result}");
     }
 
     #[test]

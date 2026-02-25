@@ -112,11 +112,7 @@ impl InterestRate {
     }
 
     /// Compound factor between two dates.
-    pub fn compound_factor(
-        &self,
-        d1: crate::date::Date,
-        d2: crate::date::Date,
-    ) -> Real {
+    pub fn compound_factor(&self, d1: crate::date::Date, d2: crate::date::Date) -> Real {
         let t = self.dc.year_fraction(d1, d2);
         self.compound_factor_time(t)
     }
@@ -129,11 +125,7 @@ impl InterestRate {
     }
 
     /// Discount factor between two dates.
-    pub fn discount_factor(
-        &self,
-        d1: crate::date::Date,
-        d2: crate::date::Date,
-    ) -> Real {
+    pub fn discount_factor(&self, d1: crate::date::Date, d2: crate::date::Date) -> Real {
         1.0 / self.compound_factor(d1, d2)
     }
 
@@ -288,12 +280,7 @@ mod tests {
     fn implied_rate_simple() {
         // If compound factor is 1.10 over 2 years with simple compounding,
         // rate = (1.10 - 1) / 2 = 0.05
-        let ir = InterestRate::implied_rate_time(
-            1.10,
-            Compounding::Simple,
-            Frequency::Annual,
-            2.0,
-        );
+        let ir = InterestRate::implied_rate_time(1.10, Compounding::Simple, Frequency::Annual, 2.0);
         assert!((ir.rate() - 0.05).abs() < 1e-12);
     }
 
@@ -318,21 +305,9 @@ mod tests {
             Frequency::Annual,
         );
         // Convert to continuous, then back to annual compounded
-        let cont = ir.equivalent_rate_time(
-            Compounding::Continuous,
-            Frequency::NoFrequency,
-            1.0,
-        );
-        let back = cont.equivalent_rate_time(
-            Compounding::Compounded,
-            Frequency::Annual,
-            1.0,
-        );
-        assert!(
-            (back.rate() - 0.05).abs() < 1e-10,
-            "got {}",
-            back.rate()
-        );
+        let cont = ir.equivalent_rate_time(Compounding::Continuous, Frequency::NoFrequency, 1.0);
+        let back = cont.equivalent_rate_time(Compounding::Compounded, Frequency::Annual, 1.0);
+        assert!((back.rate() - 0.05).abs() < 1e-10, "got {}", back.rate());
     }
 
     #[test]

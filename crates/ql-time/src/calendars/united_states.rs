@@ -44,8 +44,8 @@ impl Calendar for UnitedStatesSettlement {
 
 fn is_us_settlement_holiday(y: u16, m: u8, d: u8, w: Weekday) -> bool {
     // New Year's Day (possibly moved to Monday if on Sunday)
-    if (d == 1 && m == 1)
-        || (d == 2 && m == 1 && w == Weekday::Monday)  // Jan 1 on Sunday → Jan 2
+    if (d == 1 && m == 1) || (d == 2 && m == 1 && w == Weekday::Monday)
+    // Jan 1 on Sunday → Jan 2
     {
         return true;
     }
@@ -70,14 +70,16 @@ fn is_us_settlement_holiday(y: u16, m: u8, d: u8, w: Weekday) -> bool {
         && m == 6
         && ((d == 19 && !matches!(w, Weekday::Saturday | Weekday::Sunday))
             || (d == 20 && w == Weekday::Monday)  // Jun 19 on Sunday
-            || (d == 18 && w == Weekday::Friday))  // Jun 19 on Saturday
+            || (d == 18 && w == Weekday::Friday))
+    // Jun 19 on Saturday
     {
         return true;
     }
     // Independence Day (July 4)
     if (d == 4 && m == 7)
         || (d == 5 && m == 7 && w == Weekday::Monday)  // Jul 4 on Sunday
-        || (d == 3 && m == 7 && w == Weekday::Friday)   // Jul 4 on Saturday
+        || (d == 3 && m == 7 && w == Weekday::Friday)
+    // Jul 4 on Saturday
     {
         return true;
     }
@@ -92,7 +94,8 @@ fn is_us_settlement_holiday(y: u16, m: u8, d: u8, w: Weekday) -> bool {
     // Veterans' Day (November 11)
     if (d == 11 && m == 11)
         || (d == 12 && m == 11 && w == Weekday::Monday)  // Nov 11 on Sunday
-        || (d == 10 && m == 11 && w == Weekday::Friday)   // Nov 11 on Saturday
+        || (d == 10 && m == 11 && w == Weekday::Friday)
+    // Nov 11 on Saturday
     {
         return true;
     }
@@ -103,7 +106,8 @@ fn is_us_settlement_holiday(y: u16, m: u8, d: u8, w: Weekday) -> bool {
     // Christmas (December 25)
     if (d == 25 && m == 12)
         || (d == 26 && m == 12 && w == Weekday::Monday)  // Dec 25 on Sunday
-        || (d == 24 && m == 12 && w == Weekday::Friday)   // Dec 25 on Saturday
+        || (d == 24 && m == 12 && w == Weekday::Friday)
+    // Dec 25 on Saturday
     {
         return true;
     }
@@ -140,9 +144,7 @@ impl Calendar for UnitedStatesNyse {
 
 fn is_nyse_holiday(y: u16, m: u8, d: u8, w: Weekday, dd: u16, em: u16) -> bool {
     // New Year's Day (possibly moved to Monday if on Sunday)
-    if (d == 1 && m == 1)
-        || (d == 2 && m == 1 && w == Weekday::Monday)
-    {
+    if (d == 1 && m == 1) || (d == 2 && m == 1 && w == Weekday::Monday) {
         return true;
     }
     // MLK Day (3rd Monday of January, since 1998 for NYSE)

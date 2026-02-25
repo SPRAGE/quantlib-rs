@@ -10,16 +10,16 @@
 //! * **Writer-extendible** — writer-extensible option
 
 mod bivariate_normal;
-mod simple_chooser;
 mod complex_chooser;
 mod compound_option;
-mod two_asset_correlation;
 mod holder_extensible;
+mod simple_chooser;
+mod two_asset_correlation;
 mod writer_extensible;
 
-pub use simple_chooser::AnalyticSimpleChooserEngine;
 pub use complex_chooser::AnalyticComplexChooserEngine;
 pub use compound_option::AnalyticCompoundOptionEngine;
-pub use two_asset_correlation::AnalyticTwoAssetCorrelationEngine;
 pub use holder_extensible::AnalyticHolderExtensibleOptionEngine;
+pub use simple_chooser::AnalyticSimpleChooserEngine;
+pub use two_asset_correlation::AnalyticTwoAssetCorrelationEngine;
 pub use writer_extensible::AnalyticWriterExtensibleOptionEngine;

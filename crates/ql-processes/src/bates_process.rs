@@ -52,7 +52,14 @@ impl BatesProcess {
         nu: Real,
     ) -> Self {
         let heston = HestonProcess::new(
-            s0, v0, risk_free_rate, dividend_yield, kappa, theta, sigma, rho,
+            s0,
+            v0,
+            risk_free_rate,
+            dividend_yield,
+            kappa,
+            theta,
+            sigma,
+            rho,
         );
         Self {
             heston,
@@ -126,9 +133,17 @@ mod tests {
     fn bates_reduces_to_heston() {
         // With λ=0, Bates should behave exactly like Heston
         let bp = BatesProcess::new(
-            100.0, 0.04, flat_ts(0.05), flat_ts(0.02),
-            1.0, 0.04, 0.3, -0.5,
-            0.0, 0.0, 0.0,  // no jumps
+            100.0,
+            0.04,
+            flat_ts(0.05),
+            flat_ts(0.02),
+            1.0,
+            0.04,
+            0.3,
+            -0.5,
+            0.0,
+            0.0,
+            0.0, // no jumps
         );
         let x = Array::from_vec(vec![100.0, 0.04]);
         let drift = bp.drift(0.0, &x);
@@ -140,9 +155,17 @@ mod tests {
     #[test]
     fn bates_compensator() {
         let bp = BatesProcess::new(
-            100.0, 0.04, flat_ts(0.05), flat_ts(0.02),
-            1.0, 0.04, 0.3, -0.5,
-            1.0, -0.1, 0.15,
+            100.0,
+            0.04,
+            flat_ts(0.05),
+            flat_ts(0.02),
+            1.0,
+            0.04,
+            0.3,
+            -0.5,
+            1.0,
+            -0.1,
+            0.15,
         );
         let k = bp.jump_compensator();
         let expected = (-0.1 + 0.5 * 0.0225_f64).exp() - 1.0;
@@ -152,9 +175,17 @@ mod tests {
     #[test]
     fn bates_size_and_factors() {
         let bp = BatesProcess::new(
-            100.0, 0.04, flat_ts(0.05), flat_ts(0.02),
-            1.0, 0.04, 0.3, -0.5,
-            1.0, 0.0, 0.1,
+            100.0,
+            0.04,
+            flat_ts(0.05),
+            flat_ts(0.02),
+            1.0,
+            0.04,
+            0.3,
+            -0.5,
+            1.0,
+            0.0,
+            0.1,
         );
         assert_eq!(bp.size(), 2);
         assert_eq!(bp.factors(), 2);

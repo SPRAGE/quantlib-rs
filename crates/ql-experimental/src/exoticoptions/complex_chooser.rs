@@ -8,8 +8,8 @@
 //!
 //! Reference: Rubinstein (1991); Haug "Complete Guide to Option Pricing Formulas".
 
-use ql_core::Real;
 use super::bivariate_normal::bivariate_normal_cdf_dr78;
+use ql_core::Real;
 use ql_math::distributions::normal_cdf;
 use ql_processes::GeneralizedBlackScholesProcess;
 use std::sync::Arc;
@@ -78,16 +78,14 @@ impl AnalyticComplexChooserEngine {
         let r = self.risk_free_rate(t + tc);
         let v = self.volatility(tc);
         let mut result = s * ((b - r) * tc).exp() * bivariate_normal_cdf_dr78(d1, y1, rho1)
-            - xc * (-r * tc).exp()
-                * bivariate_normal_cdf_dr78(d2, y1 - v * tc.sqrt(), rho1);
+            - xc * (-r * tc).exp() * bivariate_normal_cdf_dr78(d2, y1 - v * tc.sqrt(), rho1);
 
         // Put component
         let b = self.risk_free_rate(t + tp) - self.dividend_yield(t + tp);
         let r = self.risk_free_rate(t + tp);
         let v = self.volatility(tp);
         result -= s * ((b - r) * tp).exp() * bivariate_normal_cdf_dr78(-d1, -y2, rho2);
-        result +=
-            xp * (-r * tp).exp() * bivariate_normal_cdf_dr78(-d2, -y2 + v * tp.sqrt(), rho2);
+        result += xp * (-r * tp).exp() * bivariate_normal_cdf_dr78(-d2, -y2 + v * tp.sqrt(), rho2);
 
         result
     }
@@ -115,7 +113,12 @@ impl AnalyticComplexChooserEngine {
     }
 
     /// Compute BS value and delta for the call or put component.
-    fn bs_value_delta(&self, spot: Real, args: &ComplexChooserOptionArgs, is_call: bool) -> (Real, Real) {
+    fn bs_value_delta(
+        &self,
+        spot: Real,
+        args: &ComplexChooserOptionArgs,
+        is_call: bool,
+    ) -> (Real, Real) {
         let t_choose = args.choosing_time;
 
         let (strike, mat_time) = if is_call {
@@ -134,7 +137,11 @@ impl AnalyticComplexChooserEngine {
         let d1 = if std_dev > 1e-15 {
             (forward / strike).ln() / std_dev + 0.5 * std_dev
         } else {
-            if forward > strike { 1e15 } else { -1e15 }
+            if forward > strike {
+                1e15
+            } else {
+                -1e15
+            }
         };
         let d2 = d1 - std_dev;
 

@@ -152,7 +152,12 @@ fn test_us_settlement_holidays() {
     ];
 
     let cal = UnitedStatesSettlement;
-    check_holidays(&cal, date(2004, 1, 1), date(2005, 12, 31), &expected_2004_2005);
+    check_holidays(
+        &cal,
+        date(2004, 1, 1),
+        date(2005, 12, 31),
+        &expected_2004_2005,
+    );
 }
 
 // ─── US NYSE holidays ────────────────────────────────────────────────────────
@@ -193,7 +198,12 @@ fn test_us_nyse_holidays() {
     ];
 
     let cal = UnitedStatesNyse;
-    check_holidays(&cal, date(2004, 1, 1), date(2006, 12, 31), &expected_2004_2006);
+    check_holidays(
+        &cal,
+        date(2004, 1, 1),
+        date(2006, 12, 31),
+        &expected_2004_2006,
+    );
 }
 
 /// The C++ test also verifies historical closings for NYSE.
@@ -591,7 +601,8 @@ fn test_business_days_between() {
         // It should be 1 exactly when d+1 is a business day.
         let expected = if cal.is_business_day(d + 1) { 1 } else { 0 };
         assert_eq!(
-            bdb, expected,
+            bdb,
+            expected,
             "bdb({d}, {}) = {bdb}, expected {expected}",
             d + 1
         );
@@ -605,10 +616,10 @@ fn test_business_days_between() {
 fn test_bespoke_calendar() {
     let mut cal = BespokeCalendar::new("Test");
 
-    let sat = date(2008, 10, 4);  // Saturday
-    let sun = date(2008, 10, 5);  // Sunday
-    let mon = date(2008, 10, 6);  // Monday
-    let tue = date(2008, 10, 7);  // Tuesday
+    let sat = date(2008, 10, 4); // Saturday
+    let sun = date(2008, 10, 5); // Sunday
+    let mon = date(2008, 10, 6); // Monday
+    let tue = date(2008, 10, 7); // Tuesday
 
     // Rust BespokeCalendar treats Sat/Sun as weekends by default (unlike C++).
     assert!(!cal.is_business_day(sat), "Sat is a weekend");
@@ -624,7 +635,10 @@ fn test_bespoke_calendar() {
 
     // Remove it.
     cal.remove_holiday(mon);
-    assert!(cal.is_business_day(mon), "Mon should be restored as business day");
+    assert!(
+        cal.is_business_day(mon),
+        "Mon should be restored as business day"
+    );
     assert_eq!(cal.holiday_count(), 0);
 }
 
@@ -693,10 +707,7 @@ fn test_adjust_conventions() {
     );
 
     // Unadjusted always returns the original.
-    assert_eq!(
-        cal.adjust(may_1, BusinessDayConvention::Unadjusted),
-        may_1
-    );
+    assert_eq!(cal.adjust(may_1, BusinessDayConvention::Unadjusted), may_1);
 }
 
 // ─── Advance business days ───────────────────────────────────────────────────
@@ -716,10 +727,7 @@ fn test_advance_business_days() {
 
     // Go backward 1 business day from Tuesday Apr 13
     // → Thursday Apr 8 (since Apr 12, 11, 10, 9 are non-business days).
-    assert_eq!(
-        cal.advance_business_days(date(2004, 4, 13), -1),
-        thursday
-    );
+    assert_eq!(cal.advance_business_days(date(2004, 4, 13), -1), thursday);
 
     // Advance 5 business days from Monday Jan 5, 2004
     // → Mon Jan 12 (straight week, no holidays).
@@ -755,9 +763,9 @@ fn test_spot_check_various_calendars() {
 
     // Japan Golden Week
     assert!(Japan.is_holiday(date(2024, 4, 29))); // Showa Day
-    assert!(Japan.is_holiday(date(2024, 5, 3)));  // Constitution Memorial Day
-    assert!(Japan.is_holiday(date(2024, 5, 4)));  // Greenery Day (Saturday)
-    assert!(Japan.is_holiday(date(2024, 5, 6)));  // Children's Day substitute
+    assert!(Japan.is_holiday(date(2024, 5, 3))); // Constitution Memorial Day
+    assert!(Japan.is_holiday(date(2024, 5, 4))); // Greenery Day (Saturday)
+    assert!(Japan.is_holiday(date(2024, 5, 6))); // Children's Day substitute
 
     // A normal Wednesday should be a business day everywhere.
     let normal_wed = date(2024, 3, 20); // March 20 = Vernal Equinox Day in Japan!

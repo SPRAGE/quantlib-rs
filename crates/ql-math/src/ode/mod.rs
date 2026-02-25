@@ -52,13 +52,7 @@ impl AdaptiveRungeKutta {
     }
 
     /// Integrate `dy/dt = f(t, y)` from `t0` to `t1`, returning the final state `y(t1)`.
-    pub fn integrate<F: OdeFunction>(
-        &self,
-        f: &F,
-        t0: Real,
-        y0: &[Real],
-        t1: Real,
-    ) -> Vec<Real> {
+    pub fn integrate<F: OdeFunction>(&self, f: &F, t0: Real, y0: &[Real], t1: Real) -> Vec<Real> {
         let n = y0.len();
         let mut t = t0;
         let mut y = y0.to_vec();
@@ -135,9 +129,7 @@ impl AdaptiveRungeKutta {
         let k3 = f.eval(t + 3.0 / 10.0 * h, &y3);
 
         let y4: Vec<Real> = (0..n)
-            .map(|i| {
-                y[i] + h * (44.0 / 45.0 * k1[i] - 56.0 / 15.0 * k2[i] + 32.0 / 9.0 * k3[i])
-            })
+            .map(|i| y[i] + h * (44.0 / 45.0 * k1[i] - 56.0 / 15.0 * k2[i] + 32.0 / 9.0 * k3[i]))
             .collect();
         let k4 = f.eval(t + 4.0 / 5.0 * h, &y4);
 
@@ -166,9 +158,7 @@ impl AdaptiveRungeKutta {
         let y_new: Vec<Real> = (0..n)
             .map(|i| {
                 y[i] + h
-                    * (35.0 / 384.0 * k1[i]
-                        + 500.0 / 1113.0 * k3[i]
-                        + 125.0 / 192.0 * k4[i]
+                    * (35.0 / 384.0 * k1[i] + 500.0 / 1113.0 * k3[i] + 125.0 / 192.0 * k4[i]
                         - 2187.0 / 6784.0 * k5[i]
                         + 11.0 / 84.0 * k6[i])
             })
@@ -181,9 +171,7 @@ impl AdaptiveRungeKutta {
         // e_i = h * (71/57600*k1 - 71/16695*k3 + 71/1920*k4 - 17253/339200*k5 + 22/525*k6 - 1/40*k7)
         let err: Vec<Real> = (0..n)
             .map(|i| {
-                h * (71.0 / 57600.0 * k1[i]
-                    - 71.0 / 16695.0 * k3[i]
-                    + 71.0 / 1920.0 * k4[i]
+                h * (71.0 / 57600.0 * k1[i] - 71.0 / 16695.0 * k3[i] + 71.0 / 1920.0 * k4[i]
                     - 17253.0 / 339200.0 * k5[i]
                     + 22.0 / 525.0 * k6[i]
                     - 1.0 / 40.0 * k7[i])
@@ -201,13 +189,7 @@ impl Default for AdaptiveRungeKutta {
 }
 
 /// Convenience function: integrate a scalar ODE `dy/dt = f(t, y)`.
-pub fn integrate_scalar<F>(
-    f: F,
-    t0: Real,
-    y0: Real,
-    t1: Real,
-    tol: Real,
-) -> Real
+pub fn integrate_scalar<F>(f: F, t0: Real, y0: Real, t1: Real, tol: Real) -> Real
 where
     F: Fn(Real, Real) -> Real,
 {
@@ -227,7 +209,8 @@ mod tests {
         let result = integrate_scalar(|_t, y| y, 0.0, 1.0, 1.0, 1e-10);
         assert!(
             (result - std::f64::consts::E).abs() < 1e-6,
-            "got {result}, expected e ≈ {}", std::f64::consts::E
+            "got {result}, expected e ≈ {}",
+            std::f64::consts::E
         );
     }
 
@@ -253,11 +236,7 @@ mod tests {
         let result = solver.integrate(&f, 0.0, &[0.0, 1.0], t_end);
 
         // y₁(π) = sin(π) ≈ 0, y₂(π) = cos(π) ≈ -1
-        assert!(
-            result[0].abs() < 1e-5,
-            "y1(π) = {}, expected ~0",
-            result[0]
-        );
+        assert!(result[0].abs() < 1e-5, "y1(π) = {}, expected ~0", result[0]);
         assert!(
             (result[1] + 1.0).abs() < 1e-5,
             "y2(π) = {}, expected ~-1",
@@ -281,9 +260,6 @@ mod tests {
         // Integrate from t=1 to t=0: dy/dt = y → going backward
         // y(1) = e → y(0) = 1
         let result = integrate_scalar(|_t, y| y, 1.0, std::f64::consts::E, 0.0, 1e-10);
-        assert!(
-            (result - 1.0).abs() < 1e-5,
-            "got {result}, expected 1.0"
-        );
+        assert!((result - 1.0).abs() < 1e-5, "got {result}, expected 1.0");
     }
 }

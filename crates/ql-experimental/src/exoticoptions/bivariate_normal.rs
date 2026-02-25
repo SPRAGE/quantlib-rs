@@ -11,11 +11,13 @@
 use ql_math::distributions::normal_cdf;
 
 const X: [f64; 5] = [
-    0.24840615, 0.39233107, 0.21141819, 0.03324666, 0.00082485334,
+    0.24840615,
+    0.39233107,
+    0.21141819,
+    0.03324666,
+    0.00082485334,
 ];
-const Y: [f64; 5] = [
-    0.10024215, 0.48281397, 1.06094980, 1.77972940, 2.66976040,
-];
+const Y: [f64; 5] = [0.10024215, 0.48281397, 1.06094980, 1.77972940, 2.66976040];
 
 /// Bivariate cumulative normal distribution using the Drezner (1978) algorithm.
 ///
@@ -62,15 +64,11 @@ pub fn bivariate_normal_cdf_dr78(a: f64, b: f64, rho: f64) -> f64 {
         cum_a + cum_b - 1.0 + bivariate_normal_cdf_dr78(-a, -b, rho)
     } else if a * b * rho > 0.0 {
         let denom = (a * a - 2.0 * rho * a * b + b * b).sqrt();
-        let rho1 =
-            (rho * a - b) * (if a > 0.0 { 1.0 } else { -1.0 }) / denom;
-        let rho2_val =
-            (rho * b - a) * (if b > 0.0 { 1.0 } else { -1.0 }) / denom;
-        let delta = (1.0
-            - (if a > 0.0 { 1.0 } else { -1.0 }) * (if b > 0.0 { 1.0 } else { -1.0 }))
-            / 4.0;
-        bivariate_normal_cdf_dr78(a, 0.0, rho1)
-            + bivariate_normal_cdf_dr78(b, 0.0, rho2_val)
+        let rho1 = (rho * a - b) * (if a > 0.0 { 1.0 } else { -1.0 }) / denom;
+        let rho2_val = (rho * b - a) * (if b > 0.0 { 1.0 } else { -1.0 }) / denom;
+        let delta =
+            (1.0 - (if a > 0.0 { 1.0 } else { -1.0 }) * (if b > 0.0 { 1.0 } else { -1.0 })) / 4.0;
+        bivariate_normal_cdf_dr78(a, 0.0, rho1) + bivariate_normal_cdf_dr78(b, 0.0, rho2_val)
             - delta
     } else {
         // Fall through — shouldn't happen for valid inputs

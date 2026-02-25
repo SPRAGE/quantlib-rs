@@ -42,8 +42,9 @@ impl Calendar for Iceland {
         let dd = date.day_of_year();
         let em = super::target::easter_monday_pub(y);
 
-        if // New Year's Day
-           (d == 1 && m == 1)
+        if
+        // New Year's Day
+        (d == 1 && m == 1)
             // Maundy Thursday
             || (dd == em - 4)
             // Good Friday

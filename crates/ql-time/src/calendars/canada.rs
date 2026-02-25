@@ -40,8 +40,9 @@ impl Calendar for Canada {
         let dd = date.day_of_year();
         let em = super::target::easter_monday_pub(y);
 
-        if // New Year's Day (adjusted)
-           (d == 1 && m == 1)
+        if
+        // New Year's Day (adjusted)
+        (d == 1 && m == 1)
             || (d == 2 && m == 1 && w == Weekday::Monday)
             || (d == 3 && m == 1 && w == Weekday::Monday)
             // Family Day (3rd Monday of February, since 2008)

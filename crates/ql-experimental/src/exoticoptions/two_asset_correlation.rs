@@ -8,8 +8,8 @@
 //!
 //! Reference: Zhang (1998), "Exotic Options".
 
-use ql_core::Real;
 use super::bivariate_normal::bivariate_normal_cdf_dr78;
+use ql_core::Real;
 use ql_processes::GeneralizedBlackScholesProcess;
 use std::sync::Arc;
 
@@ -83,11 +83,7 @@ impl AnalyticTwoAssetCorrelationEngine {
         if phi > 0.0 {
             // Call
             s2 * ((b2 - r) * t).exp()
-                * bivariate_normal_cdf_dr78(
-                    y2 + sigma2 * sqrt_t,
-                    y1 + rho * sigma2 * sqrt_t,
-                    rho,
-                )
+                * bivariate_normal_cdf_dr78(y2 + sigma2 * sqrt_t, y1 + rho * sigma2 * sqrt_t, rho)
                 - x2 * (-r * t).exp() * bivariate_normal_cdf_dr78(y2, y1, rho)
         } else {
             // Put
@@ -122,12 +118,9 @@ mod tests {
         let sigma2 = 0.3;
         let rho = 0.75;
 
-        let r_ts: Arc<dyn YieldTermStructure> =
-            Arc::new(FlatForward::continuous(today, r, dc));
-        let q1_ts: Arc<dyn YieldTermStructure> =
-            Arc::new(FlatForward::continuous(today, q1, dc));
-        let q2_ts: Arc<dyn YieldTermStructure> =
-            Arc::new(FlatForward::continuous(today, q2, dc));
+        let r_ts: Arc<dyn YieldTermStructure> = Arc::new(FlatForward::continuous(today, r, dc));
+        let q1_ts: Arc<dyn YieldTermStructure> = Arc::new(FlatForward::continuous(today, q1, dc));
+        let q2_ts: Arc<dyn YieldTermStructure> = Arc::new(FlatForward::continuous(today, q2, dc));
         let vol1_ts = Arc::new(BlackConstantVol::new(today, sigma1, dc));
         let vol2_ts = Arc::new(BlackConstantVol::new(today, sigma2, dc));
 
@@ -138,10 +131,7 @@ mod tests {
             vol1_ts,
         ));
         let process2 = Arc::new(GeneralizedBlackScholesProcess::new(
-            65.0,
-            r_ts,
-            q2_ts,
-            vol2_ts,
+            65.0, r_ts, q2_ts, vol2_ts,
         ));
 
         let t = dc.year_fraction(today, today + 180);

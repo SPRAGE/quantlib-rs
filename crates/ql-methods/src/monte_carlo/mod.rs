@@ -270,11 +270,7 @@ impl<'a> MonteCarloModel<'a> {
     }
 
     /// Run `n_paths` simulations and return gathered statistics.
-    pub fn simulate(
-        &self,
-        pricer: &dyn PathPricer,
-        n_paths: usize,
-    ) -> IncrementalStatistics {
+    pub fn simulate(&self, pricer: &dyn PathPricer, n_paths: usize) -> IncrementalStatistics {
         let mut gen = PathGenerator::new(self.process, self.maturity, self.steps, self.seed);
         let mut stats = IncrementalStatistics::new();
 
@@ -422,9 +418,6 @@ mod tests {
         let price = stats.mean().unwrap();
 
         // Asian call is cheaper than vanilla call (~10.45), typically 5-8
-        assert!(
-            price > 2.0 && price < 12.0,
-            "Asian arith call = {price:.2}"
-        );
+        assert!(price > 2.0 && price < 12.0, "Asian arith call = {price:.2}");
     }
 }

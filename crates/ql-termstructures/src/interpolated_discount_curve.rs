@@ -5,9 +5,9 @@
 //! The curve stores (date, discount-factor) pairs and interpolates them as a
 //! function of time.  Zero rates and forward rates are derived from `P(t)`.
 
+use crate::interpolated_zero_curve::InterpolationBuilder;
 use crate::term_structure::TermStructure;
 use crate::yield_term_structure::{YieldTermStructure, YieldTermStructureData};
-use crate::interpolated_zero_curve::InterpolationBuilder;
 use ql_core::{errors::Result, DiscountFactor, Real, Time};
 use ql_math::Interpolation1D;
 use ql_time::{Calendar, Date, DayCounter, NullCalendar};
@@ -165,13 +165,8 @@ mod tests {
     #[test]
     fn discount_curve_at_ref_date() {
         let (dates, discounts) = sample_dates_discounts();
-        let curve = InterpolatedDiscountCurve::new(
-            &dates,
-            &discounts,
-            Actual365Fixed,
-            &LogLinear,
-        )
-        .unwrap();
+        let curve =
+            InterpolatedDiscountCurve::new(&dates, &discounts, Actual365Fixed, &LogLinear).unwrap();
 
         assert_abs_diff_eq!(curve.discount(0.0), 1.0, epsilon = 1e-15);
     }
@@ -179,13 +174,8 @@ mod tests {
     #[test]
     fn discount_curve_at_pillars() {
         let (dates, discounts) = sample_dates_discounts();
-        let curve = InterpolatedDiscountCurve::new(
-            &dates,
-            &discounts,
-            Actual365Fixed,
-            &LogLinear,
-        )
-        .unwrap();
+        let curve =
+            InterpolatedDiscountCurve::new(&dates, &discounts, Actual365Fixed, &LogLinear).unwrap();
 
         for (i, &d) in dates.iter().enumerate() {
             let t = curve.time_from_reference(d);
@@ -198,13 +188,8 @@ mod tests {
         // With log-linear interpolation on discount factors generated from a
         // flat rate, the interpolated curve should reproduce that flat rate.
         let (dates, discounts) = sample_dates_discounts();
-        let curve = InterpolatedDiscountCurve::new(
-            &dates,
-            &discounts,
-            Actual365Fixed,
-            &LogLinear,
-        )
-        .unwrap();
+        let curve =
+            InterpolatedDiscountCurve::new(&dates, &discounts, Actual365Fixed, &LogLinear).unwrap();
 
         // Check zero rate at an intermediate point
         let t = 1.5;
@@ -215,13 +200,8 @@ mod tests {
     #[test]
     fn discount_curve_forward_rate() {
         let (dates, discounts) = sample_dates_discounts();
-        let curve = InterpolatedDiscountCurve::new(
-            &dates,
-            &discounts,
-            Actual365Fixed,
-            &LogLinear,
-        )
-        .unwrap();
+        let curve =
+            InterpolatedDiscountCurve::new(&dates, &discounts, Actual365Fixed, &LogLinear).unwrap();
 
         // For a flat 5% curve, instantaneous forward should be ~5%
         let f = curve.forward_rate_impl(2.0);

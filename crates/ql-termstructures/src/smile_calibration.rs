@@ -168,9 +168,9 @@ pub fn calibrate_sabr_surface(
             &data.strikes,
             &data.vols,
             beta,
-            0.04,  // initial alpha
-            0.4,   // initial nu
-            -0.3,  // initial rho
+            0.04, // initial alpha
+            0.4,  // initial nu
+            -0.3, // initial rho
         );
 
         // Compute calibration errors
@@ -208,13 +208,7 @@ pub fn calibrate_svi_surface(
     let mut surface = SmileSurface::new();
 
     for data in market_data {
-        let params = calibrate_svi(
-            data.forward,
-            data.expiry,
-            &data.strikes,
-            &data.vols,
-            None,
-        );
+        let params = calibrate_svi(data.forward, data.expiry, &data.strikes, &data.vols, None);
 
         // Compute calibration errors
         let (rms, max_err) = calibration_errors(data, |k| {
@@ -269,7 +263,9 @@ mod tests {
             nu: 0.3,
             rho: -0.25,
         };
-        let strikes: Vec<Real> = (1..=9).map(|i| forward * (0.5 + 0.125 * i as Real)).collect();
+        let strikes: Vec<Real> = (1..=9)
+            .map(|i| forward * (0.5 + 0.125 * i as Real))
+            .collect();
         let vols: Vec<Real> = strikes
             .iter()
             .map(|&k| ql_math::interpolations::sabr::sabr_volatility(forward, k, expiry, &params))
@@ -347,10 +343,7 @@ mod tests {
 
     #[test]
     fn smile_surface_interpolation() {
-        let data = vec![
-            make_sabr_data(0.5, 0.04),
-            make_sabr_data(1.0, 0.04),
-        ];
+        let data = vec![make_sabr_data(0.5, 0.04), make_sabr_data(1.0, 0.04)];
 
         let (_, surface) = calibrate_sabr_surface(&data, 0.5);
 
@@ -367,10 +360,7 @@ mod tests {
 
     #[test]
     fn smile_surface_flat_extrapolation() {
-        let data = vec![
-            make_sabr_data(0.5, 0.04),
-            make_sabr_data(1.0, 0.04),
-        ];
+        let data = vec![make_sabr_data(0.5, 0.04), make_sabr_data(1.0, 0.04)];
 
         let (_, surface) = calibrate_sabr_surface(&data, 0.5);
 

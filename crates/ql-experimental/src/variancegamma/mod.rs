@@ -11,8 +11,8 @@
 //! D. Madan, P. Carr, E. Chang (1998), "The Variance Gamma Process and Option
 //! Pricing", *European Finance Review* 2, 79–105.
 
-pub mod model;
 pub mod engine;
+pub mod model;
 
 pub use engine::VarianceGammaEngine;
 pub use model::VarianceGammaModel;

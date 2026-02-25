@@ -285,11 +285,9 @@ mod tests {
 
     #[test]
     fn composite_quote() {
-        let q = CompositeQuote::new(
-            SimpleQuote::new(3.0),
-            SimpleQuote::new(4.0),
-            |a, b| Ok(a + b),
-        );
+        let q = CompositeQuote::new(SimpleQuote::new(3.0), SimpleQuote::new(4.0), |a, b| {
+            Ok(a + b)
+        });
         assert_eq!(q.value(), Some(7.0));
     }
 

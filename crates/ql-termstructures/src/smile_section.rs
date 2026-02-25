@@ -85,24 +85,22 @@ pub trait SmileSection: std::fmt::Debug + Send + Sync {
     /// * `strike` — option strike
     /// * `option_type` — Call or Put
     /// * `discount` — discount factor to expiry
-    fn option_price(
-        &self,
-        strike: Real,
-        option_type: SmileOptionType,
-        discount: Real,
-    ) -> Real {
+    fn option_price(&self, strike: Real, option_type: SmileOptionType, discount: Real) -> Real {
         let f = self.atm_level();
         let t = self.exercise_time();
         let vol = self.volatility_impl(strike);
         let shift_val = self.shift();
 
         match self.volatility_type() {
-            VolatilityType::ShiftedLognormal => {
-                black_formula(f + shift_val, strike + shift_val, vol, t, discount, option_type)
-            }
-            VolatilityType::Normal => {
-                bachelier_formula(f, strike, vol, t, discount, option_type)
-            }
+            VolatilityType::ShiftedLognormal => black_formula(
+                f + shift_val,
+                strike + shift_val,
+                vol,
+                t,
+                discount,
+                option_type,
+            ),
+            VolatilityType::Normal => bachelier_formula(f, strike, vol, t, discount, option_type),
         }
     }
 
@@ -213,8 +211,12 @@ fn bachelier_formula(
     let std_dev = vol * t.sqrt();
     let d = (forward - strike) / std_dev;
     match option_type {
-        SmileOptionType::Call => discount * (std_dev * normal_pdf(d) + (forward - strike) * normal_cdf(d)),
-        SmileOptionType::Put => discount * (std_dev * normal_pdf(d) - (forward - strike) * normal_cdf(-d)),
+        SmileOptionType::Call => {
+            discount * (std_dev * normal_pdf(d) + (forward - strike) * normal_cdf(d))
+        }
+        SmileOptionType::Put => {
+            discount * (std_dev * normal_pdf(d) - (forward - strike) * normal_cdf(-d))
+        }
     }
 }
 
@@ -307,15 +309,9 @@ impl SabrSmileSection {
     /// Create a new SABR smile section.
     pub fn new(exercise_time: Time, forward: Real, params: SabrParameters) -> Self {
         assert!(params.alpha > 0.0, "alpha must be positive");
-        assert!(
-            (0.0..=1.0).contains(&params.beta),
-            "beta must be in [0, 1]"
-        );
+        assert!((0.0..=1.0).contains(&params.beta), "beta must be in [0, 1]");
         assert!(params.nu >= 0.0, "nu must be non-negative");
-        assert!(
-            params.rho * params.rho < 1.0,
-            "rho must satisfy |rho| < 1"
-        );
+        assert!(params.rho * params.rho < 1.0, "rho must satisfy |rho| < 1");
         Self {
             exercise_time,
             forward,
@@ -517,7 +513,10 @@ pub fn calibrate_svi(
 ) -> SviParameters {
     let n = strikes.len();
     assert_eq!(n, vols.len());
-    assert!(n >= 5, "need at least 5 points to calibrate 5 SVI parameters");
+    assert!(
+        n >= 5,
+        "need at least 5 points to calibrate 5 SVI parameters"
+    );
 
     // Convert vols to total variances
     let total_vars: Vec<Real> = vols.iter().map(|v| v * v * expiry).collect();
@@ -548,7 +547,11 @@ pub fn calibrate_svi(
             m: x[4],
         };
         let min_var = p.a + p.b * p.sigma * (1.0 - p.rho * p.rho).sqrt();
-        let penalty = if min_var < 0.0 { 1e6 * min_var * min_var } else { 0.0 };
+        let penalty = if min_var < 0.0 {
+            1e6 * min_var * min_var
+        } else {
+            0.0
+        };
 
         let mut sse = 0.0;
         for i in 0..n {
@@ -703,11 +706,7 @@ mod tests {
         };
         let section = SabrSmileSection::new(1.0, 0.03, params);
         let direct = sabr_volatility(0.03, 0.035, 1.0, &params);
-        assert_abs_diff_eq!(
-            section.volatility(0.035),
-            direct,
-            epsilon = 1e-10
-        );
+        assert_abs_diff_eq!(section.volatility(0.035), direct, epsilon = 1e-10);
     }
 
     #[test]

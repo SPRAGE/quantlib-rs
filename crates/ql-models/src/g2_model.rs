@@ -11,7 +11,7 @@
 //!
 //! Discount bond: `P(t,T) = A(t,T) exp(−B_a(τ)·x − B_b(τ)·y)`
 
-use crate::calibrated_model::{CalibratedModel, Parameter, PositiveConstraint, BoundaryConstraint};
+use crate::calibrated_model::{BoundaryConstraint, CalibratedModel, Parameter, PositiveConstraint};
 use crate::short_rate_model::{ShortRateModel, TwoFactorModel};
 use ql_core::{Real, Time};
 use ql_termstructures::YieldTermStructure;
@@ -103,8 +103,7 @@ impl G2Model {
         let term1 = s2 / (a * a) * (tau - 2.0 * ba + self.b_a(2.0 * tau) / 2.0);
         let term2 = e2 / (b * b) * (tau - 2.0 * bb + self.b_b(2.0 * tau) / 2.0);
         let term3 = 2.0 * self.rho * self.sigma * self.eta / (a * b)
-            * (tau - ba - bb
-                + (1.0 - (-(a + b) * tau).exp()) / (a + b));
+            * (tau - ba - bb + (1.0 - (-(a + b) * tau).exp()) / (a + b));
 
         term1 + term2 + term3
     }

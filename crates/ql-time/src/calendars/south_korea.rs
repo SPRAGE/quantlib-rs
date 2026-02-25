@@ -37,8 +37,9 @@ impl Calendar for SouthKorea {
         let m = date.month();
         let d = date.day_of_month();
 
-        if // New Year's Day / Independence Movement Day / Labour Day
-           (d == 1 && matches!(m, 1 | 3 | 5))
+        if
+        // New Year's Day / Independence Movement Day / Labour Day
+        (d == 1 && matches!(m, 1 | 3 | 5))
             // Children's Day
             || (d == 5 && m == 5)
             // Memorial Day

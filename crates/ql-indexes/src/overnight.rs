@@ -5,10 +5,8 @@
 
 use crate::overnight_index::OvernightIndex;
 use ql_time::{
-    Actual360, Actual365Fixed,
-    calendars::target::Target,
-    calendars::united_kingdom::UnitedKingdomSettlement,
-    calendars::united_states::UnitedStatesSettlement,
+    calendars::target::Target, calendars::united_kingdom::UnitedKingdomSettlement,
+    calendars::united_states::UnitedStatesSettlement, Actual360, Actual365Fixed,
 };
 
 /// Create a SOFR (Secured Overnight Financing Rate) index.

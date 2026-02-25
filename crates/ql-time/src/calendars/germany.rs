@@ -39,8 +39,9 @@ impl Calendar for Germany {
         let dd = date.day_of_year();
         let em = super::target::easter_monday_pub(y);
 
-        if // New Year's Day
-           (d == 1 && m == 1)
+        if
+        // New Year's Day
+        (d == 1 && m == 1)
             // Good Friday
             || (dd == em - 3)
             // Easter Monday
@@ -86,7 +87,7 @@ mod tests {
     fn good_friday_and_easter_monday_2023() {
         // Easter Monday 2023: April 10 → Good Friday April 7
         let cal = Germany;
-        assert!(!cal.is_business_day(date(2023, 4, 7)));  // Good Friday
+        assert!(!cal.is_business_day(date(2023, 4, 7))); // Good Friday
         assert!(!cal.is_business_day(date(2023, 4, 10))); // Easter Monday
     }
 

@@ -143,10 +143,7 @@ impl StochasticProcess for HestonProcess {
         let r = self.risk_free_rate.zero_rate_impl(t);
         let q = self.dividend_yield.zero_rate_impl(t);
 
-        Array::from_vec(vec![
-            (r - q) * s,
-            self.kappa * (self.theta - v),
-        ])
+        Array::from_vec(vec![(r - q) * s, self.kappa * (self.theta - v)])
     }
 
     fn diffusion(&self, _t: Time, x: &Array) -> Matrix {
@@ -204,9 +201,7 @@ mod tests {
         HestonProcess::new(
             100.0, // s0
             0.04,  // v0 (σ=0.2 => v=0.04)
-            r,
-            q,
-            1.5,  // κ
+            r, q, 1.5,  // κ
             0.04, // θ
             0.3,  // σ_v
             -0.7, // ρ

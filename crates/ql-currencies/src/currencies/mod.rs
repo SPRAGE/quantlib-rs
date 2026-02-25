@@ -42,19 +42,18 @@ mod tests {
     #[test]
     fn all_currencies_have_code() {
         let all: Vec<&crate::currency::Currency> = vec![
-            &USD, &CAD, &BRL, &MXN, &ARS, &CLP, &COP, &PEN,
-            &EUR, &GBP, &CHF, &NOK, &SEK, &DKK, &PLN, &CZK, &HUF,
-            &RON, &BGN, &HRK, &ISK, &TRY, &RUB,
-            &JPY, &CNY, &HKD, &SGD, &KRW, &INR, &TWD, &THB,
-            &MYR, &IDR, &PHP, &ILS, &SAR, &AED,
-            &AUD, &NZD,
-            &ZAR, &NGN, &EGP, &KES, &GHS, &MAD, &TND,
-            &BTC, &ETH,
+            &USD, &CAD, &BRL, &MXN, &ARS, &CLP, &COP, &PEN, &EUR, &GBP, &CHF, &NOK, &SEK, &DKK,
+            &PLN, &CZK, &HUF, &RON, &BGN, &HRK, &ISK, &TRY, &RUB, &JPY, &CNY, &HKD, &SGD, &KRW,
+            &INR, &TWD, &THB, &MYR, &IDR, &PHP, &ILS, &SAR, &AED, &AUD, &NZD, &ZAR, &NGN, &EGP,
+            &KES, &GHS, &MAD, &TND, &BTC, &ETH,
         ];
         for c in all {
             assert!(!c.code.is_empty(), "currency has empty code: {:?}", c.name);
-            assert!(c.numeric_code > 0 || c.code == "BTC" || c.code == "ETH",
-                "suspect numeric code for {}", c.code);
+            assert!(
+                c.numeric_code > 0 || c.code == "BTC" || c.code == "ETH",
+                "suspect numeric code for {}",
+                c.code
+            );
         }
     }
 }

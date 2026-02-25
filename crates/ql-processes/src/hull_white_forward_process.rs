@@ -59,7 +59,9 @@ impl HullWhiteForwardProcess {
         let f_t = self.yield_curve.forward_rate_impl(t);
         let f_te = self.yield_curve.forward_rate_impl(t + eps);
         let df_dt = (f_te - f_t) / eps;
-        df_dt + self.a * f_t + self.sigma * self.sigma / (2.0 * self.a) * (1.0 - (-2.0 * self.a * t).exp())
+        df_dt
+            + self.a * f_t
+            + self.sigma * self.sigma / (2.0 * self.a) * (1.0 - (-2.0 * self.a * t).exp())
     }
 
     /// Access mean-reversion speed.

@@ -33,11 +33,7 @@ pub struct BlackKarasinski {
 
 impl BlackKarasinski {
     /// Create a new Black-Karasinski model.
-    pub fn new(
-        term_structure: Arc<dyn YieldTermStructure>,
-        a: Real,
-        sigma: Real,
-    ) -> Self {
+    pub fn new(term_structure: Arc<dyn YieldTermStructure>, a: Real, sigma: Real) -> Self {
         let params = vec![
             Parameter::new(vec![a], PositiveConstraint),
             Parameter::new(vec![sigma], PositiveConstraint),

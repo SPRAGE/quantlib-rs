@@ -39,8 +39,9 @@ impl Calendar for India {
         let dd = date.day_of_year();
         let em = super::target::easter_monday_pub(y);
 
-        if // Republic Day
-           (d == 26 && m == 1)
+        if
+        // Republic Day
+        (d == 26 && m == 1)
             // Good Friday
             || (dd == em - 3)
             // Dr. Ambedkar Jayanti

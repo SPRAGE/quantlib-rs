@@ -3,9 +3,7 @@
 
 use crate::index::{FixingStore, Index};
 use ql_currencies::Currency;
-use ql_time::{
-    BusinessDayConvention, Calendar, Date, DayCounter, Frequency, Period,
-};
+use ql_time::{BusinessDayConvention, Calendar, Date, DayCounter, Frequency, Period};
 
 /// Common data shared by all interest-rate indexes.
 ///

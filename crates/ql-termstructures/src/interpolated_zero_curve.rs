@@ -199,8 +199,7 @@ mod tests {
     #[test]
     fn zero_curve_linear_discount_at_ref_date() {
         let (dates, rates) = sample_dates_rates();
-        let curve =
-            InterpolatedZeroCurve::new(&dates, &rates, Actual365Fixed, &Linear).unwrap();
+        let curve = InterpolatedZeroCurve::new(&dates, &rates, Actual365Fixed, &Linear).unwrap();
 
         assert_abs_diff_eq!(curve.discount(0.0), 1.0, epsilon = 1e-15);
     }
@@ -208,8 +207,7 @@ mod tests {
     #[test]
     fn zero_curve_linear_pillars() {
         let (dates, rates) = sample_dates_rates();
-        let curve =
-            InterpolatedZeroCurve::new(&dates, &rates, Actual365Fixed, &Linear).unwrap();
+        let curve = InterpolatedZeroCurve::new(&dates, &rates, Actual365Fixed, &Linear).unwrap();
 
         // At each pillar, the zero rate should match
         for (i, &d) in dates.iter().enumerate() {
@@ -221,8 +219,7 @@ mod tests {
     #[test]
     fn zero_curve_linear_interpolation() {
         let (dates, rates) = sample_dates_rates();
-        let curve =
-            InterpolatedZeroCurve::new(&dates, &rates, Actual365Fixed, &Linear).unwrap();
+        let curve = InterpolatedZeroCurve::new(&dates, &rates, Actual365Fixed, &Linear).unwrap();
 
         // At half a year (first pillar time)
         let t = curve.time_from_reference(dates[1]);
@@ -240,8 +237,7 @@ mod tests {
     #[test]
     fn zero_curve_discount_consistency() {
         let (dates, rates) = sample_dates_rates();
-        let curve =
-            InterpolatedZeroCurve::new(&dates, &rates, Actual365Fixed, &Linear).unwrap();
+        let curve = InterpolatedZeroCurve::new(&dates, &rates, Actual365Fixed, &Linear).unwrap();
 
         // Check P(t) = exp(-z(t) * t) at a few points
         for t in [0.25, 0.5, 1.0, 2.5, 5.0] {

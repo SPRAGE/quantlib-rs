@@ -5,8 +5,8 @@
 
 use ql_time::{
     Actual360, Actual364, Actual36525, Actual365Fixed, Actual366, ActualActualAfb,
-    ActualActualIsda, ActualActualIsma, Business252, Date, DayCounter, OneDayCounter,
-    Thirty360, Thirty360European, Thirty365,
+    ActualActualIsda, ActualActualIsma, Business252, Date, DayCounter, OneDayCounter, Thirty360,
+    Thirty360European, Thirty365,
 };
 
 fn date(y: u16, m: u8, d: u8) -> Date {
@@ -550,7 +550,10 @@ fn test_business_252_basic() {
     let d1 = date(2002, 2, 1);
     let d2 = date(2002, 2, 4);
     let calculated = dc.day_count(d1, d2);
-    assert_eq!(calculated, 1, "Business/252: {d1} to {d2} should be 1 biz day");
+    assert_eq!(
+        calculated, 1,
+        "Business/252: {d1} to {d2} should be 1 biz day"
+    );
     assert!(
         (dc.year_fraction(d1, d2) - 1.0 / 252.0).abs() < 1.0e-12,
         "Business/252: year fraction should be 1/252"

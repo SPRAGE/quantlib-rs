@@ -34,9 +34,9 @@ impl Calendar for SaudiArabia {
         let m = date.month();
         let d = date.day_of_month();
 
-        if // National Day
-           d == 23 && m == 9
-        {
+        if
+        // National Day
+        d == 23 && m == 9 {
             return false;
         }
         true

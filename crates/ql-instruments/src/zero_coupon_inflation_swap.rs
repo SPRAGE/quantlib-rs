@@ -206,15 +206,9 @@ mod tests {
         let rate: f64 = 0.025;
         let t = (end.serial() - start.serial()) as f64 / 365.0;
         let atm_cpi = base * (1.0 + rate).powf(t);
-        let swap = ZeroCouponInflationSwap::new(
-            SwapPayerType::Payer,
-            1_000_000.0,
-            start,
-            end,
-            rate,
-            base,
-        )
-        .with_market_data(atm_cpi, 1.0);
+        let swap =
+            ZeroCouponInflationSwap::new(SwapPayerType::Payer, 1_000_000.0, start, end, rate, base)
+                .with_market_data(atm_cpi, 1.0);
         assert!(swap.npv().unwrap().abs() < 1.0); // < $1 error
     }
 }

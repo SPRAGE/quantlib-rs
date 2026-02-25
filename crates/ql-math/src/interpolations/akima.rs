@@ -28,10 +28,7 @@ impl AkimaSpline {
     pub fn new(xs: &[Real], ys: &[Real]) -> Result<Self> {
         let n = xs.len();
         ql_core::ensure!(n >= 2, "Akima spline requires at least 2 points");
-        ql_core::ensure!(
-            xs.len() == ys.len(),
-            "xs and ys lengths must match"
-        );
+        ql_core::ensure!(xs.len() == ys.len(), "xs and ys lengths must match");
         let xs = xs.to_vec();
         let ys = ys.to_vec();
 
@@ -44,7 +41,11 @@ impl AkimaSpline {
 
         // Extend with phantom slopes for boundary treatment
         // Use Akima's original boundary extension: linear extrapolation of slopes
-        let m_neg2 = if nm >= 2 { 3.0 * m[0] - 2.0 * m[1] } else { m[0] };
+        let m_neg2 = if nm >= 2 {
+            3.0 * m[0] - 2.0 * m[1]
+        } else {
+            m[0]
+        };
         let m_neg1 = if nm >= 2 { 2.0 * m[0] - m[1] } else { m[0] };
         let m_np1 = if nm >= 2 {
             2.0 * m[nm - 1] - m[nm - 2]
@@ -136,10 +137,7 @@ mod tests {
         let s = AkimaSpline::new(&xs, &ys).unwrap();
         for (&x, &y) in xs.iter().zip(ys.iter()) {
             let v = s.operator(x);
-            assert!(
-                (v - y).abs() < 1e-12,
-                "at x={x}: expected {y}, got {v}"
-            );
+            assert!((v - y).abs() < 1e-12, "at x={x}: expected {y}, got {v}");
         }
     }
 

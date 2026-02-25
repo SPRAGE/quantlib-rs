@@ -50,8 +50,9 @@ impl Calendar for SouthAfrica {
         // Handle month boundary for holidays on the last day would be rare
         // (none of the SA holidays fall on the 31st), so the +1 logic is safe.
 
-        if // New Year's Day
-           is_holiday(1, 1)
+        if
+        // New Year's Day
+        is_holiday(1, 1)
             // Human Rights Day
             || is_holiday(3, 21)
             // Good Friday
@@ -100,7 +101,7 @@ mod tests {
     fn good_friday_and_family_day_2023() {
         let cal = SouthAfrica;
         // Easter Monday 2023: April 10 → Good Friday April 7
-        assert!(!cal.is_business_day(date(2023, 4, 7)));  // Good Friday
+        assert!(!cal.is_business_day(date(2023, 4, 7))); // Good Friday
         assert!(!cal.is_business_day(date(2023, 4, 10))); // Family Day
     }
 

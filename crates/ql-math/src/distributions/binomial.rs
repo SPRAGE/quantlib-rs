@@ -77,10 +77,7 @@ mod tests {
     fn binomial_pmf_sums_to_one() {
         let d = BinomialDistribution::new(0.3, 20);
         let total: Real = (0..=20).map(|k| d.pmf(k)).sum();
-        assert!(
-            (total - 1.0).abs() < 1e-10,
-            "sum of PMF = {total}"
-        );
+        assert!((total - 1.0).abs() < 1e-10, "sum of PMF = {total}");
     }
 
     #[test]

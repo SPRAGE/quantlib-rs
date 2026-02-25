@@ -28,13 +28,7 @@ pub trait DayCounter: std::fmt::Debug + Send + Sync {
     ///
     /// Needed for some ISDA-style conventions.  Defaults to
     /// [`year_fraction`][Self::year_fraction].
-    fn year_fraction_with_ref(
-        &self,
-        d1: Date,
-        d2: Date,
-        _ref_start: Date,
-        _ref_end: Date,
-    ) -> Time {
+    fn year_fraction_with_ref(&self, d1: Date, d2: Date, _ref_start: Date, _ref_end: Date) -> Time {
         self.year_fraction(d1, d2)
     }
 }
@@ -266,13 +260,7 @@ impl DayCounter for ActualActualIsma {
         self.year_fraction_with_ref(d1, d2, d1, d2)
     }
 
-    fn year_fraction_with_ref(
-        &self,
-        d1: Date,
-        d2: Date,
-        ref_start: Date,
-        ref_end: Date,
-    ) -> Time {
+    fn year_fraction_with_ref(&self, d1: Date, d2: Date, ref_start: Date, ref_end: Date) -> Time {
         if d1 == d2 {
             return 0.0;
         }
@@ -473,7 +461,6 @@ impl DayCounter for SimpleDayCounter {
 
     fn year_fraction(&self, d1: Date, d2: Date) -> Time {
         let dc1 = Actual36525;
-        
 
         // QuantLib's SimpleDayCounter uses Act/365.25 for the first year
         // and 30/360 for the remaining time. For simplicity, we just use

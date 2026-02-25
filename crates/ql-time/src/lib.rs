@@ -62,9 +62,8 @@ pub use calendars::joint_calendar::{JointCalendar, JointCalendarRule};
 pub use date::Date;
 pub use day_counter::{
     Actual360, Actual364, Actual36525, Actual365Fixed, Actual366, ActualActualAfb,
-    ActualActualIsda, ActualActualIsma, Business252, DayCounter, OneDayCounter,
-    SimpleDayCounter, Thirty360, Thirty360European, Thirty360German, Thirty360Italian,
-    Thirty365,
+    ActualActualIsda, ActualActualIsma, Business252, DayCounter, OneDayCounter, SimpleDayCounter,
+    Thirty360, Thirty360European, Thirty360German, Thirty360Italian, Thirty365,
 };
 pub use ecb::ECB;
 pub use frequency::Frequency;

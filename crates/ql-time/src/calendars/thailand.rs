@@ -116,7 +116,8 @@ impl Calendar for Thailand {
              || (d == 5 && m == 5)  // Coronation Day
              || (d == 17 && m == 5) // Wisakha Bucha Day
              || (d == 17 && m == 7) // Buddhist Lent Day
-             || (d == 23 && m == 10)) // Chulalongkorn Day
+             || (d == 23 && m == 10))
+        // Chulalongkorn Day
         {
             return false;
         }
@@ -126,7 +127,8 @@ impl Calendar for Thailand {
              || (d == 7 && m == 5)  // Wisakha Bucha Day
              || (d == 8 && m == 5)  // Coronation Day (Substitution)
              || (d == 6 && m == 7)  // Buddhist Lent Day
-             || (d == 23 && m == 10)) // Chulalongkorn Day
+             || (d == 23 && m == 10))
+        // Chulalongkorn Day
         {
             return false;
         }
@@ -139,7 +141,8 @@ impl Calendar for Thailand {
              || (d == 23 && m == 5)  // Wisakha Bucha Day (Sub for Sun 22 May)
              || (d == 1 && m == 7)   // Mid Year Closing Day
              || (d == 22 && m == 7)  // Buddhist Lent Day
-             || (d == 24 && m == 10)) // Chulalongkorn Day (Sub for Sun 23 Oct)
+             || (d == 24 && m == 10))
+        // Chulalongkorn Day (Sub for Sun 23 Oct)
         {
             return false;
         }
@@ -152,7 +155,8 @@ impl Calendar for Thailand {
              || (d == 12 && m == 6)  // Special Holiday (60th Anniversary)
              || (d == 13 && m == 6)  // Special Holiday (60th Anniversary)
              || (d == 11 && m == 7)  // Buddhist Lent Day
-             || (d == 23 && m == 10)) // Chulalongkorn Day
+             || (d == 23 && m == 10))
+        // Chulalongkorn Day
         {
             return false;
         }
@@ -163,7 +167,8 @@ impl Calendar for Thailand {
              || (d == 31 && m == 5)  // Wisakha Bucha Day
              || (d == 30 && m == 7)  // Asarnha Bucha Day (Sub for Sun 29 Jul)
              || (d == 23 && m == 10) // Chulalongkorn Day
-             || (d == 24 && m == 12)) // Special Holiday
+             || (d == 24 && m == 12))
+        // Special Holiday
         {
             return false;
         }
@@ -174,7 +179,8 @@ impl Calendar for Thailand {
              || (d == 19 && m == 5)  // Wisakha Bucha Day
              || (d == 1 && m == 7)   // Mid Year Closing Day
              || (d == 17 && m == 7)  // Asarnha Bucha Day
-             || (d == 23 && m == 10)) // Chulalongkorn Day
+             || (d == 23 && m == 10))
+        // Chulalongkorn Day
         {
             return false;
         }
@@ -187,7 +193,8 @@ impl Calendar for Thailand {
              || (d == 1 && m == 7)   // Mid Year Closing Day
              || (d == 6 && m == 7)   // Special Holiday
              || (d == 7 && m == 7)   // Asarnha Bucha Day
-             || (d == 23 && m == 10)) // Chulalongkorn Day
+             || (d == 23 && m == 10))
+        // Chulalongkorn Day
         {
             return false;
         }
@@ -201,7 +208,8 @@ impl Calendar for Thailand {
              || (d == 1 && m == 7)   // Mid Year Closing Day
              || (d == 26 && m == 7)  // Asarnha Bucha Day
              || (d == 13 && m == 8)  // Special Holiday
-             || (d == 25 && m == 10)) // Sub for Chulalongkorn Day (Sat 23 Oct)
+             || (d == 25 && m == 10))
+        // Sub for Chulalongkorn Day (Sat 23 Oct)
         {
             return false;
         }
@@ -213,7 +221,8 @@ impl Calendar for Thailand {
              || (d == 17 && m == 5)  // Wisakha Bucha Day
              || (d == 1 && m == 7)   // Mid Year Closing Day
              || (d == 15 && m == 7)  // Asarnha Bucha Day
-             || (d == 24 && m == 10)) // Sub for Chulalongkorn Day (Sun 23 Oct)
+             || (d == 24 && m == 10))
+        // Sub for Chulalongkorn Day (Sun 23 Oct)
         {
             return false;
         }
@@ -225,7 +234,8 @@ impl Calendar for Thailand {
              || (d == 7 && m == 5)   // Sub for Coronation Day (Sat 5 May)
              || (d == 4 && m == 6)   // Wisakha Bucha Day
              || (d == 2 && m == 8)   // Asarnha Bucha Day
-             || (d == 23 && m == 10)) // Chulalongkorn Day
+             || (d == 23 && m == 10))
+        // Chulalongkorn Day
         {
             return false;
         }
@@ -237,7 +247,8 @@ impl Calendar for Thailand {
              || (d == 1 && m == 7)   // Mid Year Closing Day
              || (d == 22 && m == 7)  // Asarnha Bucha Day
              || (d == 23 && m == 10) // Chulalongkorn Day
-             || (d == 30 && m == 12)) // Special Holiday
+             || (d == 30 && m == 12))
+        // Special Holiday
         {
             return false;
         }
@@ -249,7 +260,8 @@ impl Calendar for Thailand {
              || (d == 1 && m == 7)   // Mid Year Closing Day
              || (d == 11 && m == 7)  // Asarnha Bucha Day
              || (d == 11 && m == 8)  // Special Holiday
-             || (d == 23 && m == 10)) // Chulalongkorn Day
+             || (d == 23 && m == 10))
+        // Chulalongkorn Day
         {
             return false;
         }
@@ -262,7 +274,8 @@ impl Calendar for Thailand {
              || (d == 1 && m == 6)   // Wisakha Bucha Day
              || (d == 1 && m == 7)   // Mid Year Closing Day
              || (d == 30 && m == 7)  // Asarnha Bucha Day
-             || (d == 23 && m == 10)) // Chulalongkorn Day
+             || (d == 23 && m == 10))
+        // Chulalongkorn Day
         {
             return false;
         }
@@ -275,7 +288,8 @@ impl Calendar for Thailand {
              || (d == 1 && m == 7)   // Mid Year Closing Day
              || (d == 18 && m == 7)  // Special Holiday
              || (d == 19 && m == 7)  // Asarnha Bucha Day
-             || (d == 24 && m == 10)) // Sub for Chulalongkorn Day (Sun 23 Oct)
+             || (d == 24 && m == 10))
+        // Sub for Chulalongkorn Day (Sun 23 Oct)
         {
             return false;
         }
@@ -285,7 +299,8 @@ impl Calendar for Thailand {
              || (d == 10 && m == 5)  // Wisakha Bucha Day
              || (d == 10 && m == 7)  // Asarnha Bucha Day
              || (d == 23 && m == 10) // Chulalongkorn Day
-             || (d == 26 && m == 10)) // Special Holiday
+             || (d == 26 && m == 10))
+        // Special Holiday
         {
             return false;
         }
@@ -294,7 +309,8 @@ impl Calendar for Thailand {
             && ((d == 1 && m == 3)   // Makha Bucha Day
              || (d == 29 && m == 5)  // Wisakha Bucha Day
              || (d == 27 && m == 7)  // Asarnha Bucha Day
-             || (d == 23 && m == 10)) // Chulalongkorn Day
+             || (d == 23 && m == 10))
+        // Chulalongkorn Day
         {
             return false;
         }
@@ -303,7 +319,8 @@ impl Calendar for Thailand {
             && ((d == 19 && m == 2)  // Makha Bucha Day
              || (d == 6 && m == 5)   // Special Holiday
              || (d == 20 && m == 5)  // Wisakha Bucha Day
-             || (d == 16 && m == 7)) // Asarnha Bucha Day
+             || (d == 16 && m == 7))
+        // Asarnha Bucha Day
         {
             return false;
         }
@@ -315,7 +332,8 @@ impl Calendar for Thailand {
              || (d == 27 && m == 7)  // Substitution for Songkran Festival
              || (d == 4 && m == 9)   // Substitution for Songkran Festival
              || (d == 7 && m == 9)   // Substitution for Songkran Festival
-             || (d == 11 && m == 12)) // Special Holiday
+             || (d == 11 && m == 12))
+        // Special Holiday
         {
             return false;
         }
@@ -326,7 +344,8 @@ impl Calendar for Thailand {
              || (d == 26 && m == 5)  // Wisakha Bucha Day
              || (d == 26 && m == 7)  // Sub for Asarnha Bucha Day (Sat 24 Jul)
              || (d == 24 && m == 9)  // Special Holiday
-             || (d == 22 && m == 10)) // Sub for Chulalongkorn Day
+             || (d == 22 && m == 10))
+        // Sub for Chulalongkorn Day
         {
             return false;
         }
@@ -337,7 +356,8 @@ impl Calendar for Thailand {
              || (d == 13 && m == 7)  // Asarnha Bucha Day
              || (d == 29 && m == 7)  // Additional special holiday
              || (d == 14 && m == 10) // Additional special holiday
-             || (d == 24 && m == 10)) // Sub for Chulalongkorn Day (Sun 23 Oct)
+             || (d == 24 && m == 10))
+        // Sub for Chulalongkorn Day (Sun 23 Oct)
         {
             return false;
         }
@@ -348,7 +368,8 @@ impl Calendar for Thailand {
              || (d == 5 && m == 6)   // Sub for Queen's Birthday & Wisakha Bucha
              || (d == 1 && m == 8)   // Asarnha Bucha Day
              || (d == 23 && m == 10) // Chulalongkorn Day
-             || (d == 29 && m == 12)) // Sub for New Year's Eve (Sun 31 Dec)
+             || (d == 29 && m == 12))
+        // Sub for New Year's Eve (Sun 31 Dec)
         {
             return false;
         }
@@ -360,7 +381,8 @@ impl Calendar for Thailand {
              || (d == 6 && m == 5)   // Sub for Coronation Day (Sat 4 May)
              || (d == 22 && m == 5)  // Wisakha Bucha Day
              || (d == 22 && m == 7)  // Sub for Asarnha Bucha Day (Sat 20 Jul)
-             || (d == 23 && m == 10)) // Chulalongkorn Day
+             || (d == 23 && m == 10))
+        // Chulalongkorn Day
         {
             return false;
         }
@@ -371,7 +393,8 @@ impl Calendar for Thailand {
              || (d == 5 && m == 5)   // Sub for Coronation Day (Sun 4 May)
              || (d == 12 && m == 5)  // Wisakha Bucha Day
              || (d == 10 && m == 7)  // Asarnha Bucha Day
-             || (d == 23 && m == 10)) // Chulalongkorn Day
+             || (d == 23 && m == 10))
+        // Chulalongkorn Day
         {
             return false;
         }

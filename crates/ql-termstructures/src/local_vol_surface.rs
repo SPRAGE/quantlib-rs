@@ -260,21 +260,9 @@ mod tests {
         let surface = LocalVolSurface::new(vol_surface, rf, dy, 100.0, Actual365Fixed);
 
         // Away from t=0, local vol should be ≈ 0.20
-        assert_abs_diff_eq!(
-            surface.local_vol_impl(1.0, 100.0),
-            0.20,
-            epsilon = 0.01
-        );
-        assert_abs_diff_eq!(
-            surface.local_vol_impl(2.0, 80.0),
-            0.20,
-            epsilon = 0.01
-        );
-        assert_abs_diff_eq!(
-            surface.local_vol_impl(0.5, 120.0),
-            0.20,
-            epsilon = 0.01
-        );
+        assert_abs_diff_eq!(surface.local_vol_impl(1.0, 100.0), 0.20, epsilon = 0.01);
+        assert_abs_diff_eq!(surface.local_vol_impl(2.0, 80.0), 0.20, epsilon = 0.01);
+        assert_abs_diff_eq!(surface.local_vol_impl(0.5, 120.0), 0.20, epsilon = 0.01);
     }
 
     #[test]

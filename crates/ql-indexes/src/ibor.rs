@@ -5,11 +5,10 @@
 
 use crate::ibor_index::IborIndex;
 use ql_time::{
-    Actual360, Actual365Fixed, BusinessDayConvention, Period, TimeUnit,
-    calendars::target::Target,
+    calendars::japan::Japan, calendars::target::Target,
     calendars::united_kingdom::UnitedKingdomSettlement,
-    calendars::united_states::UnitedStatesSettlement,
-    calendars::japan::Japan,
+    calendars::united_states::UnitedStatesSettlement, Actual360, Actual365Fixed,
+    BusinessDayConvention, Period, TimeUnit,
 };
 
 /// Create a Euribor index with the given tenor.

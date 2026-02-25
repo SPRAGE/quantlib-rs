@@ -151,10 +151,8 @@ mod tests {
     #[test]
     fn bs_put_price() {
         // Put via put-call parity: P = C - S*exp(-qT) + K*exp(-rT)
-        let (call, ..) =
-            black_scholes_merton(OptionType::Call, 100.0, 100.0, 0.05, 0.0, 0.20, 1.0);
-        let (put, ..) =
-            black_scholes_merton(OptionType::Put, 100.0, 100.0, 0.05, 0.0, 0.20, 1.0);
+        let (call, ..) = black_scholes_merton(OptionType::Call, 100.0, 100.0, 0.05, 0.0, 0.20, 1.0);
+        let (put, ..) = black_scholes_merton(OptionType::Put, 100.0, 100.0, 0.05, 0.0, 0.20, 1.0);
         let parity = call - 100.0 + 100.0 * (-0.05_f64).exp();
         assert!((put - parity).abs() < 1e-10, "put={put}, parity={parity}");
     }
@@ -192,10 +190,12 @@ mod tests {
     #[test]
     fn bs_zero_vol_call() {
         // Zero vol → max(S*exp(-qT) - K*exp(-rT), 0)
-        let (price, ..) =
-            black_scholes_merton(OptionType::Call, 100.0, 95.0, 0.05, 0.0, 0.0, 1.0);
+        let (price, ..) = black_scholes_merton(OptionType::Call, 100.0, 95.0, 0.05, 0.0, 0.0, 1.0);
         let expected = 100.0 - 95.0 * (-0.05_f64).exp();
-        assert!((price - expected).abs() < 0.01, "price={price}, expected={expected}");
+        assert!(
+            (price - expected).abs() < 0.01,
+            "price={price}, expected={expected}"
+        );
     }
 
     #[test]
@@ -213,7 +213,10 @@ mod tests {
 
         let expiry = Date::from_ymd(2026, 1, 15).unwrap();
         let args = VanillaOptionArguments {
-            payoff: Arc::new(ql_instruments::PlainVanillaPayoff::new(OptionType::Call, 100.0)),
+            payoff: Arc::new(ql_instruments::PlainVanillaPayoff::new(
+                OptionType::Call,
+                100.0,
+            )),
             exercise: ql_instruments::Exercise::european(expiry),
         };
 

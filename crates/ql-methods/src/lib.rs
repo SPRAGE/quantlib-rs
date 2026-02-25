@@ -34,6 +34,6 @@ pub use lattice::{
     BinomialTree, TimeGrid, TrinomialTree,
 };
 pub use monte_carlo::{
-    AntitheticPathGenerator, EuropeanPathPricer, MonteCarloModel, Path, PathGenerator, PathPricer,
-    mc_european_price,
+    mc_european_price, AntitheticPathGenerator, EuropeanPathPricer, MonteCarloModel, Path,
+    PathGenerator, PathPricer,
 };

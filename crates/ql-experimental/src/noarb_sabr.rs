@@ -46,10 +46,7 @@ impl NoArbSabrParameters {
             "noarb-SABR: beta must be in [0, 1]"
         );
         assert!(self.nu >= 0.0, "noarb-SABR: nu must be >= 0");
-        assert!(
-            self.rho.abs() < 1.0,
-            "noarb-SABR: |rho| must be < 1"
-        );
+        assert!(self.rho.abs() < 1.0, "noarb-SABR: |rho| must be < 1");
     }
 
     /// Convert to standard SABR parameters.
@@ -176,7 +173,12 @@ impl NoArbSabrModel {
 
         let c_up = black_call(f, strike + eps, sabr_volatility(f, strike + eps, t, p), t);
         let c_mid = black_call(f, strike, sabr_volatility(f, strike, t, p), t);
-        let c_down = black_call(f, strike - eps, sabr_volatility(f, (strike - eps).max(1e-8), t, p), t);
+        let c_down = black_call(
+            f,
+            strike - eps,
+            sabr_volatility(f, (strike - eps).max(1e-8), t, p),
+            t,
+        );
 
         (c_up - 2.0 * c_mid + c_down) / (eps * eps)
     }
@@ -361,12 +363,7 @@ mod tests {
         for i in 1..=100 {
             let k = 0.001 * i as Real;
             let d = model.density(k);
-            assert!(
-                d >= -1e-15,
-                "Negative density at K={}: {}",
-                k,
-                d
-            );
+            assert!(d >= -1e-15, "Negative density at K={}: {}", k, d);
         }
     }
 

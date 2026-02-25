@@ -9,6 +9,6 @@
 pub mod quote;
 
 pub use quote::{
-    CompositeQuote, DerivedQuote, ForwardValueQuote, ImpliedStdDevQuote,
-    LastFixingQuote, NegativeQuote, Quote, SimpleQuote,
+    CompositeQuote, DerivedQuote, ForwardValueQuote, ImpliedStdDevQuote, LastFixingQuote,
+    NegativeQuote, Quote, SimpleQuote,
 };

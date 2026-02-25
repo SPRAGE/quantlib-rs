@@ -6,7 +6,7 @@
 
 use crate::array::Array;
 use crate::optimization::{
-    CostFunction, Constraint, EndCriteria, EndCriteriaType, OptimizationResult,
+    Constraint, CostFunction, EndCriteria, EndCriteriaType, OptimizationResult,
 };
 use ql_core::{errors::Result, Real};
 
@@ -266,7 +266,9 @@ impl DifferentialEvolution {
         // Inline RNG helpers to avoid borrow conflicts
         #[inline]
         fn lcg_f64(state: &mut u64) -> f64 {
-            *state = state.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+            *state = state
+                .wrapping_mul(6364136223846793005)
+                .wrapping_add(1442695040888963407);
             (*state >> 33) as f64 / (1u64 << 31) as f64
         }
         #[inline]
@@ -307,11 +309,17 @@ impl DifferentialEvolution {
             for i in 0..np {
                 // Pick 3 distinct random members (different from i)
                 let mut r1 = lcg_usize(&mut rng_state, np);
-                while r1 == i { r1 = lcg_usize(&mut rng_state, np); }
+                while r1 == i {
+                    r1 = lcg_usize(&mut rng_state, np);
+                }
                 let mut r2 = lcg_usize(&mut rng_state, np);
-                while r2 == i || r2 == r1 { r2 = lcg_usize(&mut rng_state, np); }
+                while r2 == i || r2 == r1 {
+                    r2 = lcg_usize(&mut rng_state, np);
+                }
                 let mut r3 = lcg_usize(&mut rng_state, np);
-                while r3 == i || r3 == r1 || r3 == r2 { r3 = lcg_usize(&mut rng_state, np); }
+                while r3 == i || r3 == r1 || r3 == r2 {
+                    r3 = lcg_usize(&mut rng_state, np);
+                }
 
                 // Mutant vector
                 let mut trial = population[i].clone();
@@ -320,8 +328,7 @@ impl DifferentialEvolution {
                 for j in 0..n {
                     if lcg_f64(&mut rng_state) < self.crossover_prob || j == j_rand {
                         trial[j] = population[r1][j]
-                            + self.differential_weight
-                                * (population[r2][j] - population[r3][j]);
+                            + self.differential_weight * (population[r2][j] - population[r3][j]);
                     }
                 }
 
@@ -462,13 +469,14 @@ mod tests {
         let opt = Bfgs::new();
         let ec = EndCriteria::new(1000, 100, 1e-12, 1e-12, 1e-12);
         let result = opt
-            .minimize(&SimpleQuadratic, &NoConstraint, &Array::from_slice(&[0.0]), &ec)
+            .minimize(
+                &SimpleQuadratic,
+                &NoConstraint,
+                &Array::from_slice(&[0.0]),
+                &ec,
+            )
             .unwrap();
-        assert!(
-            (result.x[0] - 3.0).abs() < 1e-4,
-            "got x = {}",
-            result.x[0]
-        );
+        assert!((result.x[0] - 3.0).abs() < 1e-4, "got x = {}", result.x[0]);
     }
 
     #[test]
@@ -483,16 +491,8 @@ mod tests {
                 &ec,
             )
             .unwrap();
-        assert!(
-            (result.x[0] - 1.0).abs() < 0.1,
-            "x[0] = {}",
-            result.x[0]
-        );
-        assert!(
-            (result.x[1] - 1.0).abs() < 0.1,
-            "x[1] = {}",
-            result.x[1]
-        );
+        assert!((result.x[0] - 1.0).abs() < 0.1, "x[0] = {}", result.x[0]);
+        assert!((result.x[1] - 1.0).abs() < 0.1, "x[1] = {}", result.x[1]);
     }
 
     #[test]
@@ -500,13 +500,14 @@ mod tests {
         let opt = SteepestDescent::new();
         let ec = EndCriteria::new(5000, 100, 1e-12, 1e-12, 1e-12);
         let result = opt
-            .minimize(&SimpleQuadratic, &NoConstraint, &Array::from_slice(&[0.0]), &ec)
+            .minimize(
+                &SimpleQuadratic,
+                &NoConstraint,
+                &Array::from_slice(&[0.0]),
+                &ec,
+            )
             .unwrap();
-        assert!(
-            (result.x[0] - 3.0).abs() < 0.1,
-            "got x = {}",
-            result.x[0]
-        );
+        assert!((result.x[0] - 3.0).abs() < 0.1, "got x = {}", result.x[0]);
     }
 
     #[test]
@@ -514,12 +515,13 @@ mod tests {
         let opt = DifferentialEvolution::new(20, 0.7, 0.8).with_seed(42);
         let ec = EndCriteria::new(500, 100, 1e-8, 1e-8, 1e-8);
         let result = opt
-            .minimize(&SimpleQuadratic, &NoConstraint, &Array::from_slice(&[0.0]), &ec)
+            .minimize(
+                &SimpleQuadratic,
+                &NoConstraint,
+                &Array::from_slice(&[0.0]),
+                &ec,
+            )
             .unwrap();
-        assert!(
-            (result.x[0] - 3.0).abs() < 0.5,
-            "got x = {}",
-            result.x[0]
-        );
+        assert!((result.x[0] - 3.0).abs() < 0.5, "got x = {}", result.x[0]);
     }
 }

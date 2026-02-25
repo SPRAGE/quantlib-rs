@@ -72,15 +72,15 @@ pub use interpolated_forward_curve::InterpolatedForwardCurve;
 pub use interpolated_zero_curve::{
     CubicNatural, InterpolatedZeroCurve, InterpolationBuilder, Linear, LogLinear,
 };
-pub use local_vol_term_structure::{LocalConstantVol, LocalVolTermStructure};
 pub use local_vol_surface::LocalVolSurface;
-pub use smile_section::{
-    calibrate_svi, FlatSmileSection, SabrSmileSection, SmileOptionType, SmileSection,
-    SviParameters, SviSmileSection, VolatilityType,
-};
+pub use local_vol_term_structure::{LocalConstantVol, LocalVolTermStructure};
 pub use smile_calibration::{
     calibrate_sabr_surface, calibrate_svi_surface, ExpirySmileData, SmileCalibrationResult,
     SmileSurface,
+};
+pub use smile_section::{
+    calibrate_svi, FlatSmileSection, SabrSmileSection, SmileOptionType, SmileSection,
+    SviParameters, SviSmileSection, VolatilityType,
 };
 pub use term_structure::TermStructure;
 pub use volatility_term_structure::VolatilityTermStructure;

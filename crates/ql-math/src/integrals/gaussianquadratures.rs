@@ -33,7 +33,11 @@ impl GaussianQuadrature {
 
     /// Evaluate ∫ f(x) w(x) dx ≈ Σ wᵢ f(xᵢ).
     pub fn integrate<F: Fn(Real) -> Real>(&self, f: F) -> Real {
-        self.x.iter().zip(self.w.iter()).map(|(&xi, &wi)| wi * f(xi)).sum()
+        self.x
+            .iter()
+            .zip(self.w.iter())
+            .map(|(&xi, &wi)| wi * f(xi))
+            .sum()
     }
 }
 
@@ -84,7 +88,9 @@ impl GaussHermiteIntegration {
         let n = order;
         // Tridiagonal: α_i = 0, β_i = i  (H_{i+1}(x) = x H_i(x) - i H_{i-1}(x))
         let alpha: Vec<Real> = vec![0.0; n];
-        let beta: Vec<Real> = (0..n).map(|i| if i == 0 { PI.sqrt() } else { (i as Real) / 2.0 }).collect();
+        let beta: Vec<Real> = (0..n)
+            .map(|i| if i == 0 { PI.sqrt() } else { (i as Real) / 2.0 })
+            .collect();
         golub_welsch(&alpha, &beta)
     }
 }
@@ -266,10 +272,7 @@ fn golub_welsch(alpha: &[Real], beta: &[Real]) -> GaussianQuadrature {
         .map(|i| mu0 * eigenvectors[i][0] * eigenvectors[i][0])
         .collect();
 
-    GaussianQuadrature {
-        x: eigenvalues,
-        w,
-    }
+    GaussianQuadrature { x: eigenvalues, w }
 }
 
 /// Implicit QR algorithm for a symmetric tridiagonal matrix.
@@ -314,7 +317,9 @@ fn symmetric_tridiagonal_qr(
         let mu = if d.abs() < 1e-300 {
             diag[m - 1] - off[m - 2].abs()
         } else {
-            diag[m - 1] - off[m - 2] * off[m - 2] / (d + d.signum() * (d * d + off[m - 2] * off[m - 2]).sqrt())
+            diag[m - 1]
+                - off[m - 2] * off[m - 2]
+                    / (d + d.signum() * (d * d + off[m - 2] * off[m - 2]).sqrt())
         };
 
         // QR step with implicit shift
@@ -363,7 +368,11 @@ fn symmetric_tridiagonal_qr(
 
     // Sort eigenvalues and corresponding eigenvectors
     let mut idx: Vec<usize> = (0..n).collect();
-    idx.sort_by(|&a, &b| diag[a].partial_cmp(&diag[b]).unwrap_or(std::cmp::Ordering::Equal));
+    idx.sort_by(|&a, &b| {
+        diag[a]
+            .partial_cmp(&diag[b])
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
 
     let eigenvalues: Vec<Real> = idx.iter().map(|&i| diag[i]).collect();
     let eigenvectors: Vec<Vec<Real>> = idx
@@ -457,7 +466,12 @@ mod tests {
     fn gauss_jacobi_reduces_to_legendre() {
         // Jacobi(α=0, β=0) is Legendre
         let q = gauss_jacobi_nodes_weights(5, 0.0, 0.0);
-        let result: Real = q.x().iter().zip(q.w().iter()).map(|(&xi, &wi)| wi * xi.powi(4)).sum();
+        let result: Real = q
+            .x()
+            .iter()
+            .zip(q.w().iter())
+            .map(|(&xi, &wi)| wi * xi.powi(4))
+            .sum();
         assert_near(result, 0.4, 1e-12);
     }
 }

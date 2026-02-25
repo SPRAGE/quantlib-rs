@@ -43,8 +43,9 @@ impl Calendar for Slovakia {
         let dd = date.day_of_year();
         let em = super::target::easter_monday_pub(y);
 
-        if // New Year's Day / Republic Day / Epiphany
-           ((d == 1 || d == 6) && m == 1)
+        if
+        // New Year's Day / Republic Day / Epiphany
+        ((d == 1 || d == 6) && m == 1)
             // Good Friday
             || (dd == em - 3)
             // Easter Monday

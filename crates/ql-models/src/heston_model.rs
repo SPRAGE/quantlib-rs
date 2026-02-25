@@ -10,9 +10,7 @@
 //!
 //! This model wraps a `HestonProcess` and provides calibration infrastructure.
 
-use crate::calibrated_model::{
-    BoundaryConstraint, CalibratedModel, Parameter, PositiveConstraint,
-};
+use crate::calibrated_model::{BoundaryConstraint, CalibratedModel, Parameter, PositiveConstraint};
 use ql_core::Real;
 use ql_processes::HestonProcess;
 use ql_termstructures::YieldTermStructure;
@@ -33,9 +31,9 @@ impl HestonModel {
     /// Create a new Heston model from its process.
     pub fn new(process: HestonProcess) -> Self {
         let params = vec![
-            Parameter::new(vec![process.kappa()], PositiveConstraint),     // κ
-            Parameter::new(vec![process.theta()], PositiveConstraint),     // θ
-            Parameter::new(vec![process.sigma()], PositiveConstraint),   // σ_v
+            Parameter::new(vec![process.kappa()], PositiveConstraint), // κ
+            Parameter::new(vec![process.theta()], PositiveConstraint), // θ
+            Parameter::new(vec![process.sigma()], PositiveConstraint), // σ_v
             Parameter::new(
                 vec![process.rho()],
                 BoundaryConstraint {
@@ -43,7 +41,7 @@ impl HestonModel {
                     upper: 1.0,
                 },
             ),
-            Parameter::new(vec![process.v0()], PositiveConstraint),       // v0
+            Parameter::new(vec![process.v0()], PositiveConstraint), // v0
         ];
         Self { process, params }
     }
@@ -101,7 +99,8 @@ impl HestonModel {
 
     /// Feller condition: `2κθ > σ²`.
     pub fn feller_satisfied(&self) -> bool {
-        2.0 * self.process.kappa() * self.process.theta() > self.process.sigma() * self.process.sigma()
+        2.0 * self.process.kappa() * self.process.theta()
+            > self.process.sigma() * self.process.sigma()
     }
 }
 
@@ -122,13 +121,13 @@ impl CalibratedModel for HestonModel {
             let dividend = self.process.dividend_yield_arc();
             self.process = HestonProcess::new(
                 self.process.s0(),
-                values[4],  // v0
+                values[4], // v0
                 risk_free,
                 dividend,
-                values[0],  // kappa
-                values[1],  // theta
-                values[2],  // sigma
-                values[3],  // rho
+                values[0], // kappa
+                values[1], // theta
+                values[2], // sigma
+                values[3], // rho
             );
         }
     }

@@ -107,11 +107,7 @@ impl Index for ZeroInflationIndex {
 
     fn fixing(&self, date: Date, _force_forecast: bool) -> ql_core::errors::Result<Real> {
         self.fixings.get(date).ok_or_else(|| {
-            ql_core::errors::Error::Runtime(format!(
-                "missing {} fixing for {}",
-                self.name,
-                date
-            ))
+            ql_core::errors::Error::Runtime(format!("missing {} fixing for {}", self.name, date))
         })
     }
 

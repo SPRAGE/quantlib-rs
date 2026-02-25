@@ -34,7 +34,11 @@ fn ecb_dates() {
     let first = known[0];
     let before_first = first - 1;
     let next = ECB::next_date(before_first);
-    assert_eq!(next, Some(first), "next_date before first should give first");
+    assert_eq!(
+        next,
+        Some(first),
+        "next_date before first should give first"
+    );
 }
 
 // ─── IMM tests ────────────────────────────────────────────────────────────────
@@ -50,10 +54,7 @@ fn imm_dates() {
         let imm = IMM::next_date(counter);
 
         // IMM date must be >= counter
-        assert!(
-            imm >= counter,
-            "{imm} is not >= {counter}"
-        );
+        assert!(imm >= counter, "{imm} is not >= {counter}");
 
         // Must be a valid IMM date
         assert!(
@@ -63,10 +64,7 @@ fn imm_dates() {
 
         // code/roundtrip: code should be Some for an IMM date
         let code = IMM::code(imm);
-        assert!(
-            code.is_some(),
-            "IMM::code returned None for IMM date {imm}"
-        );
+        assert!(code.is_some(), "IMM::code returned None for IMM date {imm}");
 
         counter = counter + 1;
     }
@@ -104,10 +102,7 @@ fn asx_dates() {
         let asx = ASX::next_date(counter);
 
         // ASX date must be >= counter
-        assert!(
-            asx >= counter,
-            "{asx} is not >= {counter}"
-        );
+        assert!(asx >= counter, "{asx} is not >= {counter}");
 
         // Must be a valid ASX date
         assert!(
@@ -117,10 +112,7 @@ fn asx_dates() {
 
         // code should be Some for an ASX date
         let code = ASX::code(asx);
-        assert!(
-            code.is_some(),
-            "ASX::code returned None for ASX date {asx}"
-        );
+        assert!(code.is_some(), "ASX::code returned None for ASX date {asx}");
 
         counter = counter + 1;
     }
@@ -188,10 +180,7 @@ fn test_consistency() {
         y_old = y;
 
         // Check month range
-        assert!(
-            (1..=12).contains(&m),
-            "invalid month: date={t}, month={m}"
-        );
+        assert!((1..=12).contains(&m), "invalid month: date={t}, month={m}");
 
         // Check day range for the month
         let max_day = days_in_month(y as u16, m as u8) as i32;

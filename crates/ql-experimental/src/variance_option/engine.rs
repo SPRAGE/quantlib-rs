@@ -154,7 +154,8 @@ fn ivop_one_dim(
         let zita = caux2.sqrt() * 0.5;
         let caux1_exp = (-2.0 * tau * zita).exp();
 
-        let beta = Complex64::new(0.5 * chi, 0.0) + zita
+        let beta = Complex64::new(0.5 * chi, 0.0)
+            + zita
             + caux1_exp * (zita - Complex64::new(0.5 * chi, 0.0));
         let gamma = Complex64::new(1.0, 0.0) - caux1_exp;
 
@@ -169,8 +170,7 @@ fn ivop_one_dim(
         let xi_c = Complex64::new(xi, 0.0);
         let contrib = if (xi_c.norm()) > 1e-6 {
             let t1 = -Complex64::new(eprice, 0.0) / (ui * xi_c);
-            let eterm = (ui * xi_c * Complex64::new(eprice, 0.0)).exp()
-                - Complex64::new(1.0, 0.0);
+            let eterm = (ui * xi_c * Complex64::new(eprice, 0.0)).exp() - Complex64::new(1.0, 0.0);
             t1 + eterm / (ui * xi_c * ui * xi_c)
         } else {
             Complex64::new(eprice * eprice * 0.5, 0.0)
@@ -183,7 +183,11 @@ fn ivop_one_dim(
     let mut csum = Complex64::new(0.0, 0.0);
     for j in 0..mm {
         let sign = (-1.0_f64).powi(j as i32);
-        let exp_arg = ui * Complex64::new(-2.0 * PI * (mm as Real) * (j as Real) * 0.5 / (mm as Real), 0.0);
+        let exp_arg = ui
+            * Complex64::new(
+                -2.0 * PI * (mm as Real) * (j as Real) * 0.5 / (mm as Real),
+                0.0,
+            );
         csum += ff[j + 1] * Complex64::new(sign, 0.0) * exp_arg.exp();
     }
 
@@ -269,7 +273,8 @@ fn ivop_two_dim(
         let zita = caux2.sqrt() * 0.5;
         let caux1_exp = (-2.0 * tau * zita).exp();
 
-        let beta = Complex64::new(0.5 * chi, 0.0) + zita
+        let beta = Complex64::new(0.5 * chi, 0.0)
+            + zita
             + caux1_exp * (zita - Complex64::new(0.5 * chi, 0.0));
         let gamma = Complex64::new(1.0, 0.0) - caux1_exp;
 
@@ -320,12 +325,12 @@ mod tests {
         // v0=2.0, kappa=2.0, theta=0.01, sigma=0.1, rho=-0.5, r=0.0
         // strike=0.05, nominal=1.0, T=1.5
         let engine = IntegralHestonVarianceOptionEngine::new(
-            2.0,   // v0
-            2.0,   // kappa
-            0.01,  // theta
-            0.1,   // sigma
-            -0.5,  // rho
-            0.0,   // r
+            2.0,  // v0
+            2.0,  // kappa
+            0.01, // theta
+            0.1,  // sigma
+            -0.5, // rho
+            0.0,  // r
         );
 
         let args = VarianceOptionArguments {
@@ -351,12 +356,12 @@ mod tests {
         // v0=1.5, kappa=2.0, theta=0.01, sigma=0.1, rho=-0.5, r=0.0
         // strike=0.7, nominal=1.0, T=1.0
         let engine = IntegralHestonVarianceOptionEngine::new(
-            1.5,   // v0
-            2.0,   // kappa
-            0.01,  // theta
-            0.1,   // sigma
-            -0.5,  // rho
-            0.0,   // r
+            1.5,  // v0
+            2.0,  // kappa
+            0.01, // theta
+            0.1,  // sigma
+            -0.5, // rho
+            0.0,  // r
         );
 
         let args = VarianceOptionArguments {

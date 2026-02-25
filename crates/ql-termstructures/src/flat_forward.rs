@@ -7,9 +7,7 @@
 use crate::term_structure::TermStructure;
 use crate::yield_term_structure::{YieldTermStructure, YieldTermStructureData};
 use ql_core::{Compounding, Rate, Time};
-use ql_time::{
-    Actual365Fixed, Calendar, Date, DayCounter, Frequency, InterestRate, NullCalendar,
-};
+use ql_time::{Actual365Fixed, Calendar, Date, DayCounter, Frequency, InterestRate, NullCalendar};
 use std::sync::Arc;
 
 /// A flat (constant) forward-rate yield term structure.
@@ -73,10 +71,7 @@ impl FlatForward {
     }
 
     /// Create a flat-forward curve with a specific calendar.
-    pub fn with_calendar(
-        mut self,
-        calendar: impl Calendar + 'static,
-    ) -> Self {
+    pub fn with_calendar(mut self, calendar: impl Calendar + 'static) -> Self {
         self.data.calendar = Box::new(calendar);
         self
     }

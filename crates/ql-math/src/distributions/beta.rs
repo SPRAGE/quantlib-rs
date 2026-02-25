@@ -2,7 +2,7 @@
 //! and related gamma/beta function utilities).
 
 use ql_core::Real;
-use statrs::distribution::{Beta, ContinuousCDF, Continuous};
+use statrs::distribution::{Beta, Continuous, ContinuousCDF};
 
 /// Beta distribution with shape parameters `α` and `β`.
 ///
@@ -17,8 +17,7 @@ pub struct BetaDistribution {
 impl BetaDistribution {
     /// Create a Beta(α, β) distribution.
     pub fn new(alpha: Real, beta: Real) -> Self {
-        let inner =
-            Beta::new(alpha, beta).expect("invalid beta distribution parameters");
+        let inner = Beta::new(alpha, beta).expect("invalid beta distribution parameters");
         Self { inner, alpha, beta }
     }
 

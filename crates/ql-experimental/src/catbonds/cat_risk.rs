@@ -144,9 +144,12 @@ impl CatSimulation for EventSetSimulation {
         while self.i < self.events.len() && self.events[self.i].0 <= self.period_end {
             let event_date = self.events[self.i].0;
             let year_shift = self.start.year() - self.period_start.year();
-            let shifted_date =
-                Date::from_ymd(event_date.year() + year_shift, event_date.month(), event_date.day_of_month())
-                    .unwrap();
+            let shifted_date = Date::from_ymd(
+                event_date.year() + year_shift,
+                event_date.month(),
+                event_date.day_of_month(),
+            )
+            .unwrap();
             path.push((shifted_date, self.events[self.i].1));
             self.i += 1;
         }

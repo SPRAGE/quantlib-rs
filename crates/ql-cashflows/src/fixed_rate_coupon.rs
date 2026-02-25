@@ -293,7 +293,9 @@ mod tests {
         let end = Date::from_ymd(2027, 1, 15).unwrap();
         let tenor = Period::new(6, TimeUnit::Months);
         let cal = NullCalendar;
-        let schedule = ScheduleBuilder::new(start, end, tenor, &cal).build().unwrap();
+        let schedule = ScheduleBuilder::new(start, end, tenor, &cal)
+            .build()
+            .unwrap();
 
         let leg = FixedRateLegBuilder::new(&schedule)
             .with_notionals(vec![100.0])
@@ -317,7 +319,9 @@ mod tests {
         let end = Date::from_ymd(2030, 1, 15).unwrap();
         let tenor = Period::new(1, TimeUnit::Years);
         let cal = NullCalendar;
-        let schedule = ScheduleBuilder::new(start, end, tenor, &cal).build().unwrap();
+        let schedule = ScheduleBuilder::new(start, end, tenor, &cal)
+            .build()
+            .unwrap();
 
         let leg = FixedRateLegBuilder::new(&schedule)
             .with_coupon_rate(0.03)

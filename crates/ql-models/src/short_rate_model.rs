@@ -44,9 +44,7 @@ pub trait OneFactorModel: ShortRateModel {
 
     /// Create a `StochasticProcess1D` for the short rate
     /// (used by tree/lattice builders).
-    fn dynamics_process(
-        &self,
-    ) -> Box<dyn ql_processes::StochasticProcess1D>;
+    fn dynamics_process(&self) -> Box<dyn ql_processes::StochasticProcess1D>;
 }
 
 /// A two-factor short-rate model.

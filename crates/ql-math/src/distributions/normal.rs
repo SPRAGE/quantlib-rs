@@ -26,8 +26,7 @@ pub fn normal_cdf(x: Real) -> Real {
     let poly = t
         * (0.319_381_530
             + t * (-0.356_563_782
-                + t * (1.781_477_937
-                    + t * (-1.821_255_978 + t * 1.330_274_429))));
+                + t * (1.781_477_937 + t * (-1.821_255_978 + t * 1.330_274_429))));
     let pdf = normal_pdf(x);
     0.5 + sign * (0.5 - poly * pdf)
 }
@@ -100,7 +99,13 @@ fn acklam_inverse(p: Real) -> Real {
 /// with correlation `rho`.
 pub fn bivariate_normal_cdf(a: Real, b: Real, rho: Real) -> Real {
     // Abramowitz & Stegun method (Drezner approximation)
-    const X: [f64; 5] = [0.24840615, 0.39233107, 0.21141819, 0.03324666, 0.00082485334];
+    const X: [f64; 5] = [
+        0.24840615,
+        0.39233107,
+        0.21141819,
+        0.03324666,
+        0.00082485334,
+    ];
     const Y: [f64; 5] = [0.10024215, 0.48281397, 1.06094980, 1.77972940, 2.66976040];
 
     let a = a / (2.0_f64).sqrt();
@@ -115,13 +120,12 @@ pub fn bivariate_normal_cdf(a: Real, b: Real, rho: Real) -> Real {
         for i in 0..5 {
             for sn in [-1.0_f64, 1.0] {
                 let xs = (asr * (sn * Y[i] + 1.0) / 2.0).sin();
-                sum += X[i]
-                    * ((xs * (a * a + b * b) - 2.0 * a * b * xs)
-                        / (1.0 - xs * xs) + hs)
-                        .exp();
+                sum +=
+                    X[i] * ((xs * (a * a + b * b) - 2.0 * a * b * xs) / (1.0 - xs * xs) + hs).exp();
             }
         }
-        return (asr * sum / (2.0 * tp)) + normal_cdf(a * std::f64::consts::SQRT_2) * normal_cdf(b * std::f64::consts::SQRT_2);
+        return (asr * sum / (2.0 * tp))
+            + normal_cdf(a * std::f64::consts::SQRT_2) * normal_cdf(b * std::f64::consts::SQRT_2);
     }
 
     // |rho| >= 0.7
@@ -137,9 +141,8 @@ pub fn bivariate_normal_cdf(a: Real, b: Real, rho: Real) -> Real {
                 let mut s = 0.0;
                 for sn in [-1.0_f64, 1.0] {
                     let xs = (asr * (sn * Y[i] + 1.0) / 2.0).sin();
-                    s += ((xs * (a * a + b * b) - 2.0 * a * b * xs)
-                        / (2.0 * (1.0 - xs * xs)))
-                        .exp();
+                    s +=
+                        ((xs * (a * a + b * b) - 2.0 * a * b * xs) / (2.0 * (1.0 - xs * xs))).exp();
                 }
                 s
             }
@@ -149,7 +152,8 @@ pub fn bivariate_normal_cdf(a: Real, b: Real, rho: Real) -> Real {
     if rho > 0.0 {
         sum + normal_cdf(a.min(b) * std::f64::consts::SQRT_2)
     } else {
-        let tmp = -normal_cdf(a * std::f64::consts::SQRT_2) + normal_cdf(b * std::f64::consts::SQRT_2);
+        let tmp =
+            -normal_cdf(a * std::f64::consts::SQRT_2) + normal_cdf(b * std::f64::consts::SQRT_2);
         (-sum + tmp).max(0.0)
     }
 }

@@ -37,11 +37,7 @@ pub struct HullWhite {
 
 impl HullWhite {
     /// Create a new Hull-White model.
-    pub fn new(
-        term_structure: Arc<dyn YieldTermStructure>,
-        a: Real,
-        sigma: Real,
-    ) -> Self {
+    pub fn new(term_structure: Arc<dyn YieldTermStructure>, a: Real, sigma: Real) -> Self {
         let params = vec![
             Parameter::new(vec![a], PositiveConstraint),
             Parameter::new(vec![sigma], PositiveConstraint),
@@ -81,7 +77,8 @@ impl HullWhite {
         let f0t = ts.forward_rate_impl(t);
         let sigma2 = self.sigma * self.sigma;
 
-        (ln_pt - ln_p0) - b_val * f0t
+        (ln_pt - ln_p0)
+            - b_val * f0t
             - sigma2 / (4.0 * self.a) * b_val * b_val * (1.0 - (-2.0 * self.a * t).exp())
     }
 
@@ -91,7 +88,8 @@ impl HullWhite {
         let f_t = self.term_structure.forward_rate_impl(t);
         let f_tdt = self.term_structure.forward_rate_impl(t + dt);
         let df_dt = (f_tdt - f_t) / dt;
-        df_dt + self.a * f_t
+        df_dt
+            + self.a * f_t
             + self.sigma * self.sigma / (2.0 * self.a) * (1.0 - (-2.0 * self.a * t).exp())
     }
 }
@@ -141,7 +139,8 @@ impl StochasticProcess1D for HullWhiteDynamics {
         let f_t = self.term_structure.forward_rate_impl(t);
         let f_tdt = self.term_structure.forward_rate_impl(t + dt);
         let df_dt = (f_tdt - f_t) / dt;
-        let theta = df_dt + self.a * f_t
+        let theta = df_dt
+            + self.a * f_t
             + self.sigma * self.sigma / (2.0 * self.a) * (1.0 - (-2.0 * self.a * t).exp());
         theta - self.a * x
     }
@@ -158,9 +157,9 @@ impl StochasticProcess1D for HullWhiteDynamics {
             let f_t = self.term_structure.forward_rate_impl(mid);
             let f_tdt = self.term_structure.forward_rate_impl(mid + eps);
             let df_dt = (f_tdt - f_t) / eps;
-            df_dt + self.a * f_t
-                + self.sigma * self.sigma / (2.0 * self.a)
-                    * (1.0 - (-2.0 * self.a * mid).exp())
+            df_dt
+                + self.a * f_t
+                + self.sigma * self.sigma / (2.0 * self.a) * (1.0 - (-2.0 * self.a * mid).exp())
         };
         x * ema + (theta_mid / self.a) * (1.0 - ema)
     }

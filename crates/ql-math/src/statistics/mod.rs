@@ -171,7 +171,12 @@ impl GeneralStatistics {
         let mean = self.mean()?;
         let sw = self.sum_weights();
         let n = self.data.len() as Real;
-        let s2 = self.data.iter().map(|(x, w)| w * (x - mean).powi(2)).sum::<Real>() / sw;
+        let s2 = self
+            .data
+            .iter()
+            .map(|(x, w)| w * (x - mean).powi(2))
+            .sum::<Real>()
+            / sw;
         Some(s2 * n / (n - 1.0))
     }
 
@@ -192,7 +197,12 @@ impl GeneralStatistics {
         }
         let sw = self.sum_weights();
         let n = self.data.len() as Real;
-        let m3 = self.data.iter().map(|(x, w)| w * ((x - mean) / sigma).powi(3)).sum::<Real>() / sw;
+        let m3 = self
+            .data
+            .iter()
+            .map(|(x, w)| w * ((x - mean) / sigma).powi(3))
+            .sum::<Real>()
+            / sw;
         // Adjust for sample skewness
         Some(m3 * n * n / ((n - 1.0) * (n - 2.0)))
     }
@@ -209,10 +219,14 @@ impl GeneralStatistics {
         }
         let sw = self.sum_weights();
         let n = self.data.len() as Real;
-        let m4 = self.data.iter().map(|(x, w)| w * ((x - mean) / sigma).powi(4)).sum::<Real>() / sw;
+        let m4 = self
+            .data
+            .iter()
+            .map(|(x, w)| w * ((x - mean) / sigma).powi(4))
+            .sum::<Real>()
+            / sw;
         // Excess kurtosis with sample correction
-        let k = (n - 1.0) / ((n - 2.0) * (n - 3.0))
-            * ((n + 1.0) * m4 - 3.0 * (n - 1.0));
+        let k = (n - 1.0) / ((n - 2.0) * (n - 3.0)) * ((n + 1.0) * m4 - 3.0 * (n - 1.0));
         Some(k)
     }
 
@@ -279,10 +293,10 @@ impl GeneralStatistics {
 pub struct IncrementalStatistics {
     n: usize,
     sum_w: Real,
-    m1: Real,   // mean
-    m2: Real,   // sum of (x - mean)^2 * w (for variance)
-    m3: Real,   // for skewness
-    m4: Real,   // for kurtosis
+    m1: Real, // mean
+    m2: Real, // sum of (x - mean)^2 * w (for variance)
+    m3: Real, // for skewness
+    m4: Real, // for kurtosis
     min: Real,
     max: Real,
 }
@@ -319,9 +333,10 @@ impl IncrementalStatistics {
         let term1 = delta * delta_n * n1;
 
         self.m1 += delta_n;
-        self.m4 += term1 * delta_n2 * (self.sum_w * self.sum_w - 3.0 * w * self.sum_w + 3.0 * w * w)
-            + 6.0 * delta_n2 * self.m2
-            - 4.0 * delta_n * self.m3;
+        self.m4 +=
+            term1 * delta_n2 * (self.sum_w * self.sum_w - 3.0 * w * self.sum_w + 3.0 * w * w)
+                + 6.0 * delta_n2 * self.m2
+                - 4.0 * delta_n * self.m3;
         self.m3 += term1 * delta_n * (self.sum_w - 2.0 * w) - 3.0 * delta_n * self.m2;
         self.m2 += term1;
 
@@ -386,12 +401,20 @@ impl IncrementalStatistics {
 
     /// Minimum.
     pub fn minimum(&self) -> Option<Real> {
-        if self.n == 0 { None } else { Some(self.min) }
+        if self.n == 0 {
+            None
+        } else {
+            Some(self.min)
+        }
     }
 
     /// Maximum.
     pub fn maximum(&self) -> Option<Real> {
-        if self.n == 0 { None } else { Some(self.max) }
+        if self.n == 0 {
+            None
+        } else {
+            Some(self.max)
+        }
     }
 
     /// Reset.
@@ -434,10 +457,7 @@ impl ConvergenceStatistics {
         let n = self.inner.samples();
         if n == self.next_trigger {
             let mean = self.inner.mean().unwrap_or(0.0);
-            let err = self
-                .inner
-                .error_estimate()
-                .unwrap_or(0.0);
+            let err = self.inner.error_estimate().unwrap_or(0.0);
             self.snapshots.push((n, mean, err));
             self.next_trigger *= 2;
         }
@@ -501,7 +521,9 @@ impl SequenceStatistics {
     pub fn new(dimension: usize) -> Self {
         Self {
             dim: dimension,
-            stats: (0..dimension).map(|_| IncrementalStatistics::new()).collect(),
+            stats: (0..dimension)
+                .map(|_| IncrementalStatistics::new())
+                .collect(),
             n: 0,
             sum_xy: vec![vec![0.0; dimension]; dimension],
             sum_x: vec![0.0; dimension],
@@ -538,12 +560,18 @@ impl SequenceStatistics {
 
     /// Variance vector.
     pub fn variance(&self) -> Vec<Real> {
-        self.stats.iter().map(|s| s.variance().unwrap_or(0.0)).collect()
+        self.stats
+            .iter()
+            .map(|s| s.variance().unwrap_or(0.0))
+            .collect()
     }
 
     /// Standard deviation vector.
     pub fn std_dev(&self) -> Vec<Real> {
-        self.stats.iter().map(|s| s.std_dev().unwrap_or(0.0)).collect()
+        self.stats
+            .iter()
+            .map(|s| s.std_dev().unwrap_or(0.0))
+            .collect()
     }
 
     /// Covariance matrix (sample covariance).
@@ -568,7 +596,11 @@ impl SequenceStatistics {
         for i in 0..self.dim {
             for j in 0..self.dim {
                 let denom = (cov[i][i] * cov[j][j]).sqrt();
-                corr[i][j] = if denom > 1e-30 { cov[i][j] / denom } else { 0.0 };
+                corr[i][j] = if denom > 1e-30 {
+                    cov[i][j] / denom
+                } else {
+                    0.0
+                };
             }
         }
         corr
@@ -633,15 +665,9 @@ mod tests {
             gs.add(i as Real);
         }
         let median = gs.median().unwrap();
-        assert!(
-            (median - 50.5).abs() < 1e-10,
-            "median = {median}"
-        );
+        assert!((median - 50.5).abs() < 1e-10, "median = {median}");
         let p25 = gs.percentile(25.0).unwrap();
-        assert!(
-            (p25 - 25.75).abs() < 1e-10,
-            "p25 = {p25}"
-        );
+        assert!((p25 - 25.75).abs() < 1e-10, "p25 = {p25}");
     }
 
     #[test]
@@ -685,7 +711,7 @@ mod tests {
         assert_eq!(table.len(), 8);
         assert_eq!(table[0].0, 1); // 1 sample
         assert_eq!(table[7].0, 128); // 128 samples
-        // Mean at 128 samples should be 64.5
+                                     // Mean at 128 samples should be 64.5
         assert!((table[7].1 - 64.5).abs() < 1e-10);
     }
 

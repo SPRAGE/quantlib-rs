@@ -35,8 +35,9 @@ impl Calendar for Ukraine {
         let m = date.month();
         let d = date.day_of_month();
 
-        if // New Year's Day / Orthodox Christmas
-           ((d == 1 || d == 7) && m == 1)
+        if
+        // New Year's Day / Orthodox Christmas
+        ((d == 1 || d == 7) && m == 1)
             // International Women's Day
             || (d == 8 && m == 3)
             // Labour Day (May 1–2)

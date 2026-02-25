@@ -68,8 +68,7 @@ impl CoxIngersollRoss {
     pub fn b_function(&self, t: Time, big_t: Time) -> Real {
         let tau = big_t - t;
         let g = self.gamma();
-        2.0 * ((g * tau).exp() - 1.0)
-            / ((g + self.a) * ((g * tau).exp() - 1.0) + 2.0 * g)
+        2.0 * ((g * tau).exp() - 1.0) / ((g + self.a) * ((g * tau).exp() - 1.0) + 2.0 * g)
     }
 
     /// `ln A(t,T)` for CIR model.

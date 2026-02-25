@@ -37,8 +37,9 @@ impl Calendar for Switzerland {
         let dd = date.day_of_year();
         let em = super::target::easter_monday_pub(y);
 
-        if // New Year's Day / Berchtoldstag
-           ((d == 1 || d == 2) && m == 1)
+        if
+        // New Year's Day / Berchtoldstag
+        ((d == 1 || d == 2) && m == 1)
             // Good Friday
             || (dd == em - 3)
             // Easter Monday
@@ -78,7 +79,7 @@ mod tests {
     #[test]
     fn good_friday_and_easter_monday_2023() {
         let cal = Switzerland;
-        assert!(!cal.is_business_day(date(2023, 4, 7)));  // Good Friday
+        assert!(!cal.is_business_day(date(2023, 4, 7))); // Good Friday
         assert!(!cal.is_business_day(date(2023, 4, 10))); // Easter Monday
     }
 

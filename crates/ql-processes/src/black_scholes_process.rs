@@ -13,9 +13,7 @@
 
 use crate::stochastic_process::StochasticProcess1D;
 use ql_core::{Real, Time};
-use ql_termstructures::{
-    BlackVolTermStructure, LocalVolTermStructure, YieldTermStructure,
-};
+use ql_termstructures::{BlackVolTermStructure, LocalVolTermStructure, YieldTermStructure};
 use std::sync::Arc;
 
 /// A generalized Black-Scholes stochastic process.

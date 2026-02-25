@@ -6,9 +6,7 @@ use crate::interest_rate_index::{
 };
 use ql_core::{errors::Result, Real};
 use ql_currencies::Currency;
-use ql_time::{
-    BusinessDayConvention, Calendar, Date, DayCounter, Frequency, Period,
-};
+use ql_time::{BusinessDayConvention, Calendar, Date, DayCounter, Frequency, Period};
 
 /// An Interbank Offered Rate index (e.g. Euribor, USD LIBOR).
 ///

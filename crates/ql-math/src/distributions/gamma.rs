@@ -3,7 +3,7 @@
 //! Wraps the `statrs` crate's gamma implementation.
 
 use ql_core::Real;
-use statrs::distribution::{ContinuousCDF, Continuous, Gamma};
+use statrs::distribution::{Continuous, ContinuousCDF, Gamma};
 
 /// Gamma distribution with shape `a` and rate `b` (scale = 1/b).
 ///

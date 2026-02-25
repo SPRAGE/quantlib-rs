@@ -33,8 +33,9 @@ impl Calendar for Taiwan {
         let m = date.month();
         let d = date.day_of_month();
 
-        if // New Year's Day / Founding Day
-           (d == 1 && m == 1)
+        if
+        // New Year's Day / Founding Day
+        (d == 1 && m == 1)
             // Peace Memorial Day
             || (d == 28 && m == 2)
             // Tomb Sweeping Day (Apr 4 or Apr 5)

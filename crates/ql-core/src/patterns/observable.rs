@@ -82,7 +82,9 @@ impl ObservableImpl {
             .filter_map(|w| w.upgrade())
             .collect();
         // Prune dead references
-        self.observers.borrow_mut().retain(|w| w.upgrade().is_some());
+        self.observers
+            .borrow_mut()
+            .retain(|w| w.upgrade().is_some());
         // Notify outside the borrow
         for obs in observers {
             obs.update();

@@ -6,9 +6,9 @@
 //! * `FlatHazardRate` — constant hazard-rate curve
 //! * `InterpolatedHazardRateCurve` — piecewise hazard-rate curve
 
+use crate::interpolated_zero_curve::InterpolationBuilder;
 use crate::term_structure::TermStructure;
 use crate::yield_term_structure::YieldTermStructureData;
-use crate::interpolated_zero_curve::InterpolationBuilder;
 use ql_core::{errors::Result, Real, Time};
 use ql_math::Interpolation1D;
 use ql_time::{Calendar, Date, DayCounter, NullCalendar};
@@ -330,11 +330,7 @@ mod tests {
         let ref_date = Date::from_ymd(2025, 1, 2).unwrap();
         let curve = FlatHazardRate::new(ref_date, 0.02, Actual365Fixed);
 
-        assert_abs_diff_eq!(
-            curve.survival_probability_impl(0.0),
-            1.0,
-            epsilon = 1e-15
-        );
+        assert_abs_diff_eq!(curve.survival_probability_impl(0.0), 1.0, epsilon = 1e-15);
     }
 
     #[test]
@@ -376,11 +372,7 @@ mod tests {
 
         // f(t) = h · S(t) = 0.02 * exp(-0.02 * 3)
         let expected = 0.02 * (-0.06_f64).exp();
-        assert_abs_diff_eq!(
-            curve.default_density_impl(3.0),
-            expected,
-            epsilon = 1e-12
-        );
+        assert_abs_diff_eq!(curve.default_density_impl(3.0), expected, epsilon = 1e-12);
     }
 
     #[test]
@@ -392,13 +384,8 @@ mod tests {
             Date::from_ymd(2030, 1, 2).unwrap(),
         ];
         let rates = vec![0.01, 0.02, 0.025, 0.03];
-        let curve = InterpolatedHazardRateCurve::new(
-            &dates,
-            &rates,
-            Actual365Fixed,
-            &Linear,
-        )
-        .unwrap();
+        let curve =
+            InterpolatedHazardRateCurve::new(&dates, &rates, Actual365Fixed, &Linear).unwrap();
 
         // At each pillar, the hazard rate should match
         for (i, &d) in dates.iter().enumerate() {
@@ -415,13 +402,8 @@ mod tests {
             Date::from_ymd(2030, 1, 2).unwrap(),
         ];
         let rates = vec![0.02, 0.02, 0.02]; // constant 2%
-        let curve = InterpolatedHazardRateCurve::new(
-            &dates,
-            &rates,
-            Actual365Fixed,
-            &Linear,
-        )
-        .unwrap();
+        let curve =
+            InterpolatedHazardRateCurve::new(&dates, &rates, Actual365Fixed, &Linear).unwrap();
 
         let s1 = curve.survival_probability_impl(1.0);
         let s3 = curve.survival_probability_impl(3.0);

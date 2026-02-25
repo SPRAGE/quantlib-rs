@@ -11,9 +11,7 @@
 //!
 //! where `J ~ N(ν, δ²)` is the log-jump size and `k = E[e^J − 1]`.
 
-use crate::calibrated_model::{
-    BoundaryConstraint, CalibratedModel, Parameter, PositiveConstraint,
-};
+use crate::calibrated_model::{BoundaryConstraint, CalibratedModel, Parameter, PositiveConstraint};
 use ql_core::Real;
 use ql_processes::BatesProcess;
 use ql_termstructures::YieldTermStructure;

@@ -37,8 +37,9 @@ impl Calendar for Mexico {
         let dd = date.day_of_year();
         let em = super::target::easter_monday_pub(y);
 
-        if // New Year's Day
-           (d == 1 && m == 1)
+        if
+        // New Year's Day
+        (d == 1 && m == 1)
             // Constitution Day (1st Monday in February)
             || (w == Weekday::Monday && m == 2 && (1..=7).contains(&d))
             // Benito Juárez's Birthday (3rd Monday in March)

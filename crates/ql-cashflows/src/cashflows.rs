@@ -56,11 +56,7 @@ pub fn next_cashflow_date(leg: &Leg, ref_date: Date) -> Option<Date> {
 /// Net present value of a leg using a yield-term-structure.
 ///
 /// Only cash flows after `settlement_date` are discounted.
-pub fn npv_curve(
-    leg: &Leg,
-    yield_curve: &dyn YieldTermStructure,
-    settlement_date: Date,
-) -> Real {
+pub fn npv_curve(leg: &Leg, yield_curve: &dyn YieldTermStructure, settlement_date: Date) -> Real {
     let ref_date = yield_curve.reference_date();
     let dc = Actual365Fixed;
     let mut result = 0.0;
@@ -78,11 +74,7 @@ pub fn npv_curve(
 ///
 /// This is the change in NPV for a 1bp parallel shift in the discount curve,
 /// approximated as: `sum_i(t_i * df_i * amount_i)  * 0.0001`
-pub fn bps_curve(
-    leg: &Leg,
-    yield_curve: &dyn YieldTermStructure,
-    settlement_date: Date,
-) -> Real {
+pub fn bps_curve(leg: &Leg, yield_curve: &dyn YieldTermStructure, settlement_date: Date) -> Real {
     let ref_date = yield_curve.reference_date();
     let dc = Actual365Fixed;
     let mut result = 0.0;
@@ -101,11 +93,7 @@ pub fn bps_curve(
 /// Net present value of a leg at a flat yield (as an `InterestRate`).
 ///
 /// Cash flows on or before `settlement_date` are excluded.
-pub fn npv_yield(
-    leg: &Leg,
-    yield_rate: &InterestRate,
-    settlement_date: Date,
-) -> Real {
+pub fn npv_yield(leg: &Leg, yield_rate: &InterestRate, settlement_date: Date) -> Real {
     let dc = Actual365Fixed;
     let mut result = 0.0;
     for cf in leg {
@@ -119,11 +107,7 @@ pub fn npv_yield(
 }
 
 /// BPS at a flat yield.
-pub fn bps_yield(
-    leg: &Leg,
-    yield_rate: &InterestRate,
-    settlement_date: Date,
-) -> Real {
+pub fn bps_yield(leg: &Leg, yield_rate: &InterestRate, settlement_date: Date) -> Real {
     let dc = Actual365Fixed;
     let mut result = 0.0;
     for cf in leg {
@@ -190,11 +174,7 @@ pub fn duration(
 // ── Convexity ────────────────────────────────────────────────────────────────
 
 /// Convexity of a leg at a flat yield.
-pub fn convexity(
-    leg: &Leg,
-    yield_rate: &InterestRate,
-    settlement_date: Date,
-) -> Real {
+pub fn convexity(leg: &Leg, yield_rate: &InterestRate, settlement_date: Date) -> Real {
     let dc = Actual365Fixed;
     let y = yield_rate.rate();
     let npv = npv_yield(leg, yield_rate, settlement_date);
@@ -291,7 +271,9 @@ mod tests {
         let end = Date::from_ymd(2030, 1, 15).unwrap();
         let tenor = Period::new(1, TimeUnit::Years);
         let cal = NullCalendar;
-        let schedule = ScheduleBuilder::new(start, end, tenor, &cal).build().unwrap();
+        let schedule = ScheduleBuilder::new(start, end, tenor, &cal)
+            .build()
+            .unwrap();
         FixedRateLegBuilder::new(&schedule)
             .with_notionals(vec![100.0])
             .with_coupon_rate(coupon_rate)

@@ -6,9 +6,9 @@
 //! function of time.  Discount factors are computed by integrating the forward
 //! rate: `P(t) = exp(−∫₀ᵗ f(s) ds)`.
 
+use crate::interpolated_zero_curve::InterpolationBuilder;
 use crate::term_structure::TermStructure;
 use crate::yield_term_structure::{YieldTermStructure, YieldTermStructureData};
-use crate::interpolated_zero_curve::InterpolationBuilder;
 use ql_core::{errors::Result, Rate, Real, Time};
 use ql_math::Interpolation1D;
 use ql_time::{Calendar, Date, DayCounter, NullCalendar};

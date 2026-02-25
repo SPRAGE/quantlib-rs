@@ -177,9 +177,7 @@ impl<'a> ScheduleBuilder<'a> {
         }
 
         // Zero coupon — just start and end.
-        if self.tenor.length == 0
-            || self.rule == DateGeneration::Zero
-        {
+        if self.tenor.length == 0 || self.rule == DateGeneration::Zero {
             let dates = vec![
                 self.calendar.adjust(start, self.convention),
                 self.calendar.adjust(end, self.termination_convention),
@@ -312,8 +310,7 @@ impl<'a> ScheduleBuilder<'a> {
 
                 // Generate dates backward from the CDS month on or before end
                 loop {
-                    let d = Date::from_ymd(y, m, 20)
-                        .map_err(|e| Error::Date(e.to_string()))?;
+                    let d = Date::from_ymd(y, m, 20).map_err(|e| Error::Date(e.to_string()))?;
                     if d <= start {
                         // Include one more for CDS (the previous 20th before start)
                         raw.push(d);
@@ -445,8 +442,8 @@ mod tests {
     fn forward_schedule() {
         let cal = WeekendsOnly;
         let sched = ScheduleBuilder::new(
-            date(2020, 1, 2),  // Thursday
-            date(2023, 1, 2),  // Monday
+            date(2020, 1, 2), // Thursday
+            date(2023, 1, 2), // Monday
             Period::new(1, TimeUnit::Years),
             &cal,
         )
@@ -520,7 +517,11 @@ mod tests {
         for i in 0..sched.size() {
             let d = sched.date(i);
             if i > 0 && i < sched.size() - 1 {
-                assert_eq!(d.day_of_month(), 20, "intermediate date should be 20th: {d}");
+                assert_eq!(
+                    d.day_of_month(),
+                    20,
+                    "intermediate date should be 20th: {d}"
+                );
             }
         }
     }

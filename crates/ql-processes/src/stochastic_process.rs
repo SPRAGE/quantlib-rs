@@ -179,14 +179,22 @@ mod tests {
 
     #[test]
     fn process_1d_size() {
-        let p = ConstantProcess { x0: 100.0, mu: 0.05, sigma: 0.20 };
+        let p = ConstantProcess {
+            x0: 100.0,
+            mu: 0.05,
+            sigma: 0.20,
+        };
         assert_eq!(p.size(), 1);
         assert_eq!(p.factors(), 1);
     }
 
     #[test]
     fn process_1d_initial_values() {
-        let p = ConstantProcess { x0: 100.0, mu: 0.05, sigma: 0.20 };
+        let p = ConstantProcess {
+            x0: 100.0,
+            mu: 0.05,
+            sigma: 0.20,
+        };
         let iv = p.initial_values();
         assert_eq!(iv.size(), 1);
         assert!((iv[0] - 100.0).abs() < 1e-15);
@@ -194,7 +202,11 @@ mod tests {
 
     #[test]
     fn process_1d_euler_step() {
-        let p = ConstantProcess { x0: 100.0, mu: 0.05, sigma: 0.20 };
+        let p = ConstantProcess {
+            x0: 100.0,
+            mu: 0.05,
+            sigma: 0.20,
+        };
         let dt = 1.0;
         let dw = 0.0; // zero noise
         let x_new = p.evolve_1d(0.0, 100.0, dt, dw);
@@ -204,7 +216,11 @@ mod tests {
 
     #[test]
     fn process_1d_evolve_via_array() {
-        let p = ConstantProcess { x0: 100.0, mu: 0.05, sigma: 0.20 };
+        let p = ConstantProcess {
+            x0: 100.0,
+            mu: 0.05,
+            sigma: 0.20,
+        };
         let x = Array::from_vec(vec![100.0]);
         let dw = Array::from_vec(vec![1.0]); // 1 std dev
         let x_new = p.evolve(0.0, &x, 1.0, &dw);
@@ -214,7 +230,11 @@ mod tests {
 
     #[test]
     fn process_1d_variance() {
-        let p = ConstantProcess { x0: 100.0, mu: 0.05, sigma: 0.20 };
+        let p = ConstantProcess {
+            x0: 100.0,
+            mu: 0.05,
+            sigma: 0.20,
+        };
         let v = p.variance_1d(0.0, 100.0, 0.25);
         // σ² · Δt = 0.04 * 0.25 = 0.01
         assert!((v - 0.01).abs() < 1e-15);

@@ -15,9 +15,7 @@ impl ASX {
         let m = date.month();
         let d = date.day_of_month();
         let w = date.weekday();
-        matches!(m, 3 | 6 | 9 | 12)
-            && w == Weekday::Friday
-            && (8..=14).contains(&d)
+        matches!(m, 3 | 6 | 9 | 12) && w == Weekday::Friday && (8..=14).contains(&d)
     }
 
     /// Return the next ASX date on or after `date`.

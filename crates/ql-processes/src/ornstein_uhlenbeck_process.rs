@@ -39,7 +39,10 @@ impl OrnsteinUhlenbeckProcess {
     /// * `x0` — initial value
     /// * `level` — long-run mean level `b` (default 0 in QuantLib)
     pub fn new(speed: Real, volatility: Real, x0: Real, level: Real) -> Self {
-        assert!(speed >= 0.0, "mean-reversion speed must be non-negative, got {speed}");
+        assert!(
+            speed >= 0.0,
+            "mean-reversion speed must be non-negative, got {speed}"
+        );
         assert!(
             volatility >= 0.0,
             "volatility must be non-negative, got {volatility}"
@@ -99,8 +102,7 @@ impl StochasticProcess1D for OrnsteinUhlenbeckProcess {
             // Degenerate case: no mean reversion => pure Brownian motion
             self.volatility * dt.sqrt()
         } else {
-            self.volatility
-                * ((1.0 - (-2.0 * self.speed * dt).exp()) / (2.0 * self.speed)).sqrt()
+            self.volatility * ((1.0 - (-2.0 * self.speed * dt).exp()) / (2.0 * self.speed)).sqrt()
         }
     }
 
@@ -110,8 +112,7 @@ impl StochasticProcess1D for OrnsteinUhlenbeckProcess {
         if self.speed < 1e-15 {
             self.volatility * self.volatility * dt
         } else {
-            self.volatility * self.volatility
-                * (1.0 - (-2.0 * self.speed * dt).exp())
+            self.volatility * self.volatility * (1.0 - (-2.0 * self.speed * dt).exp())
                 / (2.0 * self.speed)
         }
     }

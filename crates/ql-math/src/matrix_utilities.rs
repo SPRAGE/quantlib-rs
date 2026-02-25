@@ -5,11 +5,11 @@
 
 use crate::array::Array;
 use crate::matrix::Matrix;
+use nalgebra::DMatrix;
 use ql_core::{
     errors::{Error, Result},
     Real,
 };
-use nalgebra::DMatrix;
 
 /// Cholesky decomposition of a symmetric positive-definite matrix.
 ///
@@ -77,10 +77,7 @@ pub fn lu_decomposition(m: &Matrix) -> (Matrix, Matrix) {
     let lu = m.inner().clone().lu();
     let l = lu.l();
     let u = lu.u();
-    (
-        Matrix::from(l),
-        Matrix::from(u),
-    )
+    (Matrix::from(l), Matrix::from(u))
 }
 
 /// Eigenvalue decomposition of a symmetric real matrix.

@@ -6,8 +6,8 @@
 //!
 //! Reference: Haug (2007); Longstaff (1990).
 
-use ql_core::Real;
 use super::bivariate_normal::bivariate_normal_cdf_dr78;
+use ql_core::Real;
 use ql_math::distributions::normal_cdf;
 use ql_processes::GeneralizedBlackScholesProcess;
 use std::sync::Arc;
@@ -85,23 +85,13 @@ impl AnalyticWriterExtensibleOptionEngine {
         if phi > 0.0 {
             // Call case
             let biv1 = bivariate_normal_cdf_dr78(z1, -z2, -ro);
-            let biv2 = bivariate_normal_cdf_dr78(
-                z1 - vol * t2.sqrt(),
-                -z2 + vol * t1.sqrt(),
-                -ro,
-            );
-            black + spot * ((b - r) * t2).exp() * biv1
-                - x2 * (-r * t2).exp() * biv2
+            let biv2 = bivariate_normal_cdf_dr78(z1 - vol * t2.sqrt(), -z2 + vol * t1.sqrt(), -ro);
+            black + spot * ((b - r) * t2).exp() * biv1 - x2 * (-r * t2).exp() * biv2
         } else {
             // Put case
             let biv1 = bivariate_normal_cdf_dr78(-z1, z2, -ro);
-            let biv2 = bivariate_normal_cdf_dr78(
-                -z1 + vol * t2.sqrt(),
-                z2 - vol * t1.sqrt(),
-                -ro,
-            );
-            black - spot * ((b - r) * t2).exp() * biv1
-                + x2 * (-r * t2).exp() * biv2
+            let biv2 = bivariate_normal_cdf_dr78(-z1 + vol * t2.sqrt(), z2 - vol * t1.sqrt(), -ro);
+            black - spot * ((b - r) * t2).exp() * biv1 + x2 * (-r * t2).exp() * biv2
         }
     }
 }

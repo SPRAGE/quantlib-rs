@@ -138,10 +138,7 @@ mod tests {
         for i in 0..=100 {
             let x = 4.0 * (i as f64) / 100.0;
             let v = s.operator(x);
-            assert!(
-                v >= prev - 1e-12,
-                "not monotone at x={x}: {v} < {prev}"
-            );
+            assert!(v >= prev - 1e-12, "not monotone at x={x}: {v} < {prev}");
             prev = v;
         }
     }
@@ -155,7 +152,10 @@ mod tests {
         for i in 0..=100 {
             let x = 3.0 * (i as f64) / 100.0;
             let v = s.operator(x);
-            assert!(v >= -1e-10 && v <= 1.0 + 1e-10, "out of range at x={x}: {v}");
+            assert!(
+                v >= -1e-10 && v <= 1.0 + 1e-10,
+                "out of range at x={x}: {v}"
+            );
         }
     }
 }

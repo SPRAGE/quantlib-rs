@@ -124,14 +124,7 @@ fn baw_put(
 
 /// Find critical call exercise price S* via Newton's method.
 /// Solves g(S) = (S - K) - C_BS(S) - (S/q₂)(1 - e^{-qT}N(d₁(S))) = 0.
-fn find_critical_call(
-    strike: Real,
-    r: Real,
-    q: Real,
-    sigma: Real,
-    t: Real,
-    q2: Real,
-) -> Real {
+fn find_critical_call(strike: Real, r: Real, q: Real, sigma: Real, t: Real, q2: Real) -> Real {
     let s_inf = strike / (1.0 - 2.0 / q2);
     let h2 = -((r - q) * t + 2.0 * sigma * t.sqrt()) * strike / (s_inf - strike);
     let mut si = s_inf + (strike - s_inf) * (-h2).exp();
@@ -170,14 +163,7 @@ fn find_critical_call(
 
 /// Find critical put exercise price S* via Newton's method.
 /// Solves g(S) = (K - S) - P_BS(S) + (S/q₁)(1 - e^{-qT}N(-d₁(S))) = 0.
-fn find_critical_put(
-    strike: Real,
-    r: Real,
-    q: Real,
-    sigma: Real,
-    t: Real,
-    q1: Real,
-) -> Real {
+fn find_critical_put(strike: Real, r: Real, q: Real, sigma: Real, t: Real, q1: Real) -> Real {
     let s_zero = strike / (1.0 - 2.0 / q1);
     let h1 = ((r - q) * t - 2.0 * sigma * t.sqrt()) * strike / (strike - s_zero);
     let mut si = s_zero + (strike - s_zero) * (-h1).exp();
@@ -292,7 +278,10 @@ mod tests {
         let price = barone_adesi_whaley(OptionType::Put, spot, strike, r, q, sigma, t);
         let intrinsic = strike - spot; // 50.0
 
-        assert!(price >= intrinsic - 0.01, "price={price}, intrinsic={intrinsic}");
+        assert!(
+            price >= intrinsic - 0.01,
+            "price={price}, intrinsic={intrinsic}"
+        );
     }
 
     #[test]

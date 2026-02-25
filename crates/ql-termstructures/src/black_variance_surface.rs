@@ -244,16 +244,16 @@ mod tests {
     fn sample_surface() -> BlackVarianceSurface {
         let ref_date = Date::from_ymd(2025, 1, 2).unwrap();
         let dates = vec![
-            Date::from_ymd(2025, 4, 2).unwrap(),  // ~0.25y
-            Date::from_ymd(2025, 7, 2).unwrap(),  // ~0.5y
-            Date::from_ymd(2026, 1, 2).unwrap(),  // ~1.0y
+            Date::from_ymd(2025, 4, 2).unwrap(), // ~0.25y
+            Date::from_ymd(2025, 7, 2).unwrap(), // ~0.5y
+            Date::from_ymd(2026, 1, 2).unwrap(), // ~1.0y
         ];
         let strikes = vec![80.0, 100.0, 120.0];
         // Simple smile: higher vol at wings
         let vols = vec![
-            vec![0.25, 0.20, 0.22],  // 3M
-            vec![0.24, 0.19, 0.21],  // 6M
-            vec![0.23, 0.18, 0.20],  // 1Y
+            vec![0.25, 0.20, 0.22], // 3M
+            vec![0.24, 0.19, 0.21], // 6M
+            vec![0.23, 0.18, 0.20], // 1Y
         ];
         BlackVarianceSurface::new(
             ref_date,

@@ -17,7 +17,11 @@ pub fn brent<F>(f: F, x_min: Real, x_max: Real, accuracy: Real) -> Result<Real>
 where
     F: Fn(Real) -> Real,
 {
-    let acc = if accuracy > 0.0 { accuracy } else { DEFAULT_ACCURACY };
+    let acc = if accuracy > 0.0 {
+        accuracy
+    } else {
+        DEFAULT_ACCURACY
+    };
     let mut a = x_min;
     let mut b = x_max;
     let mut fa = f(a);
@@ -87,10 +91,18 @@ where
         }
         a = b;
         fa = fb;
-        b += if d.abs() > tol { d } else if xm > 0.0 { tol } else { -tol };
+        b += if d.abs() > tol {
+            d
+        } else if xm > 0.0 {
+            tol
+        } else {
+            -tol
+        };
         fb = f(b);
     }
-    Err(Error::Runtime("Brent solver: maximum iterations reached".into()))
+    Err(Error::Runtime(
+        "Brent solver: maximum iterations reached".into(),
+    ))
 }
 
 // ── Bisection ────────────────────────────────────────────────────────────────
@@ -100,7 +112,11 @@ pub fn bisection<F>(f: F, x_min: Real, x_max: Real, accuracy: Real) -> Result<Re
 where
     F: Fn(Real) -> Real,
 {
-    let acc = if accuracy > 0.0 { accuracy } else { DEFAULT_ACCURACY };
+    let acc = if accuracy > 0.0 {
+        accuracy
+    } else {
+        DEFAULT_ACCURACY
+    };
     let mut a = x_min;
     let mut b = x_max;
     let fa = f(a);
@@ -144,7 +160,11 @@ pub fn newton<F>(f_df: F, x0: Real, x_min: Real, x_max: Real, accuracy: Real) ->
 where
     F: Fn(Real) -> (Real, Real),
 {
-    let acc = if accuracy > 0.0 { accuracy } else { DEFAULT_ACCURACY };
+    let acc = if accuracy > 0.0 {
+        accuracy
+    } else {
+        DEFAULT_ACCURACY
+    };
     let mut x = x0.clamp(x_min, x_max);
 
     for _ in 0..MAX_ITERATIONS {
@@ -182,7 +202,11 @@ pub fn secant<F>(f: F, x_min: Real, x_max: Real, accuracy: Real) -> Result<Real>
 where
     F: Fn(Real) -> Real,
 {
-    let acc = if accuracy > 0.0 { accuracy } else { DEFAULT_ACCURACY };
+    let acc = if accuracy > 0.0 {
+        accuracy
+    } else {
+        DEFAULT_ACCURACY
+    };
     let mut x0 = x_min;
     let mut x1 = x_max;
     let mut f0 = f(x0);
@@ -230,7 +254,11 @@ pub fn ridder<F>(f: F, x_min: Real, x_max: Real, accuracy: Real) -> Result<Real>
 where
     F: Fn(Real) -> Real,
 {
-    let acc = if accuracy > 0.0 { accuracy } else { DEFAULT_ACCURACY };
+    let acc = if accuracy > 0.0 {
+        accuracy
+    } else {
+        DEFAULT_ACCURACY
+    };
     let mut a = x_min;
     let mut b = x_max;
     let mut fa = f(a);
@@ -299,7 +327,11 @@ pub fn false_position<F>(f: F, x_min: Real, x_max: Real, accuracy: Real) -> Resu
 where
     F: Fn(Real) -> Real,
 {
-    let acc = if accuracy > 0.0 { accuracy } else { DEFAULT_ACCURACY };
+    let acc = if accuracy > 0.0 {
+        accuracy
+    } else {
+        DEFAULT_ACCURACY
+    };
     let mut a = x_min;
     let mut b = x_max;
     let fa = f(a);
@@ -351,16 +383,15 @@ where
 /// where `f(x_min)` and `f(x_max)` have opposite signs.
 ///
 /// Corresponds to `QuantLib::NewtonSafe`.
-pub fn newton_safe<F>(
-    f_df: F,
-    x_min: Real,
-    x_max: Real,
-    accuracy: Real,
-) -> Result<Real>
+pub fn newton_safe<F>(f_df: F, x_min: Real, x_max: Real, accuracy: Real) -> Result<Real>
 where
     F: Fn(Real) -> (Real, Real),
 {
-    let acc = if accuracy > 0.0 { accuracy } else { DEFAULT_ACCURACY };
+    let acc = if accuracy > 0.0 {
+        accuracy
+    } else {
+        DEFAULT_ACCURACY
+    };
     let (flo, _) = f_df(x_min);
     let (fhi, _) = f_df(x_max);
 
@@ -385,8 +416,7 @@ where
 
     for _ in 0..MAX_ITERATIONS {
         // Use Newton step if it stays in bracket and is converging
-        let newton_out_of_range =
-            ((x - xh) * dfx - fx) * ((x - xl) * dfx - fx) > 0.0;
+        let newton_out_of_range = ((x - xh) * dfx - fx) * ((x - xl) * dfx - fx) > 0.0;
         let bisection_faster = (2.0 * fx).abs() > (dx_old * dfx).abs();
 
         if newton_out_of_range || bisection_faster {
@@ -432,17 +462,15 @@ where
 /// Convergence is cubic: each step roughly triples correct digits.
 ///
 /// Corresponds to `QuantLib::Halley`.
-pub fn halley<F>(
-    f_df_d2f: F,
-    x0: Real,
-    x_min: Real,
-    x_max: Real,
-    accuracy: Real,
-) -> Result<Real>
+pub fn halley<F>(f_df_d2f: F, x0: Real, x_min: Real, x_max: Real, accuracy: Real) -> Result<Real>
 where
     F: Fn(Real) -> (Real, Real, Real),
 {
-    let acc = if accuracy > 0.0 { accuracy } else { DEFAULT_ACCURACY };
+    let acc = if accuracy > 0.0 {
+        accuracy
+    } else {
+        DEFAULT_ACCURACY
+    };
     let mut x = x0.clamp(x_min, x_max);
 
     for _ in 0..MAX_ITERATIONS {
@@ -451,9 +479,7 @@ where
             return Ok(x);
         }
         if dfx.abs() < f64::EPSILON {
-            return Err(Error::Runtime(
-                "Halley: derivative is zero".into(),
-            ));
+            return Err(Error::Runtime("Halley: derivative is zero".into()));
         }
 
         let denom = 2.0 * dfx * dfx - fx * d2fx;
@@ -503,37 +529,25 @@ mod tests {
     #[test]
     fn secant_sqrt2() {
         let root = secant(|x| x * x - 2.0, 1.0, 2.0, 1e-12).unwrap();
-        assert!(
-            (root - 2.0_f64.sqrt()).abs() < 1e-10,
-            "got {root}"
-        );
+        assert!((root - 2.0_f64.sqrt()).abs() < 1e-10, "got {root}");
     }
 
     #[test]
     fn ridder_sqrt2() {
         let root = ridder(|x| x * x - 2.0, 0.0, 2.0, 1e-12).unwrap();
-        assert!(
-            (root - 2.0_f64.sqrt()).abs() < 1e-10,
-            "got {root}"
-        );
+        assert!((root - 2.0_f64.sqrt()).abs() < 1e-10, "got {root}");
     }
 
     #[test]
     fn false_position_sqrt2() {
         let root = false_position(|x| x * x - 2.0, 0.0, 2.0, 1e-12).unwrap();
-        assert!(
-            (root - 2.0_f64.sqrt()).abs() < 1e-8,
-            "got {root}"
-        );
+        assert!((root - 2.0_f64.sqrt()).abs() < 1e-8, "got {root}");
     }
 
     #[test]
     fn newton_safe_sqrt2() {
         let root = newton_safe(|x| (x * x - 2.0, 2.0 * x), 0.0, 2.0, 1e-12).unwrap();
-        assert!(
-            (root - 2.0_f64.sqrt()).abs() < 1e-10,
-            "got {root}"
-        );
+        assert!((root - 2.0_f64.sqrt()).abs() < 1e-10, "got {root}");
     }
 
     #[test]
@@ -547,10 +561,7 @@ mod tests {
             1e-12,
         )
         .unwrap();
-        assert!(
-            (root - 3.0).abs() < 1e-10,
-            "got {root}"
-        );
+        assert!((root - 3.0).abs() < 1e-10, "got {root}");
     }
 
     #[test]

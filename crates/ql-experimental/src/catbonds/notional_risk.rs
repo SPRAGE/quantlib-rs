@@ -194,10 +194,7 @@ mod tests {
         risk.update_path(&events, &mut path);
 
         assert_eq!(path.loss(), 1.0);
-        assert_eq!(
-            path.notional_rate(Date::from_ymd(2020, 6, 1).unwrap()),
-            0.0
-        );
+        assert_eq!(path.notional_rate(Date::from_ymd(2020, 6, 1).unwrap()), 0.0);
 
         // Events below threshold
         let events_small: Vec<CatEvent> = vec![

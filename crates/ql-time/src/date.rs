@@ -43,9 +43,7 @@ impl Date {
         }
         let d = Date(serial);
         if d > Self::MAX {
-            return Err(Error::Date(format!(
-                "serial {serial} exceeds maximum date"
-            )));
+            return Err(Error::Date(format!("serial {serial} exceeds maximum date")));
         }
         Ok(d)
     }
@@ -53,7 +51,9 @@ impl Date {
     /// Create a date from year, month (1–12), and day-of-month (1–31).
     pub fn from_ymd(year: u16, month: u8, day: u8) -> Result<Self> {
         if !(1900..=2199).contains(&year) {
-            return Err(Error::Date(format!("year {year} out of range [1900, 2199]")));
+            return Err(Error::Date(format!(
+                "year {year} out of range [1900, 2199]"
+            )));
         }
         if !(1..=12).contains(&month) {
             return Err(Error::Date(format!("month {month} out of range [1, 12]")));
@@ -161,9 +161,7 @@ impl Date {
                 Ok(Date(serial_from_ymd(y, m, new_d)))
             }
             TimeUnit::Years => self.advance(n * 12, TimeUnit::Months),
-            _ => Err(Error::Date(format!(
-                "advance() does not support {unit}"
-            ))),
+            _ => Err(Error::Date(format!("advance() does not support {unit}"))),
         }
     }
 
@@ -257,8 +255,18 @@ impl std::fmt::Display for Date {
         }
         let (y, m, d) = ymd_from_serial(self.0);
         let mon = [
-            "January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December",
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December",
         ][m as usize - 1];
         write!(f, "{d} {mon} {y}")
     }
@@ -340,7 +348,7 @@ fn ymd_from_serial(serial: i32) -> (u16, u8, u8) {
     }
     let start_of_year = serial_from_ymd(y, 1, 1);
     let doy = serial - start_of_year + 1; // 1-based
-    // Find month
+                                          // Find month
     let mut m = 1u8;
     let mut remaining = doy;
     loop {
@@ -382,21 +390,9 @@ mod tests {
         ];
         for (y, m, d) in dates {
             let date = Date::from_ymd(y, m, d).unwrap();
-            assert_eq!(
-                date.year(),
-                y,
-                "year mismatch for {y}-{m:02}-{d:02}"
-            );
-            assert_eq!(
-                date.month(),
-                m,
-                "month mismatch for {y}-{m:02}-{d:02}"
-            );
-            assert_eq!(
-                date.day_of_month(),
-                d,
-                "day mismatch for {y}-{m:02}-{d:02}"
-            );
+            assert_eq!(date.year(), y, "year mismatch for {y}-{m:02}-{d:02}");
+            assert_eq!(date.month(), m, "month mismatch for {y}-{m:02}-{d:02}");
+            assert_eq!(date.day_of_month(), d, "day mismatch for {y}-{m:02}-{d:02}");
         }
     }
 

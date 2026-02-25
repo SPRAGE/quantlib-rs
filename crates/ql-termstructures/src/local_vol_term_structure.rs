@@ -116,16 +116,8 @@ mod tests {
         let ref_date = Date::from_ymd(2025, 1, 2).unwrap();
         let surface = LocalConstantVol::new(ref_date, 0.30, Actual365Fixed);
 
-        assert_abs_diff_eq!(
-            surface.local_vol_impl(1.0, 100.0),
-            0.30,
-            epsilon = 1e-15
-        );
-        assert_abs_diff_eq!(
-            surface.local_vol_impl(5.0, 50.0),
-            0.30,
-            epsilon = 1e-15
-        );
+        assert_abs_diff_eq!(surface.local_vol_impl(1.0, 100.0), 0.30, epsilon = 1e-15);
+        assert_abs_diff_eq!(surface.local_vol_impl(5.0, 50.0), 0.30, epsilon = 1e-15);
     }
 
     #[test]

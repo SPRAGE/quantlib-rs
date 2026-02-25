@@ -36,8 +36,9 @@ impl Calendar for Turkey {
         let m = date.month();
         let d = date.day_of_month();
 
-        if // New Year's Day
-           (d == 1 && m == 1)
+        if
+        // New Year's Day
+        (d == 1 && m == 1)
             // National Sovereignty and Children's Day
             || (d == 23 && m == 4)
             // Labour Day

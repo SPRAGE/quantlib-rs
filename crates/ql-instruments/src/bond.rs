@@ -4,15 +4,10 @@
 //! `ql/instruments/bonds/fixedratebond.hpp`, `ql/instruments/bonds/floatingratebond.hpp`.
 
 use crate::instrument::{Instrument, PricingEngine, PricingResults};
-use ql_cashflows::{
-    CashFlow, Coupon, FixedRateLegBuilder, IborLegBuilder, Leg, Redemption,
-};
+use ql_cashflows::{CashFlow, Coupon, FixedRateLegBuilder, IborLegBuilder, Leg, Redemption};
 use ql_core::{errors::Result, Compounding, Real};
 use ql_indexes::IborIndex;
-use ql_time::{
-    Actual365Fixed, Calendar, Date, DayCounter, Frequency, InterestRate,
-    Schedule,
-};
+use ql_time::{Actual365Fixed, Calendar, Date, DayCounter, Frequency, InterestRate, Schedule};
 use std::sync::Arc;
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -58,7 +53,9 @@ impl Bond {
         for cf in self.cashflows.iter().rev() {
             // Try to downcast to a coupon
             if let Some(coupon) = cf_as_coupon(&**cf) {
-                if coupon.accrual_start_date() < settlement && settlement <= coupon.accrual_end_date() {
+                if coupon.accrual_start_date() < settlement
+                    && settlement <= coupon.accrual_end_date()
+                {
                     return coupon.accrued_amount(settlement);
                 }
             }
@@ -120,11 +117,22 @@ impl Bond {
     ) -> Result<Real> {
         let dirty_price = self.dirty_price_from_clean(clean_price, settlement);
         let target_npv = dirty_price / 100.0 * self.face_amount;
-        ql_cashflows::yield_rate(&self.cashflows, target_npv, comp, freq, settlement, accuracy)
+        ql_cashflows::yield_rate(
+            &self.cashflows,
+            target_npv,
+            comp,
+            freq,
+            settlement,
+            accuracy,
+        )
     }
 
     /// Price the bond with an external engine.
-    pub fn price(&self, engine: &dyn PricingEngine<BondArguments>, settlement: Date) -> Result<PricingResults> {
+    pub fn price(
+        &self,
+        engine: &dyn PricingEngine<BondArguments>,
+        settlement: Date,
+    ) -> Result<PricingResults> {
         let args = BondArguments {
             settlement_date: settlement,
         };
@@ -322,7 +330,13 @@ mod tests {
         );
         // At 5% yield, the dirty price should be near 100
         let settlement = start;
-        let dirty = bond.dirty_price_yield(0.05, &Actual365Fixed, Compounding::Simple, Frequency::Annual, settlement);
+        let dirty = bond.dirty_price_yield(
+            0.05,
+            &Actual365Fixed,
+            Compounding::Simple,
+            Frequency::Annual,
+            settlement,
+        );
         assert!((dirty - 100.0).abs() < 3.0, "dirty = {dirty}");
     }
 
@@ -345,9 +359,24 @@ mod tests {
         );
         let settlement = start;
         // Get the dirty price at y=5%, then solve for yield
-        let dirty = bond.dirty_price_yield(0.05, &Actual365Fixed, Compounding::Simple, Frequency::Annual, settlement);
+        let dirty = bond.dirty_price_yield(
+            0.05,
+            &Actual365Fixed,
+            Compounding::Simple,
+            Frequency::Annual,
+            settlement,
+        );
         let clean = bond.clean_price_from_dirty(dirty, settlement);
-        let y = bond.yield_to_maturity(clean, &Actual365Fixed, Compounding::Simple, Frequency::Annual, settlement, 1e-10).unwrap();
+        let y = bond
+            .yield_to_maturity(
+                clean,
+                &Actual365Fixed,
+                Compounding::Simple,
+                Frequency::Annual,
+                settlement,
+                1e-10,
+            )
+            .unwrap();
         assert!((y - 0.05).abs() < 1e-4, "yield = {y}");
     }
 

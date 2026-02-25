@@ -124,27 +124,13 @@ mod tests {
 
     #[test]
     fn vg_x0_is_log_spot() {
-        let vg = VarianceGammaProcess::new(
-            100.0,
-            flat_ts(0.05),
-            flat_ts(0.02),
-            0.2,
-            0.25,
-            -0.14,
-        );
+        let vg = VarianceGammaProcess::new(100.0, flat_ts(0.05), flat_ts(0.02), 0.2, 0.25, -0.14);
         assert!((vg.x0() - 100.0_f64.ln()).abs() < 1e-12);
     }
 
     #[test]
     fn vg_drift_includes_omega() {
-        let vg = VarianceGammaProcess::new(
-            100.0,
-            flat_ts(0.05),
-            flat_ts(0.0),
-            0.2,
-            0.25,
-            -0.14,
-        );
+        let vg = VarianceGammaProcess::new(100.0, flat_ts(0.05), flat_ts(0.0), 0.2, 0.25, -0.14);
         let d = vg.drift_1d(0.0, 0.0);
         // r - q + omega = 0.05 - 0.0 + omega
         let expected = 0.05 + vg.omega();
