@@ -147,9 +147,6 @@ mod tests {
         let interp = BicubicSpline::new(&xs, &ys, &z).unwrap();
         let v = interp.operator(1.5, 2.5);
         let expected = 2.0 * 1.5 + 3.0 * 2.5 + 1.0;
-        assert!(
-            (v - expected).abs() < 1e-10,
-            "expected {expected}, got {v}"
-        );
+        assert!((v - expected).abs() < 1e-10, "expected {expected}, got {v}");
     }
 }

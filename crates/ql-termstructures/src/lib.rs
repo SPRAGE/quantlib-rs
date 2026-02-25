@@ -20,6 +20,12 @@ pub mod flat_forward;
 /// `InterpolatedZeroCurve` — zero-rate interpolated yield curve.
 pub mod interpolated_zero_curve;
 
+/// Rate helpers for yield-curve bootstrapping (deposit, FRA, swap, futures).
+pub mod rate_helpers;
+
+/// `PiecewiseYieldCurve` — iterative bootstrap construction of a yield curve.
+pub mod piecewise_yield_curve;
+
 /// `InterpolatedDiscountCurve` — discount-factor interpolated yield curve.
 pub mod interpolated_discount_curve;
 
@@ -74,6 +80,10 @@ pub use interpolated_zero_curve::{
 };
 pub use local_vol_surface::LocalVolSurface;
 pub use local_vol_term_structure::{LocalConstantVol, LocalVolTermStructure};
+pub use piecewise_yield_curve::PiecewiseYieldCurve;
+pub use rate_helpers::{
+    BootstrapCurve, DepositRateHelper, FraRateHelper, FuturesRateHelper, RateHelper, SwapRateHelper,
+};
 pub use smile_calibration::{
     calibrate_sabr_surface, calibrate_svi_surface, ExpirySmileData, SmileCalibrationResult,
     SmileSurface,

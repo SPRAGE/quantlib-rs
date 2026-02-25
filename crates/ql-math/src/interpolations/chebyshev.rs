@@ -102,19 +102,11 @@ fn barycentric_weights(xs: &[Real]) -> Vec<Real> {
 impl Interpolation1D for ChebyshevInterpolation {
     fn x_min(&self) -> Real {
         // Chebyshev nodes are on [-1, 1]; first node is the smallest
-        self.xs
-            .iter()
-            .copied()
-            .reduce(f64::min)
-            .unwrap_or(-1.0)
+        self.xs.iter().copied().reduce(f64::min).unwrap_or(-1.0)
     }
 
     fn x_max(&self) -> Real {
-        self.xs
-            .iter()
-            .copied()
-            .reduce(f64::max)
-            .unwrap_or(1.0)
+        self.xs.iter().copied().reduce(f64::max).unwrap_or(1.0)
     }
 
     fn operator(&self, x: Real) -> Real {
@@ -167,8 +159,7 @@ mod tests {
         // cos(x) on [-1, 1] should be well-approximated by Chebyshev
         let f = |x: Real| x.cos();
         let interp =
-            ChebyshevInterpolation::from_function(10, &f, ChebyshevPointsType::SecondKind)
-                .unwrap();
+            ChebyshevInterpolation::from_function(10, &f, ChebyshevPointsType::SecondKind).unwrap();
         for i in 0..=20 {
             let x = -1.0 + 2.0 * (i as f64) / 20.0;
             let expected = x.cos();

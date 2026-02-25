@@ -95,6 +95,31 @@ fn hyman_boundary_correction(ts: &mut [Real], s: &[Real]) {
     }
 }
 
+/// Full Hyman monotonicity filter applied to all slopes.
+///
+/// For each interior slope, if the adjacent secants have different signs,
+/// the slope is set to zero.  Otherwise, the slope magnitude is clipped
+/// to `3 · min(|S_{i−1}|, |S_i|)`.  This matches the monotonicity
+/// constraint applied by C++ `CubicInterpolation` when `monotonic = true`.
+fn hyman_full_filter(ts: &mut [Real], s: &[Real]) {
+    let n = ts.len();
+    // Boundary corrections
+    hyman_boundary_correction(ts, s);
+
+    // Interior corrections
+    for i in 1..n - 1 {
+        if s[i - 1] * s[i] <= 0.0 {
+            // Adjacent secants have different signs → zero slope
+            ts[i] = 0.0;
+        } else {
+            let bound = 3.0 * s[i - 1].abs().min(s[i].abs());
+            if ts[i].abs() > bound {
+                ts[i] = ts[i].signum() * bound;
+            }
+        }
+    }
+}
+
 // ── FritschButland ────────────────────────────────────────────────────────────
 
 /// Fritsch-Butland cubic interpolation (local, monotone-preserving).
@@ -150,9 +175,8 @@ impl FritschButlandCubic {
         ts[n - 1] = ((2.0 * dx[n - 2] + dx[n - 3]) * s[n - 2] - dx[n - 2] * s[n - 3])
             / (dx[n - 2] + dx[n - 3]);
 
-        // Hyman monotonicity correction on boundary slopes:
-        // clip sign and magnitude to be consistent with the adjacent secant.
-        hyman_boundary_correction(&mut ts, &s);
+        // Hyman monotonicity filter on all slopes (matches C++ monotonic=true):
+        hyman_full_filter(&mut ts, &s);
 
         let (a, b, c) = compute_coefficients(&xs, &ys, &ts);
         Ok(Self { xs, ys, a, b, c })
@@ -326,19 +350,55 @@ mod tests {
         }
     }
 
+    /// Ported from C++ test-suite/interpolations.cpp `testFritschButland`.
+    ///
+    /// Checks that the interpolant preserves the monotonicity direction of
+    /// each sub-interval for three different data sets.
     #[test]
-    fn fritsch_butland_monotone_data() {
-        // From C++ test-suite/interpolations.cpp testFritschButland
+    fn fritsch_butland_interval_monotonicity() {
         let xs = [0.0, 1.0, 2.0, 3.0, 4.0];
-        let ys = [1.0, 2.0, 1.0, 1.0, 2.0];
-        let f = FritschButlandCubic::new(&xs, &ys).unwrap();
+        let ys_sets: [[f64; 5]; 3] = [
+            [1.0, 2.0, 1.0, 1.0, 2.0],
+            [1.0, 2.0, 1.0, 1.0, 1.0],
+            [2.0, 1.0, 0.0, 2.0, 3.0],
+        ];
 
-        // On [2,3] where y=1→1 (flat), interpolant should stay near 1
-        for j in 0..=10 {
-            let x = 2.0 + (j as f64) / 10.0;
-            let v = f.operator(x);
-            // Should be close to 1 on flat segment, allow small overshoot
-            assert!((v - 1.0).abs() < 0.25, "at x={x}: expected ~1.0, got {v}");
+        for ys in &ys_sets {
+            let f = FritschButlandCubic::new(&xs, ys).unwrap();
+
+            for j in 0..4 {
+                let left_knot = xs[j];
+                // Direction: +1 increasing, -1 decreasing, 0 flat
+                let expected_sign = if ys[j + 1] > ys[j] {
+                    1
+                } else if ys[j + 1] < ys[j] {
+                    -1
+                } else {
+                    0
+                };
+
+                for k in 0..10 {
+                    let x1 = left_knot + (k as f64) * 0.1;
+                    let x2 = left_knot + ((k + 1) as f64) * 0.1;
+                    let y1 = f.operator(x1);
+                    let y2 = f.operator(x2);
+                    assert!(!y1.is_nan(), "NaN at x={x1}");
+
+                    if expected_sign > 0 {
+                        assert!(
+                            y2 >= y1 - 1e-10,
+                            "interval [{left_knot}, {}]: decreasing at x={x1}: {y1} -> {y2}",
+                            xs[j + 1]
+                        );
+                    } else if expected_sign < 0 {
+                        assert!(
+                            y2 <= y1 + 1e-10,
+                            "interval [{left_knot}, {}]: increasing at x={x1}: {y1} -> {y2}",
+                            xs[j + 1]
+                        );
+                    }
+                }
+            }
         }
     }
 

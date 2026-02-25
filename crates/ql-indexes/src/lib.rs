@@ -36,10 +36,13 @@ pub mod swap_index;
 
 // ── Convenience re-exports ────────────────────────────────────────────────────
 
-pub use ibor::{euribor, gbp_libor, jpy_libor, usd_libor};
+pub use ibor::{
+    bbsw, bubor, cdor, cibor, euribor, gbp_libor, jibar, jpy_libor, nibor, pribor, stibor, tibor,
+    usd_libor, wibor,
+};
 pub use ibor_index::IborIndex;
 pub use index::Index;
 pub use interest_rate_index::InterestRateIndex;
-pub use overnight::{estr, sofr, sonia};
+pub use overnight::{aonia, corra, estr, saron, sofr, sonia, tona};
 pub use overnight_index::OvernightIndex;
 pub use swap_index::SwapIndex;

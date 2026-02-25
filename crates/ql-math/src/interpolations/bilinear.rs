@@ -177,10 +177,7 @@ mod tests {
         // Bilinear should reproduce any bilinear function exactly
         let v = interp.operator(0.5, 1.5);
         let expected = 0.5 + 2.0 * 1.5;
-        assert!(
-            (v - expected).abs() < 1e-12,
-            "expected {expected}, got {v}"
-        );
+        assert!((v - expected).abs() < 1e-12, "expected {expected}, got {v}");
     }
 
     #[test]

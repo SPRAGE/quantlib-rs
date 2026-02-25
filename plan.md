@@ -578,7 +578,7 @@ us when the translation is correct. No phase is complete until its tests pass.
 | **0** | Scaffolding | workspace, CI | — | — | — | 🟡 ~70% |
 | **1** | Foundation | `ql-core` | ~80 | `errors.cpp`, `observable.cpp` | — | 🟡 ~35% |
 | **2** | Time & Calendar | `ql-time` | ~136 | `dates.cpp`, `calendars.cpp`, `daycounters.cpp`, `schedule.cpp` | Phase 1 | 🟡 ~90% |
-| **3** | Math Library | `ql-math` | ~272 | `matrices.cpp`, `array.cpp`, `interpolations.cpp`, `distributions.cpp`, `solvers1d.cpp`, `optimizers.cpp`, `rngtraits.cpp`, `statistics.cpp`, `lowdiscrepancysequences.cpp` | Phase 1 | 🟡 ~17% |
+| **3** | Math Library | `ql-math` | ~272 | `matrices.cpp`, `array.cpp`, `interpolations.cpp`, `distributions.cpp`, `solvers1d.cpp`, `optimizers.cpp`, `rngtraits.cpp`, `statistics.cpp`, `lowdiscrepancysequences.cpp` | Phase 1 | 🟡 ~35% |
 | **4** | Core Financial Primitives | `ql-currencies`, `ql-quotes`, `ql-indexes` | ~129 | `currencies.cpp`, `quotes.cpp` | Phases 1–3 | 🟡 ~34% |
 | **5** | Term Structures | `ql-termstructures` | ~201 | `termstructures.cpp`, `interestrateindex.cpp`, `piecewiseyieldcurve.cpp`, `fittedbonddiscountcurve.cpp`, `swaptionvolatilitymatrix.cpp` | Phases 1–4 | 🟡 ~15% |
 | **6** | Processes & Models | `ql-processes`, `ql-models` | ~323 | `hestonmodel.cpp`, `shortratemodels.cpp`, `marketmodel.cpp`, `marketmodel_smm.cpp`, `marketmodel_cms.cpp` | Phases 1–5 | 🟡 ~15% |
@@ -588,16 +588,16 @@ us when the translation is correct. No phase is complete until its tests pass.
 | **10** | Indexes, Currencies & Quotes (advanced) | enrich earlier crates | ~50 | `inflation.cpp`, `inflationcpibond.cpp`, `inflationcpiswap.cpp` | Phases 1–9 | 🟡 ~20% |
 | **11** | Experimental | `ql-experimental` | ~421 | `variancegamma.cpp`, `varianceoption.cpp`, `catbonds.cpp`, remaining experimental tests | Phases 1–9 | 🔴 ~7% |
 
-### 6.1 Current Progress Snapshot (as of 2025-07-12)
+### 6.1 Current Progress Snapshot (as of 2025-07-15)
 
-**Overall: ~14–17% complete by module coverage, ~44,300 of ~200,000+ estimated Rust LOC.**
+**Overall: ~18–21% complete by module coverage, ~48,900 of ~200,000+ estimated Rust LOC.**
 
 | Metric | Value |
 |---|---|
 | Crates scaffolded | 16/16 (100%) |
-| Total Rust source files | 222 |
-| Total lines of code | ~44,297 |
-| Total tests | 821 (all passing) |
+| Total Rust source files | 233 |
+| Total lines of code | ~48,900 |
+| Total tests | 904 (all passing) |
 | Doc-tests | 1 (passing) |
 | Integration test files (ported from C++ test-suite) | 4 (test_dates, test_calendars, test_day_counters, test_schedule) |
 | Build status | ✅ Clean (0 errors, 0 warnings) |
@@ -608,17 +608,17 @@ us when the translation is correct. No phase is complete until its tests pass.
 |---|---|---|---|---|
 | `ql-core` | 14 | 1,144 | 31 | ~35% — core types, errors, patterns, handle, settings done; missing some utilities |
 | `ql-time` | 63 | 12,926 | 342 | ~97% — 45/45 calendars, 15+ day counters, Date/Period/Schedule/IMM/ASX/ECB; 4 integration test files; GovernmentBond done; CDS schedule tests done |
-| `ql-math` | 22 | 6,454 | 134 | ~17% — 9/24 interps, 7 dists, basic solvers/optimizers/RNG |
+| `ql-math` | 32 | 8,800 | 188 | ~35% — 15 1D + 2 2D interps, 7 dists, 9 solvers, Levenberg-Marquardt/Simplex optimizers, integrals (Simpson/Trapezoid/GaussKronrod/GaussLobatto/TanhSinh/discrete), linear least squares, Brownian bridge, MT19937/Sobol/Halton RNG, Cholesky/SVD/QR/LU/pseudo_sqrt, covariance utilities |
 | `ql-currencies` | 11 | 1,054 | 12 | ~70% — Currency, Money, ExchangeRate, 6 regional modules |
 | `ql-quotes` | 2 | 330 | 9 | ~50% — Quote trait + 8 implementations; missing ~10 quote types |
-| `ql-indexes` | 9 | 1,245 | 26 | ~15% — Core traits + generic IBOR/overnight/inflation/swap; missing 50+ specific index defs |
+| `ql-indexes` | 9 | 1,715 | 41 | ~30% — 14 IBOR indexes (Euribor, USD/GBP/JPY LIBOR, TIBOR, CDOR, BBSW, STIBOR, NIBOR, CIBOR, WIBOR, PRIBOR, BUBOR, JIBAR), 7 overnight (SOFR, ESTR, SONIA, TONA, AONIA, CORRA, SARON), 6 swap indexes, 3 inflation indexes |
 | `ql-cashflows` | 7 | 1,601 | 24 | ~30% — Fixed/Floating/Inflation coupons, CashFlows analytics; missing CMS, range accrual |
 | `ql-processes` | 14 | 2,154 | 58 | ~50% — 12 processes (BSM, Heston, HW, G2, Bates, OU, etc.) |
 | `ql-models` | 10 | 1,674 | 30 | ~10% — 7 short-rate/equity models; missing entire Market Model framework (~160 files) |
 | `ql-instruments` | 8 | 1,704 | 27 | ~13% — Bonds, swaps, vanilla options; missing Cap/Floor, Swaption, CDS, exotics |
 | `ql-methods` | 6 | 1,812 | 21 | ~5% — Basic lattice/MC/1D-FDM; missing multi-dim FDM, advanced MC, advanced lattice |
 | `ql-pricingengines` | 7 | 1,632 | 28 | ~5% — 6/170 engines (BS, Heston, BAW, Barrier, Bond, Swap discounting) |
-| `ql-termstructures` | 15 | 4,288 | 54 | ~15% — Flat/interpolated yield, vol surfaces, smile, credit, inflation; missing bootstrapper |
+| `ql-termstructures` | 17 | 5,314 | 66 | ~20% — PiecewiseYieldCurve bootstrapper + 4 rate helpers, Flat/interpolated yield, vol surfaces, smile, credit, inflation; missing OIS helpers, vol bootstrap |
 | `ql-experimental` | 14 | 4,203 | 33 | ~7% — Catbonds, 6 exotics, variance gamma, ZABR; missing credit, commodities, ext. FDM |
 | `ql-legacy` | 1 | 6 | 0 | 0% — Empty stub |
 | `quantlib` (facade) | 1 | 70 | 1 | ✅ Complete — re-exports all crates |
@@ -1588,16 +1588,20 @@ first** (finish what's started), then fill critical infrastructure gaps.
 - [ ] Port `test-suite/matrices.cpp`, `test-suite/interpolations.cpp`, `test-suite/distributions.cpp`, etc.
 
 #### E. Build PiecewiseYieldCurve Bootstrapper (Phase 5 critical gap)
-- [ ] Implement `BootstrapTraits` trait (ZeroYield, Discount, ForwardRate)
-- [ ] Implement `PiecewiseYieldCurve<Traits, Interpolator>` with iterative bootstrap
-- [ ] Implement rate helpers: `DepositRateHelper`, `FraRateHelper`, `SwapRateHelper`, `FuturesRateHelper`
+- [x] Implement `BootstrapCurve` temporary curve view for bootstrap iterations _(added 2025-07-15)_
+- [x] Implement `PiecewiseYieldCurve` with iterative Brent-based bootstrap _(added 2025-07-15, 8 tests)_
+- [x] Implement rate helpers: `DepositRateHelper`, `FraRateHelper`, `SwapRateHelper`, `FuturesRateHelper` _(added 2025-07-15, 4 tests)_
 - [ ] Port `test-suite/piecewiseyieldcurve.cpp`
+- [ ] Add OIS rate helper for overnight-indexed swap bootstrap
+- [ ] Add bootstrap trait variants (Discount, ForwardRate) — currently ZeroYield only
 
-#### F. Expand Indexes (`ql-indexes`, ~15% → 50%)
-- [ ] Add specific IBOR index definitions: all Euribor tenors, USD/GBP/JPY LIBOR variants
-- [ ] Add specific overnight index definitions: SOFR, ESTR, SONIA, TONAR, etc.
-- [ ] Add specific inflation index definitions: USCPI, UKRPI, EUHICP, etc.
-- [ ] Add swap index definitions: EuriborSwapIsdaFixA, UsdLiborSwapIsdaFixAm, etc.
+#### F. Expand Indexes (`ql-indexes`, ~15% → 30%)
+- [x] Add 10 new IBOR indexes: TIBOR, CDOR, BBSW, STIBOR, NIBOR, CIBOR, WIBOR, PRIBOR, BUBOR, JIBAR _(added 2025-07-15, 10 tests)_
+- [x] Add 4 new overnight indexes: TONA, AONIA, CORRA, SARON _(added 2025-07-15, 4 tests)_
+- [x] Add 3 new swap indexes: GBP LIBOR Swap, JPY LIBOR Swap, CHF LIBOR Swap _(added 2025-07-15, 3 tests)_
+- [x] Inflation indexes already present: USCPI, UKRPI, EUHICP _(confirmed 2025-07-15)_
+- [ ] Add remaining specific Euribor convenience constructors (1W, 1M, 3M, 6M, 12M with standard names)
+- [ ] Add term structure forwarding to IborIndex.fixing() (requires optional Arc<dyn YieldTermStructure>)
 
 ### 23.3 Medium-Term Targets (build out instruments & engines)
 

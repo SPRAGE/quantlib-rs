@@ -145,6 +145,73 @@ pub fn pseudo_inverse(m: &Matrix, tolerance: Real) -> Matrix {
     Matrix::from(v_t.transpose() * s_inv * u.transpose())
 }
 
+/// Build a covariance matrix from volatilities and a correlation matrix.
+///
+/// Given a vector of volatilities σ and a correlation matrix ρ, returns
+/// the covariance matrix C where $C_{ij} = \sigma_i \, \rho_{ij} \, \sigma_j$.
+///
+/// Corresponds to `QuantLib::getCovariance` from
+/// `ql/math/matrixutilities/getcovariance.hpp`.
+pub fn get_covariance(volatilities: &Array, correlation: &Matrix) -> Result<Matrix> {
+    let n = volatilities.size();
+    if correlation.rows() != n || correlation.cols() != n {
+        return Err(Error::InvalidArgument(format!(
+            "correlation matrix must be {n}×{n}, got {}×{}",
+            correlation.rows(),
+            correlation.cols()
+        )));
+    }
+    let mut cov = Matrix::zeros(n, n);
+    for i in 0..n {
+        for j in 0..n {
+            cov[(i, j)] = volatilities[i] * correlation[(i, j)] * volatilities[j];
+        }
+    }
+    Ok(cov)
+}
+
+/// Extract volatilities and a correlation matrix from a covariance matrix.
+///
+/// Inverse of [`get_covariance`]: given a covariance matrix C, returns
+/// (volatilities, correlation) where $\sigma_i = \sqrt{C_{ii}}$ and
+/// $\rho_{ij} = C_{ij} / (\sigma_i \sigma_j)$.
+pub fn covariance_decompose(covariance: &Matrix) -> Result<(Array, Matrix)> {
+    let n = covariance.rows();
+    if covariance.cols() != n {
+        return Err(Error::InvalidArgument(
+            "covariance matrix must be square".into(),
+        ));
+    }
+
+    let mut vols = vec![0.0; n];
+    for i in 0..n {
+        let var = covariance[(i, i)];
+        if var < 0.0 {
+            return Err(Error::InvalidArgument(format!(
+                "negative variance at index {i}: {var}"
+            )));
+        }
+        vols[i] = var.sqrt();
+    }
+
+    let mut corr = Matrix::zeros(n, n);
+    for i in 0..n {
+        corr[(i, i)] = 1.0;
+        for j in (i + 1)..n {
+            let denom = vols[i] * vols[j];
+            let rho = if denom > 0.0 {
+                covariance[(i, j)] / denom
+            } else {
+                0.0
+            };
+            corr[(i, j)] = rho;
+            corr[(j, i)] = rho;
+        }
+    }
+
+    Ok((Array::from_vec(vols), corr))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -250,6 +317,44 @@ mod tests {
                 assert!(
                     (recon[(i, j)] - m[(i, j)]).abs() < 1e-10,
                     "mismatch at ({i},{j})"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn get_covariance_2x2() {
+        let vols = Array::from_slice(&[0.2, 0.3]);
+        let corr = Matrix::from_row_slice(2, 2, &[1.0, 0.5, 0.5, 1.0]);
+        let cov = get_covariance(&vols, &corr).unwrap();
+        assert!((cov[(0, 0)] - 0.04).abs() < 1e-15); // 0.2² = 0.04
+        assert!((cov[(1, 1)] - 0.09).abs() < 1e-15); // 0.3² = 0.09
+        assert!((cov[(0, 1)] - 0.03).abs() < 1e-15); // 0.2 * 0.5 * 0.3
+        assert!((cov[(1, 0)] - 0.03).abs() < 1e-15);
+    }
+
+    #[test]
+    fn covariance_roundtrip() {
+        let vols = Array::from_slice(&[0.15, 0.25, 0.10]);
+        let corr = Matrix::from_row_slice(3, 3, &[1.0, 0.3, -0.2, 0.3, 1.0, 0.1, -0.2, 0.1, 1.0]);
+        let cov = get_covariance(&vols, &corr).unwrap();
+        let (vols2, corr2) = covariance_decompose(&cov).unwrap();
+
+        for i in 0..3 {
+            assert!(
+                (vols2[i] - vols[i]).abs() < 1e-14,
+                "vol[{i}]: {} vs {}",
+                vols2[i],
+                vols[i]
+            );
+        }
+        for i in 0..3 {
+            for j in 0..3 {
+                assert!(
+                    (corr2[(i, j)] - corr[(i, j)]).abs() < 1e-14,
+                    "corr[{i},{j}]: {} vs {}",
+                    corr2[(i, j)],
+                    corr[(i, j)]
                 );
             }
         }

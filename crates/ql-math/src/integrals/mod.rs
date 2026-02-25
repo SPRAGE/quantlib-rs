@@ -4,7 +4,9 @@
 //! Gauss-Lobatto quadrature rules, and Gaussian quadratures
 //! (Legendre, Hermite, Laguerre, Chebyshev, Jacobi).
 
+pub mod discrete;
 pub mod gaussianquadratures;
+pub mod tanhsinh;
 
 use ql_core::{
     errors::{Error, Result},

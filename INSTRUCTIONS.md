@@ -51,14 +51,14 @@ plan, including module mappings, phase descriptions, and risk register.
 | Metric | Value |
 |---|---|
 | Crates scaffolded | 16/16 (100%) |
-| Rust source files | 222 |
-| Lines of code | ~44,297 |
-| Unit tests (inline) | 762 (all passing) |
+| Rust source files | 228 |
+| Lines of code | ~48,900 |
+| Unit tests (inline) | 845 (all passing) |
 | Integration test files (ported from C++ test-suite) | 4 (test_dates, test_calendars, test_day_counters, test_schedule) |
 | Integration tests | 59 (all passing) |
-| Total tests | 821 (all passing) |
+| Total tests | 904 (all passing) |
 | Build status | ✅ Clean |
-| Overall completion | ~14–17% by module coverage |
+| Overall completion | ~15–18% by module coverage |
 
 ### 2.2 Per-Crate Status
 
@@ -66,17 +66,17 @@ plan, including module mappings, phase descriptions, and risk register.
 |---|---|---|---|---|---|
 | `ql-core` | 14 | 1,144 | 31 | ~35% | Missing some utilities |
 | `ql-time` | 63 | 12,926 | 342 | ~97% | All schedule tests ported (CDS + non-CDS), GovernmentBond done |
-| `ql-math` | 22 | 6,454 | 134 | ~17% | 15 of 24 interpolation schemes, Halton, advanced optimizers, matrix utilities |
+| `ql-math` | 32 | 8,800 | 188 | ~35% | 15 1D + 2 2D interps, 9 solvers, integrals (Simpson/Trapezoid/GaussKronrod/GaussLobatto/TanhSinh/discrete), linear least squares, Brownian bridge, MT19937/Sobol/Halton RNG, Cholesky/SVD/QR/LU/pseudo_sqrt, covariance utilities |
 | `ql-currencies` | 11 | 1,054 | 12 | ~70% | Mostly complete |
 | `ql-quotes` | 2 | 330 | 9 | ~50% | Missing ~10 quote types |
-| `ql-indexes` | 9 | 1,245 | 26 | ~15% | Missing 50+ specific index definitions |
+| `ql-indexes` | 9 | 1,715 | 41 | ~30% | 14 IBOR + 7 overnight + 6 swap + 3 inflation indexes; missing ~30 specific definitions |
 | `ql-cashflows` | 7 | 1,601 | 24 | ~30% | Missing CMS, range accrual coupons |
 | `ql-processes` | 14 | 2,154 | 58 | ~50% | 12 of ~22 processes |
 | `ql-models` | 10 | 1,674 | 30 | ~10% | Missing entire Market Model framework (~160 files) |
 | `ql-instruments` | 8 | 1,704 | 27 | ~13% | Missing Cap/Floor, Swaption, CDS, exotics |
 | `ql-methods` | 6 | 1,812 | 21 | ~5% | Missing multi-dim FDM, advanced MC/lattice |
 | `ql-pricingengines` | 7 | 1,632 | 28 | ~5% | 6 of ~170 engines |
-| `ql-termstructures` | 15 | 4,288 | 54 | ~15% | **Missing PiecewiseYieldCurve bootstrapper** |
+| `ql-termstructures` | 17 | 5,314 | 66 | ~20% | PiecewiseYieldCurve + 4 rate helpers added; missing OIS helpers, VolCurve bootstrap |
 | `ql-experimental` | 14 | 4,203 | 33 | ~7% | Missing credit, commodities, ext. FDM |
 | `ql-legacy` | 1 | 6 | 0 | 0% | Empty stub |
 | `quantlib` (facade) | 1 | 70 | 1 | ✅ | Complete |
@@ -640,7 +640,7 @@ Within a phase, prioritize: **(1) port tests → (2) implement types → (3) pas
 - [ ] `cds_maturity()` free function (needed for CDS schedule tests)
 - [ ] `Schedule::until()` and `Schedule::after()` truncation methods (needed for truncation tests)
 
-### 🟡 Phase 3 — Math / `ql-math` (~17%)
+### 🟡 Phase 3 — Math / `ql-math` (~35%)
 
 **Done:** Array (nalgebra wrapper), Matrix + matrix utilities, 9 interpolation schemes (Linear, LogLinear, Flat, ForwardFlat, CubicNatural, Lagrange, Akima, MonotoneCubic, SABR), 7 distributions (Normal, Beta, Binomial, ChiSquare, Gamma, Poisson, StudentT), 6 solvers (Brent, Newton, Secant, Bisection, FalsePosition, Ridder), optimizers (Simplex, LevenbergMarquardt, ConjugateGradient, SteepestDescent, BFGS), RNG (Mersenne Twister, Sobol), statistics (General, Incremental, Sequence, Convergence), copulas (Gaussian, Clayton, Frank, Gumbel, StudentT), ODE (Adaptive RK4), integrals (Trapezoid, Simpson, GaussLobatto, GaussKronrod, Gauss quadratures).
 **Remaining:**
@@ -977,38 +977,45 @@ it. If it's done, delete the entry and start fresh from `plan.md` §23.
 
 ### Current Entry
 
-**Date:** 2025-07-12
-**Session:** Phase 2 Time & Calendar — CDS tests, GovernmentBond calendar, cds_maturity()
-**Status:** ✅ Phase 2 (ql-time) essentially complete (~97%)
+**Date:** 2025-07-15
+**Session:** §23.2E PiecewiseYieldCurve bootstrapper + §23.2F Expand ql-indexes
+**Status:** ✅ Complete — 2 new modules, 25 new index definitions, 29 new tests, 904 total passing
 
 **Completed:**
-- Implemented `UnitedStatesGovernmentBond` calendar variant with 5 inline unit tests
-  (Good Friday NFP exception, Veterans' Day without Sat→Fri, special closings)
-- Un-ignored 3 schedule tests that were pending GovernmentBond calendar
-- Implemented `previous_twentieth()`, `next_twentieth()`, `cds_maturity()` in schedule.rs
-- Rewrote CDS/CDS2015/OldCDS schedule builder branch to use proper forward generation
-  matching C++ QuantLib (was backward, now forward from previousTwentieth with business-day
-  adjustment pass)
-- Modified shared adjustment pass: first date NOT adjusted for OldCDS; last date NOT
-  adjusted for CDS/CDS2015
-- Ported 8 CDS schedule tests: testCDS2015Convention, testCDS2015ConventionGrid,
-  testCDSConventionGrid, testOldCDSConventionGrid, testCDS2015ConventionSampleDates,
-  testCDSConventionSampleDates, testOldCDSConventionSampleDates, testCDS2015ZeroMonthsMatured
-- All 821 workspace tests pass (`just check` clean)
+- Created `crates/ql-termstructures/src/rate_helpers.rs` (~632 lines) —
+  `RateHelper` trait, `BootstrapCurve` temporary curve view,
+  `DepositRateHelper`, `FraRateHelper`, `SwapRateHelper`, `FuturesRateHelper`,
+  4 unit tests
+- Created `crates/ql-termstructures/src/piecewise_yield_curve.rs` (~666 lines) —
+  `PiecewiseYieldCurve` with iterative Brent-based bootstrap, implements
+  `TermStructure` + `YieldTermStructure`, custom `brent_bootstrap` solver
+  variant that handles FnMut + Option returns, 8 unit tests
+  (single deposit, two deposits, deposits+swap, monotone DFs, negative rates,
+  empty helpers error, TermStructure trait, YieldTermStructure trait)
+- Extended `crates/ql-indexes/src/ibor.rs` — added 10 new IBOR indexes:
+  TIBOR, CDOR, BBSW, STIBOR, NIBOR, CIBOR, WIBOR, PRIBOR, BUBOR, JIBAR
+  (10 new tests)
+- Extended `crates/ql-indexes/src/overnight.rs` — added 4 new overnight indexes:
+  TONA, AONIA, CORRA, SARON (4 new tests)
+- Extended `crates/ql-indexes/src/swap_index.rs` — added 3 new swap indexes:
+  GBP LIBOR Swap, JPY LIBOR Swap, CHF LIBOR Swap (3 new tests)
+- Updated lib.rs re-exports for both ql-termstructures and ql-indexes
+- Updated plan.md §6.1 snapshot and per-crate metrics
+- All 904 workspace tests pass (`just check` clean)
+
+**Files created:**
+- `crates/ql-termstructures/src/rate_helpers.rs` (~632 lines)
+- `crates/ql-termstructures/src/piecewise_yield_curve.rs` (~666 lines)
 
 **Files modified:**
-- `crates/ql-time/src/calendars/united_states.rs` — added UnitedStatesGovernmentBond +
-  is_government_bond_holiday() + 5 inline tests
-- `crates/ql-time/src/schedule.rs` — added previous_twentieth(), next_twentieth(),
-  cds_maturity(); rewrote CDS build() branch; updated shared adjustment for CDS exceptions
-- `crates/ql-time/tests/test_schedule.rs` — un-ignored 3 tests with GovernmentBond body;
-  added 8 CDS convention tests + make_cds_schedule() + test_cds_conventions() helpers
-
-**What remains for ql-time (~3%):**
-- Minor: a few remaining C++ schedule tests not yet ported (edge cases)
-- The Twentieth/TwentiethIMM branches still return early (no adjustment); could be
-  unified but low priority
+- `crates/ql-termstructures/src/lib.rs` — added `pub mod rate_helpers;`, `pub mod piecewise_yield_curve;`, re-exports
+- `crates/ql-indexes/src/ibor.rs` — added 10 IBOR factory functions + 10 tests
+- `crates/ql-indexes/src/overnight.rs` — added 4 overnight factory functions + 4 tests
+- `crates/ql-indexes/src/swap_index.rs` — added 3 swap index factory functions + 3 tests
+- `crates/ql-indexes/src/lib.rs` — updated re-exports
 
 **Next session should:**
-1. Move to plan.md §23.1B (CI setup) or §23.1C (deepen ql-core)
-2. Or continue to Phase 3+ as directed by user
+1. Continue §23.2D: add DifferentialEvolution optimizer, SobolBrownianGenerator,
+   more interpolation schemes (ConvexMonotone, ABCD, BSpline, Richardson)
+2. Or §23.2G: Expand ql-instruments (Cap/Floor, Swaption, FRA, CDS)
+3. Or §23.2H: Expand ql-pricingengines (MC engines, binomial, FD Black-Scholes)

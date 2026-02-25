@@ -455,6 +455,115 @@ where
     ))
 }
 
+// ── Finite-Difference Newton-Safe ─────────────────────────────────────────────
+
+/// A safe Newton-Raphson method that estimates the derivative via finite
+/// differences from the farthest bracket point, falling back to bisection when
+/// the Newton step would leave the bracket.
+///
+/// Unlike [`newton_safe`], this only requires `f(x)`, not `f(x)` **and**
+/// `f'(x)`, making it ideal when the derivative is unavailable or expensive.
+///
+/// Corresponds to `QuantLib::FiniteDifferenceNewtonSafe`.
+pub fn fd_newton_safe<F>(f: F, x_min: Real, x_max: Real, accuracy: Real) -> Result<Real>
+where
+    F: Fn(Real) -> Real,
+{
+    let acc = if accuracy > 0.0 {
+        accuracy
+    } else {
+        DEFAULT_ACCURACY
+    };
+    let flo = f(x_min);
+    let fhi = f(x_max);
+
+    if flo * fhi > 0.0 {
+        return Err(Error::Precondition(
+            "FDNewtonSafe: f(x_min) and f(x_max) must have opposite signs".into(),
+        ));
+    }
+    if flo == 0.0 {
+        return Ok(x_min);
+    }
+    if fhi == 0.0 {
+        return Ok(x_max);
+    }
+
+    // Orient so that f(xl) < 0
+    let (mut xl, mut xh) = if flo < 0.0 {
+        (x_min, x_max)
+    } else {
+        (x_max, x_min)
+    };
+
+    let mut x = 0.5 * (xl + xh);
+    let mut dx_old = (xh - xl).abs();
+    let mut dx = dx_old;
+
+    let mut fx = f(x);
+
+    for _ in 0..MAX_ITERATIONS {
+        // Estimate derivative using finite difference from the farthest
+        // bracket endpoint (this maximises the base, improving stability).
+        let (x_far, f_far) = if (x - xl).abs() >= (x - xh).abs() {
+            (xl, f(xl))
+        } else {
+            (xh, f(xh))
+        };
+
+        let dfx = if (x - x_far).abs() > f64::EPSILON {
+            (fx - f_far) / (x - x_far)
+        } else {
+            // Fall back to bisection if points coincide
+            0.0
+        };
+
+        // Decide: Newton or bisection
+        let newton_step_valid = dfx.abs() > f64::EPSILON;
+        let newton_x = if newton_step_valid {
+            x - fx / dfx
+        } else {
+            f64::NAN
+        };
+
+        let use_newton = newton_step_valid
+            && newton_x > xl
+            && newton_x < xh
+            && (2.0 * fx.abs()) <= (dx_old * dfx).abs();
+
+        if use_newton {
+            dx_old = dx;
+            dx = fx / dfx;
+            x -= dx;
+        } else {
+            // Bisection step
+            dx_old = dx;
+            dx = 0.5 * (xh - xl);
+            x = xl + dx;
+        }
+
+        if dx.abs() < acc {
+            return Ok(x);
+        }
+
+        fx = f(x);
+
+        if fx.abs() < acc {
+            return Ok(x);
+        }
+
+        if fx < 0.0 {
+            xl = x;
+        } else {
+            xh = x;
+        }
+    }
+
+    Err(Error::Runtime(
+        "FDNewtonSafe solver: maximum iterations reached".into(),
+    ))
+}
+
 // ── Halley ────────────────────────────────────────────────────────────────────
 
 /// Halley's method — uses function value, derivative, and second derivative.
@@ -567,5 +676,17 @@ mod tests {
     #[test]
     fn newton_safe_opposite_signs_required() {
         assert!(newton_safe(|x| (x * x - 2.0, 2.0 * x), 3.0, 5.0, 1e-10).is_err());
+    }
+
+    #[test]
+    fn fd_newton_safe_sqrt2() {
+        let root = fd_newton_safe(|x| x * x - 2.0, 0.0, 2.0, 1e-12).unwrap();
+        assert!((root - 2.0_f64.sqrt()).abs() < 1e-8, "got {root}");
+    }
+
+    #[test]
+    fn fd_newton_safe_sin() {
+        let root = fd_newton_safe(|x| x.sin(), 2.0, 4.0, 1e-12).unwrap();
+        assert!((root - std::f64::consts::PI).abs() < 1e-8, "got {root}");
     }
 }

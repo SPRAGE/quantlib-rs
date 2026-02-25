@@ -110,6 +110,58 @@ pub fn usd_libor_swap_isda_fix_am(swap_tenor: Period) -> SwapIndex {
     )
 }
 
+/// Create a GBP LIBOR Swap ISDA Fix A (semi-annual fixed, Actual/365F) stub.
+pub fn gbp_libor_swap_isda_fix_a(swap_tenor: Period) -> SwapIndex {
+    use crate::ibor::gbp_libor;
+    use ql_time::{Actual365Fixed, TimeUnit};
+    SwapIndex::new(
+        format!("GBP-LiborSwapIsdaFixA-{swap_tenor}"),
+        swap_tenor,
+        gbp_libor(Period::new(6, TimeUnit::Months)),
+        Frequency::Semiannual,
+        BusinessDayConvention::ModifiedFollowing,
+        Actual365Fixed,
+    )
+}
+
+/// Create a JPY LIBOR Swap ISDA Fix A (semi-annual fixed, Actual/365F) stub.
+pub fn jpy_libor_swap_isda_fix_a(swap_tenor: Period) -> SwapIndex {
+    use crate::ibor::jpy_libor;
+    use ql_time::{Actual365Fixed, TimeUnit};
+    SwapIndex::new(
+        format!("JPY-LiborSwapIsdaFixA-{swap_tenor}"),
+        swap_tenor,
+        jpy_libor(Period::new(6, TimeUnit::Months)),
+        Frequency::Semiannual,
+        BusinessDayConvention::ModifiedFollowing,
+        Actual365Fixed,
+    )
+}
+
+/// Create a CHF LIBOR Swap ISDA Fix A (annual fixed, 30/360) stub.
+pub fn chf_libor_swap_isda_fix_a(swap_tenor: Period) -> SwapIndex {
+    use crate::ibor_index::IborIndex;
+    use ql_time::{calendars::switzerland::Switzerland, Actual360, Thirty360, TimeUnit};
+    let ibor = IborIndex::new(
+        "CHF-LIBOR-6M",
+        Period::new(6, TimeUnit::Months),
+        2,
+        &ql_currencies::currencies::europe::CHF,
+        Switzerland,
+        BusinessDayConvention::ModifiedFollowing,
+        true,
+        Actual360,
+    );
+    SwapIndex::new(
+        format!("CHF-LiborSwapIsdaFixA-{swap_tenor}"),
+        swap_tenor,
+        ibor,
+        Frequency::Annual,
+        BusinessDayConvention::ModifiedFollowing,
+        Thirty360,
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -130,5 +182,29 @@ mod tests {
         assert!(idx.name().contains("LiborSwapIsdaFixAm"));
         assert_eq!(idx.currency().code, "USD");
         assert_eq!(idx.fixed_leg_frequency(), Frequency::Semiannual);
+    }
+
+    #[test]
+    fn gbp_swap_index() {
+        let idx = gbp_libor_swap_isda_fix_a(Period::new(10, TimeUnit::Years));
+        assert!(idx.name().contains("GBP-LiborSwapIsdaFixA"));
+        assert_eq!(idx.currency().code, "GBP");
+        assert_eq!(idx.fixed_leg_frequency(), Frequency::Semiannual);
+    }
+
+    #[test]
+    fn jpy_swap_index() {
+        let idx = jpy_libor_swap_isda_fix_a(Period::new(5, TimeUnit::Years));
+        assert!(idx.name().contains("JPY-LiborSwapIsdaFixA"));
+        assert_eq!(idx.currency().code, "JPY");
+        assert_eq!(idx.fixed_leg_frequency(), Frequency::Semiannual);
+    }
+
+    #[test]
+    fn chf_swap_index() {
+        let idx = chf_libor_swap_isda_fix_a(Period::new(10, TimeUnit::Years));
+        assert!(idx.name().contains("CHF-LiborSwapIsdaFixA"));
+        assert_eq!(idx.currency().code, "CHF");
+        assert_eq!(idx.fixed_leg_frequency(), Frequency::Annual);
     }
 }

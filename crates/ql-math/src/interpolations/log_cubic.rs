@@ -94,10 +94,7 @@ mod tests {
         let interp = LogCubicInterpolation::new(&xs, &ys, LogCubicScheme::Natural).unwrap();
         for (&x, &y) in xs.iter().zip(ys.iter()) {
             let v = interp.operator(x);
-            assert!(
-                (v - y).abs() < 1e-10,
-                "at x={x}: expected {y}, got {v}"
-            );
+            assert!((v - y).abs() < 1e-10, "at x={x}: expected {y}, got {v}");
         }
     }
 
@@ -106,8 +103,7 @@ mod tests {
         // Interpolated values in log-space are finite → exp should be positive
         let xs = [0.0, 1.0, 2.0, 3.0, 4.0];
         let ys = [1.0, 0.95, 0.88, 0.80, 0.70];
-        let interp =
-            LogCubicInterpolation::new(&xs, &ys, LogCubicScheme::FritschButland).unwrap();
+        let interp = LogCubicInterpolation::new(&xs, &ys, LogCubicScheme::FritschButland).unwrap();
         for i in 0..=40 {
             let x = 4.0 * (i as f64) / 40.0;
             let v = interp.operator(x);
@@ -120,7 +116,7 @@ mod tests {
         // y = e^(-0.05*x): ln(y) = -0.05*x is linear → any cubic scheme
         // should reproduce it exactly
         let xs = [0.0, 1.0, 2.0, 3.0, 4.0];
-        let ys: Vec<f64> = xs.iter().map(|&x| (-0.05 * x as f64).exp()).collect();
+        let ys: Vec<f64> = xs.iter().map(|&x: &f64| (-0.05 * x).exp()).collect();
         let interp = LogCubicInterpolation::new(&xs, &ys, LogCubicScheme::Kruger).unwrap();
         // Check midpoints
         for &x in &[0.5, 1.5, 2.5, 3.5] {
@@ -156,9 +152,6 @@ mod tests {
         let interp = LogCubicInterpolation::new(&xs, &ys, LogCubicScheme::Parabolic).unwrap();
         let v = interp.operator(1.5);
         // Should be between 0.95 and 0.98
-        assert!(
-            (0.94..=0.99).contains(&v),
-            "unexpected value at x=1.5: {v}"
-        );
+        assert!((0.94..=0.99).contains(&v), "unexpected value at x=1.5: {v}");
     }
 }

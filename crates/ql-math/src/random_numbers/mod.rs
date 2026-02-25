@@ -3,6 +3,7 @@
 //! Provides wrappers around the `rand` and `rand_mt` crates that match the
 //! QuantLib RNG interface, plus quasi-random sequences (Halton, Sobol).
 
+pub mod brownian_bridge;
 pub mod sobol;
 
 use ql_core::Real;

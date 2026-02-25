@@ -27,6 +27,9 @@ pub mod integrals;
 /// 1D interpolation schemes.
 pub mod interpolations;
 
+/// General linear least-squares regression.
+pub mod linear_least_squares;
+
 /// Dynamically-sized 2D matrix of reals.
 pub mod matrix;
 
