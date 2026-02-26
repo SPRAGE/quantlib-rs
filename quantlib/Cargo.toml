@@ -10,21 +10,21 @@ keywords = ["quantitative-finance", "derivatives", "pricing", "risk", "fixed-inc
 categories = ["finance", "mathematics", "science"]
 
 [dependencies]
-ql-core.workspace = true
-ql-time.workspace = true
-ql-math.workspace = true
-ql-currencies.workspace = true
-ql-quotes.workspace = true
-ql-indexes.workspace = true
-ql-termstructures.workspace = true
-ql-processes.workspace = true
-ql-models.workspace = true
-ql-methods.workspace = true
-ql-cashflows.workspace = true
-ql-instruments.workspace = true
-ql-pricingengines.workspace = true
-ql-experimental.workspace = true
-ql-legacy.workspace = true
+ql-core = { path = "../crates/ql-core" }
+ql-time = { path = "../crates/ql-time" }
+ql-math = { path = "../crates/ql-math" }
+ql-currencies = { path = "../crates/ql-currencies" }
+ql-quotes = { path = "../crates/ql-quotes" }
+ql-indexes = { path = "../crates/ql-indexes" }
+ql-termstructures = { path = "../crates/ql-termstructures" }
+ql-processes = { path = "../crates/ql-processes" }
+ql-models = { path = "../crates/ql-models" }
+ql-methods = { path = "../crates/ql-methods" }
+ql-cashflows = { path = "../crates/ql-cashflows" }
+ql-instruments = { path = "../crates/ql-instruments" }
+ql-pricingengines = { path = "../crates/ql-pricingengines" }
+ql-experimental = { path = "../crates/ql-experimental" }
+ql-legacy = { path = "../crates/ql-legacy" }
 
 [dev-dependencies]
-approx.workspace = true
+approx = "0.5"

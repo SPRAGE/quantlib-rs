@@ -8,7 +8,7 @@ repository = "https://github.com/SPRAGE/quantlib-rs"
 description = "Market quotes and observable values for quantlib-rs"
 
 [dependencies]
-ql-core.workspace = true
+ql-core = { path = "../ql-core" }
 
 [dev-dependencies]
-approx.workspace = true
+approx = "0.5"

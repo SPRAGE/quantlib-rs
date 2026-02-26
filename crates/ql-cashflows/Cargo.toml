@@ -8,12 +8,12 @@ repository = "https://github.com/SPRAGE/quantlib-rs"
 description = "Cash flow, coupon, and leg definitions for quantlib-rs"
 
 [dependencies]
-ql-core.workspace = true
-ql-time.workspace = true
-ql-math.workspace = true
-ql-indexes.workspace = true
-ql-termstructures.workspace = true
+ql-core = { path = "../ql-core" }
+ql-time = { path = "../ql-time" }
+ql-math = { path = "../ql-math" }
+ql-indexes = { path = "../ql-indexes" }
+ql-termstructures = { path = "../ql-termstructures" }
 
 [dev-dependencies]
-approx.workspace = true
-ql-currencies.workspace = true
+approx = "0.5"
+ql-currencies = { path = "../ql-currencies" }

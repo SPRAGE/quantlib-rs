@@ -8,11 +8,11 @@ repository = "https://github.com/SPRAGE/quantlib-rs"
 description = "Yield, volatility, and other term structure implementations for quantlib-rs"
 
 [dependencies]
-ql-core.workspace = true
-ql-time.workspace = true
-ql-math.workspace = true
-ql-quotes.workspace = true
+ql-core = { path = "../ql-core" }
+ql-time = { path = "../ql-time" }
+ql-math = { path = "../ql-math" }
+ql-quotes = { path = "../ql-quotes" }
 
 [dev-dependencies]
-approx.workspace = true
-proptest.workspace = true
+approx = "0.5"
+proptest = "1"

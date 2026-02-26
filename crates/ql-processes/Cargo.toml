@@ -8,11 +8,11 @@ repository = "https://github.com/SPRAGE/quantlib-rs"
 description = "Stochastic process definitions for quantlib-rs"
 
 [dependencies]
-ql-core.workspace = true
-ql-time.workspace = true
-ql-math.workspace = true
-ql-termstructures.workspace = true
+ql-core = { path = "../ql-core" }
+ql-time = { path = "../ql-time" }
+ql-math = { path = "../ql-math" }
+ql-termstructures = { path = "../ql-termstructures" }
 
 [dev-dependencies]
-approx.workspace = true
-proptest.workspace = true
+approx = "0.5"
+proptest = "1"
