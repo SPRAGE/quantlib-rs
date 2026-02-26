@@ -1,10 +1,10 @@
 [package]
 name = "ql-processes"
-version.workspace = true
-edition.workspace = true
-rust-version.workspace = true
-license.workspace = true
-repository.workspace = true
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+license = "BSD-3-Clause"
+repository = "https://github.com/SPRAGE/quantlib-rs"
 description = "Stochastic process definitions for quantlib-rs"
 
 [dependencies]
