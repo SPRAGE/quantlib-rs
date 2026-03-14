@@ -53,10 +53,10 @@ plan, including module mappings, phase descriptions, and risk register.
 | Crates scaffolded | 16/16 (100%) |
 | Rust source files | 228 |
 | Lines of code | ~48,900 |
-| Unit tests (inline) | 845 (all passing) |
+| Unit tests (inline) | 853 (all passing) |
 | Integration test files (ported from C++ test-suite) | 4 (test_dates, test_calendars, test_day_counters, test_schedule) |
 | Integration tests | 59 (all passing) |
-| Total tests | 904 (all passing) |
+| Total tests | 912 (all passing) |
 | Build status | ✅ Clean |
 | Overall completion | ~15–18% by module coverage |
 
@@ -76,7 +76,7 @@ plan, including module mappings, phase descriptions, and risk register.
 | `ql-instruments` | 8 | 1,704 | 27 | ~13% | Missing Cap/Floor, Swaption, CDS, exotics |
 | `ql-methods` | 6 | 1,812 | 21 | ~5% | Missing multi-dim FDM, advanced MC/lattice |
 | `ql-pricingengines` | 7 | 1,632 | 28 | ~5% | 6 of ~170 engines |
-| `ql-termstructures` | 17 | 5,314 | 66 | ~20% | PiecewiseYieldCurve + 4 rate helpers added; missing OIS helpers, VolCurve bootstrap |
+| `ql-termstructures` | 17 | 5,480 | 74 | ~20% | SVI-JW added; missing OIS helpers, VolCurve bootstrap |
 | `ql-experimental` | 14 | 4,203 | 33 | ~7% | Missing credit, commodities, ext. FDM |
 | `ql-legacy` | 1 | 6 | 0 | 0% | Empty stub |
 | `quantlib` (facade) | 1 | 70 | 1 | ✅ | Complete |
