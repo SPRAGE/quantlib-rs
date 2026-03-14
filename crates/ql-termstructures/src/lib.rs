@@ -85,12 +85,13 @@ pub use rate_helpers::{
     BootstrapCurve, DepositRateHelper, FraRateHelper, FuturesRateHelper, RateHelper, SwapRateHelper,
 };
 pub use smile_calibration::{
-    calibrate_sabr_surface, calibrate_svi_surface, ExpirySmileData, SmileCalibrationResult,
-    SmileSurface,
+    calibrate_sabr_surface, calibrate_svi_jw_surface, calibrate_svi_surface, ExpirySmileData,
+    SmileCalibrationResult, SmileSurface,
 };
 pub use smile_section::{
-    calibrate_svi, FlatSmileSection, SabrSmileSection, SmileOptionType, SmileSection,
-    SviJwParameters, SviJwSmileSection, SviParameters, SviSmileSection, VolatilityType,
+    calibrate_svi, calibrate_svi_jw, FlatSmileSection, SabrSmileSection, SmileOptionType,
+    SmileSection, SviJwParameters, SviJwSmileSection, SviParameters, SviSmileSection,
+    VolatilityType,
 };
 pub use term_structure::TermStructure;
 pub use volatility_term_structure::VolatilityTermStructure;

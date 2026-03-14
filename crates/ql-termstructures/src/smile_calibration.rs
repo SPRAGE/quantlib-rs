@@ -14,7 +14,8 @@ use ql_core::{Real, Time, Volatility};
 use ql_math::interpolations::sabr::{calibrate_sabr, SabrParameters};
 
 use crate::smile_section::{
-    calibrate_svi, SabrSmileSection, SmileSection, SviParameters, SviSmileSection,
+    calibrate_svi, calibrate_svi_jw, SabrSmileSection, SmileSection, SviJwParameters,
+    SviJwSmileSection, SviParameters, SviSmileSection,
 };
 
 /// Market data for a single expiry.
@@ -232,6 +233,52 @@ pub fn calibrate_svi_surface(
     (results, surface)
 }
 
+// ── SVI-JW surface calibration ───────────────────────────────────────────────
+
+/// Calibrate SVI Jump-Wing smiles across multiple expiries.
+///
+/// Unlike [`calibrate_svi_surface`] which optimizes in Raw SVI parameter space,
+/// this function calibrates directly in the trader-friendly JW parameter space
+/// `{v_t, ψ_t, p_t, c_t, ṽ_t}`.
+///
+/// # Arguments
+/// * `market_data` — per-expiry market data (must have ≥ 5 points per expiry)
+///
+/// Returns a vector of calibration results (with [`SviJwParameters`]) and a
+/// [`SmileSurface`].
+pub fn calibrate_svi_jw_surface(
+    market_data: &[ExpirySmileData],
+) -> (Vec<SmileCalibrationResult<SviJwParameters>>, SmileSurface) {
+    let mut results = Vec::with_capacity(market_data.len());
+    let mut surface = SmileSurface::new();
+
+    for data in market_data {
+        let jw_params =
+            calibrate_svi_jw(data.forward, data.expiry, &data.strikes, &data.vols, None);
+        let raw_params = jw_params.to_raw(data.expiry);
+
+        // Compute calibration errors
+        let (rms, max_err) = calibration_errors(data, |k| {
+            let lk = (k / data.forward).ln();
+            let w = crate::smile_section::svi_total_variance(&raw_params, lk);
+            (w.max(0.0) / data.expiry).sqrt()
+        });
+
+        results.push(SmileCalibrationResult {
+            expiry: data.expiry,
+            forward: data.forward,
+            params: jw_params,
+            rms_error: rms,
+            max_error: max_err,
+        });
+
+        let section = SviJwSmileSection::new(data.expiry, data.forward, jw_params);
+        surface.add_section(data.expiry, Box::new(section));
+    }
+
+    (results, surface)
+}
+
 /// Compute RMS and max abs calibration error.
 fn calibration_errors(
     data: &ExpirySmileData,
@@ -373,5 +420,58 @@ mod tests {
         let v_after = surface.volatility(2.0, 0.04);
         let v_last = surface.section(1).unwrap().volatility(0.04);
         assert_abs_diff_eq!(v_after, v_last, epsilon = 1e-10);
+    }
+
+    #[test]
+    fn svi_jw_surface_calibration() {
+        let data = vec![
+            make_svi_data(0.25, 100.0),
+            make_svi_data(0.50, 100.0),
+            make_svi_data(1.00, 100.0),
+        ];
+
+        let (results, surface) = calibrate_svi_jw_surface(&data);
+
+        assert_eq!(results.len(), 3);
+        assert_eq!(surface.num_expiries(), 3);
+
+        for r in &results {
+            assert!(
+                r.rms_error < 0.01,
+                "SVI-JW calibration RMS error too large: {:.6} at T={}",
+                r.rms_error,
+                r.expiry
+            );
+
+            // JW params must be well-formed
+            assert!(r.params.v_t > 0.0, "v_t must be positive at T={}", r.expiry);
+            assert!(r.params.p_t > 0.0, "p_t must be positive at T={}", r.expiry);
+            assert!(r.params.c_t > 0.0, "c_t must be positive at T={}", r.expiry);
+        }
+    }
+
+    #[test]
+    fn svi_jw_surface_matches_raw_surface() {
+        let data = vec![
+            make_svi_data(0.25, 100.0),
+            make_svi_data(0.50, 100.0),
+            make_svi_data(1.00, 100.0),
+        ];
+
+        let (_, raw_surface) = calibrate_svi_surface(&data);
+        let (_, jw_surface) = calibrate_svi_jw_surface(&data);
+
+        // Both surfaces should produce similar vols at the same points
+        for &t in &[0.25, 0.50, 1.00] {
+            for &k in &[90.0, 95.0, 100.0, 105.0, 110.0] {
+                let v_raw = raw_surface.volatility(t, k);
+                let v_jw = jw_surface.volatility(t, k);
+                // Both calibrate the same data — should be within tolerance
+                assert!(
+                    (v_raw - v_jw).abs() < 0.02,
+                    "Surface mismatch at T={t}, K={k}: raw={v_raw:.6}, jw={v_jw:.6}"
+                );
+            }
+        }
     }
 }

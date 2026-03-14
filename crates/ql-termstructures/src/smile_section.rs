@@ -583,7 +583,7 @@ pub fn calibrate_svi(
     };
 
     let x0 = [init.a, init.b, init.sigma, init.rho, init.m];
-    let result = nelder_mead_5d(objective, x0, 10000, 1e-14);
+    let result = nelder_mead_5d(&objective, x0, 10000, 1e-14);
 
     SviParameters {
         a: result[0],
@@ -597,7 +597,7 @@ pub fn calibrate_svi(
 /// 5-dimensional Nelder-Mead simplex optimizer.
 #[allow(clippy::needless_range_loop)]
 fn nelder_mead_5d(
-    f: impl Fn(&[Real; 5]) -> Real,
+    f: &impl Fn(&[Real; 5]) -> Real,
     x0: [Real; 5],
     max_iter: usize,
     tol: Real,
@@ -805,8 +805,7 @@ impl SviJwParameters {
         } else {
             // ── General case: β ≠ 0 ───────────────────────────────────────
             // Δ = (v_t − ṽ_t) / (b · (1 − ρβ − √((1−β²)(1−ρ²))))
-            let denom =
-                1.0 - rho * beta - ((1.0 - beta * beta) * (1.0 - rho * rho)).sqrt();
+            let denom = 1.0 - rho * beta - ((1.0 - beta * beta) * (1.0 - rho * rho)).sqrt();
             let big_delta = (self.v_t - self.v_tilde_t) / (b * denom);
             let m = beta * big_delta;
             let sigma = big_delta * (1.0 - beta * beta).sqrt();
@@ -814,7 +813,13 @@ impl SviJwParameters {
         };
 
         let a = self.v_tilde_t - b * sigma * (1.0 - rho * rho).sqrt();
-        SviParameters { a, b, sigma, rho, m }
+        SviParameters {
+            a,
+            b,
+            sigma,
+            rho,
+            m,
+        }
     }
 }
 
@@ -838,7 +843,10 @@ impl SviJwSmileSection {
         params.validate();
         let raw = params.to_raw(exercise_time);
         let inner = SviSmileSection::new(exercise_time, forward, raw);
-        Self { jw_params: params, inner }
+        Self {
+            jw_params: params,
+            inner,
+        }
     }
 
     /// The Jump-Wing parameters.
@@ -876,6 +884,110 @@ impl SmileSection for SviJwSmileSection {
 
     fn exercise_time(&self) -> Time {
         self.inner.exercise_time()
+    }
+}
+
+// ── SVI-JW Calibration ────────────────────────────────────────────────────────
+
+/// Calibrate SVI Jump-Wing parameters directly in JW space.
+///
+/// Unlike [`calibrate_svi`] which optimizes Raw `{a, b, σ, ρ, m}` parameters,
+/// this function optimizes the trader-friendly JW parameters
+/// `{v_t, ψ_t, p_t, c_t, ṽ_t}` directly.  The objective is the same
+/// sum-of-squared-errors on total variance, but the search space respects
+/// the JW constraints natively, which can improve convergence for
+/// market-calibrated surfaces where JW parameters are the natural inputs.
+///
+/// # Arguments
+/// * `forward` — forward price
+/// * `expiry` — time to expiry (must be > 0)
+/// * `strikes` — market strikes (at least 5)
+/// * `vols` — market implied Black volatilities
+/// * `initial` — optional initial guess for JW parameters
+///
+/// Returns calibrated [`SviJwParameters`].
+pub fn calibrate_svi_jw(
+    forward: Real,
+    expiry: Real,
+    strikes: &[Real],
+    vols: &[Real],
+    initial: Option<SviJwParameters>,
+) -> SviJwParameters {
+    let n = strikes.len();
+    assert_eq!(n, vols.len());
+    assert!(
+        n >= 5,
+        "need at least 5 points to calibrate 5 SVI-JW parameters"
+    );
+    assert!(expiry > 0.0, "expiry must be > 0");
+
+    // Convert vols to total variances and log-moneyness
+    let total_vars: Vec<Real> = vols.iter().map(|v| v * v * expiry).collect();
+    let log_moneyness: Vec<Real> = strikes.iter().map(|k| (k / forward).ln()).collect();
+
+    let init = initial.unwrap_or_else(|| {
+        // Use Raw SVI calibration as a warm start, then convert to JW.
+        // The Raw objective landscape is better conditioned for Nelder-Mead,
+        // so we get a good starting point for the JW refinement pass.
+        let raw = calibrate_svi(forward, expiry, strikes, vols, None);
+        raw.to_jw(expiry)
+    });
+
+    // Nelder-Mead in 5D JW space: [v_t, psi_t, p_t, c_t, v_tilde_t]
+    let objective = |x: &[Real; 5]| -> Real {
+        let v_t = x[0].max(1e-8);
+        let p_t = x[2].max(1e-6);
+        let c_t = x[3].max(1e-6);
+        let v_tilde_t = x[4].clamp(0.0, v_t);
+        // Clamp psi_t to feasible range
+        let psi_t = x[1].clamp(-p_t + 1e-10, c_t - 1e-10);
+
+        let jw = SviJwParameters {
+            v_t,
+            psi_t,
+            p_t,
+            c_t,
+            v_tilde_t,
+        };
+        let raw = jw.to_raw(expiry);
+
+        // Penalty for invalid Raw parameters
+        let min_var = raw.a + raw.b * raw.sigma * (1.0 - raw.rho * raw.rho).sqrt();
+        let penalty = if min_var < 0.0 {
+            1e6 * min_var * min_var
+        } else {
+            0.0
+        };
+
+        let mut sse = 0.0;
+        for i in 0..n {
+            let model_var = svi_total_variance(&raw, log_moneyness[i]);
+            let diff = model_var - total_vars[i];
+            sse += diff * diff;
+        }
+        sse + penalty
+    };
+
+    let x0 = [init.v_t, init.psi_t, init.p_t, init.c_t, init.v_tilde_t];
+
+    // Two-pass optimization: first pass explores, second pass refines.
+    // The JW→Raw mapping is nonlinear, making the objective landscape
+    // harder to navigate than the Raw parameterization.
+    let pass1 = nelder_mead_5d(&objective, x0, 10000, 1e-12);
+    let result = nelder_mead_5d(&objective, pass1, 10000, 1e-14);
+
+    let v_t = result[0].max(1e-8);
+    let p_t = result[2].max(1e-6);
+    let c_t = result[3].max(1e-6);
+    let v_tilde_t = result[4].clamp(0.0, v_t);
+    let psi_t = result[1].clamp(-p_t + 1e-10, c_t - 1e-10);
+
+    SviJwParameters {
+        v_t,
+        psi_t,
+        p_t,
+        c_t,
+        v_tilde_t,
     }
 }
 
@@ -1062,8 +1174,7 @@ mod tests {
         assert_abs_diff_eq!(raw.rho, 0.5, epsilon = 1e-10);
 
         // σ = (v_t − ṽ_t) / (b · (1 − √(1−ρ²)))
-        let expected_sigma =
-            0.02 / (0.2 * (1.0 - (1.0_f64 - 0.25_f64).sqrt()));
+        let expected_sigma = 0.02 / (0.2 * (1.0 - (1.0_f64 - 0.25_f64).sqrt()));
         assert_abs_diff_eq!(raw.sigma, expected_sigma, epsilon = 1e-10);
 
         // Full roundtrip back to JW
@@ -1154,5 +1265,137 @@ mod tests {
             v_tilde_t: 0.02,
         }
         .validate();
+    }
+
+    // ── SVI-JW Calibration Tests ─────────────────────────────────────────────
+
+    /// JW calibration roundtrip: generate synthetic data from known JW params,
+    /// calibrate in JW space, and verify the model reproduces input vols.
+    #[test]
+    fn svi_jw_calibration_roundtrip() {
+        let forward = 100.0;
+        let expiry = 1.0;
+        let true_raw = SviParameters {
+            a: 0.04,
+            b: 0.2,
+            sigma: 0.1,
+            rho: -0.3,
+            m: 0.0,
+        };
+
+        let strikes: Vec<Real> = (80..=120).map(|k| k as Real).collect();
+        let vols: Vec<Real> = strikes
+            .iter()
+            .map(|&k| {
+                let lk = (k / forward).ln();
+                let w = svi_total_variance(&true_raw, lk);
+                (w / expiry).sqrt()
+            })
+            .collect();
+
+        let calibrated_jw = calibrate_svi_jw(forward, expiry, &strikes, &vols, None);
+        let calibrated_raw = calibrated_jw.to_raw(expiry);
+
+        for i in 0..strikes.len() {
+            let lk = (strikes[i] / forward).ln();
+            let model_var = svi_total_variance(&calibrated_raw, lk);
+            let model_vol = (model_var / expiry).sqrt();
+            assert!(
+                (model_vol - vols[i]).abs() < 0.005,
+                "SVI-JW calibration: strike {}, expected {:.6}, got {:.6}",
+                strikes[i],
+                vols[i],
+                model_vol
+            );
+        }
+    }
+
+    /// JW calibration with initial guess should converge faster and at least
+    /// as accurately as without one.
+    #[test]
+    fn svi_jw_calibration_with_initial_guess() {
+        let forward = 100.0;
+        let expiry = 0.5;
+        let true_raw = SviParameters {
+            a: 0.03,
+            b: 0.15,
+            sigma: 0.08,
+            rho: -0.25,
+            m: 0.02,
+        };
+        let true_jw = true_raw.to_jw(expiry);
+
+        let strikes: Vec<Real> = (85..=115).map(|k| k as Real).collect();
+        let vols: Vec<Real> = strikes
+            .iter()
+            .map(|&k| {
+                let lk = (k / forward).ln();
+                let w = svi_total_variance(&true_raw, lk);
+                (w / expiry).sqrt()
+            })
+            .collect();
+
+        // Perturb the true JW params as initial guess
+        let init = SviJwParameters {
+            v_t: true_jw.v_t * 1.1,
+            psi_t: true_jw.psi_t * 0.9,
+            p_t: true_jw.p_t * 1.05,
+            c_t: true_jw.c_t * 0.95,
+            v_tilde_t: true_jw.v_tilde_t * 1.1,
+        };
+
+        let calibrated_jw = calibrate_svi_jw(forward, expiry, &strikes, &vols, Some(init));
+        let calibrated_raw = calibrated_jw.to_raw(expiry);
+
+        for i in 0..strikes.len() {
+            let lk = (strikes[i] / forward).ln();
+            let model_var = svi_total_variance(&calibrated_raw, lk);
+            let model_vol = (model_var / expiry).sqrt();
+            assert!(
+                (model_vol - vols[i]).abs() < 0.003,
+                "SVI-JW calibration (with guess): strike {}, expected {:.6}, got {:.6}",
+                strikes[i],
+                vols[i],
+                model_vol
+            );
+        }
+    }
+
+    /// The JW-calibrated smile section must produce sensible vols.
+    #[test]
+    fn svi_jw_calibrated_smile_section() {
+        let forward = 100.0;
+        let expiry = 1.0;
+        let true_raw = SviParameters {
+            a: 0.04,
+            b: 0.2,
+            sigma: 0.1,
+            rho: -0.3,
+            m: 0.0,
+        };
+
+        let strikes: Vec<Real> = (80..=120).map(|k| k as Real).collect();
+        let vols: Vec<Real> = strikes
+            .iter()
+            .map(|&k| {
+                let lk = (k / forward).ln();
+                let w = svi_total_variance(&true_raw, lk);
+                (w / expiry).sqrt()
+            })
+            .collect();
+
+        let jw = calibrate_svi_jw(forward, expiry, &strikes, &vols, None);
+        let section = SviJwSmileSection::new(expiry, forward, jw);
+
+        // ATM vol should be reasonable
+        let atm_vol = section.volatility(forward);
+        assert!(atm_vol > 0.1 && atm_vol < 0.5, "ATM vol = {atm_vol}");
+
+        // Smile: OTM put wing vol >= ATM vol (negative skew)
+        let otm_put_vol = section.volatility(85.0);
+        assert!(
+            otm_put_vol >= atm_vol - 0.01,
+            "expected negative skew: OTM put vol {otm_put_vol} < ATM vol {atm_vol}"
+        );
     }
 }
