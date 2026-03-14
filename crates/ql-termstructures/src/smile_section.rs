@@ -423,6 +423,26 @@ impl SviParameters {
             min_var
         );
     }
+
+    /// Convert Raw SVI parameters to Jump-Wing (JW) parameters.
+    ///
+    /// The inverse of [`SviJwParameters::to_raw`].  All returned JW quantities
+    /// are expressed as **total variance** (same units as the Raw `a` and `w(k)`).
+    ///
+    /// # Arguments
+    /// * `t` — time to expiry (validated > 0; not used in the algebraic
+    ///   conversion because all quantities are in total-variance units)
+    pub fn to_jw(&self, t: Real) -> SviJwParameters {
+        assert!(t > 0.0, "to_jw: t must be > 0");
+        let delta = (self.m * self.m + self.sigma * self.sigma).sqrt();
+        SviJwParameters {
+            v_t: svi_total_variance(self, 0.0),
+            psi_t: self.b * (self.rho - self.m / delta),
+            p_t: self.b * (1.0 - self.rho),
+            c_t: self.b * (1.0 + self.rho),
+            v_tilde_t: self.a + self.b * self.sigma * (1.0 - self.rho * self.rho).sqrt(),
+        }
+    }
 }
 
 /// Compute SVI total variance at log-moneyness k.
@@ -670,6 +690,195 @@ fn nelder_mead_5d(
     simplex[0].0
 }
 
+// ── SVI Jump-Wing (JW) Parameterization ──────────────────────────────────────
+
+/// SVI Jump-Wing (JW) parameters (Gatheral & Jacquier, 2014).
+///
+/// An equivalent reparameterization of SVI Raw that provides intuitive,
+/// trader-friendly parameters with direct market interpretation.
+///
+/// All quantities are expressed as **total variance** (same units as the Raw
+/// SVI output `w(k) = a + b(…)`), not as annualized quantities.
+///
+/// The mapping between Raw `{a, b, σ, ρ, m}` and these JW parameters is:
+///
+/// - `v_t   = w(0) = a + b(−ρm + √(m²+σ²))`   (ATM total variance)
+/// - `ψ_t   = ∂w/∂k|_{k=0} = b(ρ − m/Δ)`     (ATM skew; `Δ = √(m²+σ²)`)
+/// - `p_t   = b(1 − ρ)`                         (left / put wing slope)
+/// - `c_t   = b(1 + ρ)`                         (right / call wing slope)
+/// - `ṽ_t   = a + bσ√(1−ρ²)`                   (minimum total variance)
+///
+/// Reference: Gatheral & Jacquier (2014), *Arbitrage-free SVI volatility
+/// surfaces*, Quantitative Finance 14(1), 59–71.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SviJwParameters {
+    /// ATM total variance: $v_t = w(k=0)$.
+    pub v_t: Real,
+    /// ATM skew: $\psi_t = \partial_k w|_{k=0} = b(\rho - m/\Delta)$.
+    ///
+    /// Can be negative (negative skew is common in equity markets).
+    pub psi_t: Real,
+    /// Left (put) wing slope: $p_t = b(1 - \rho) > 0$.
+    pub p_t: Real,
+    /// Right (call) wing slope: $c_t = b(1 + \rho) > 0$.
+    pub c_t: Real,
+    /// Minimum total variance: $\tilde{v}_t = a + b\sigma\sqrt{1-\rho^2}$.
+    pub v_tilde_t: Real,
+}
+
+impl SviJwParameters {
+    /// Validate no-arbitrage and well-posedness constraints.
+    ///
+    /// Enforces:
+    /// - `v_t > 0`
+    /// - `v_tilde_t >= 0` and `v_tilde_t <= v_t`
+    /// - `p_t > 0` and `c_t > 0` (required so that `|ρ| < 1` in Raw)
+    /// - `−p_t ≤ ψ_t ≤ c_t` (required so that `|β| ≤ 1`, keeping σ real)
+    pub fn validate(&self) {
+        assert!(self.v_t > 0.0, "SVI-JW: v_t must be > 0, got {}", self.v_t);
+        assert!(
+            self.v_tilde_t >= 0.0,
+            "SVI-JW: v_tilde_t must be >= 0, got {}",
+            self.v_tilde_t
+        );
+        assert!(
+            self.v_tilde_t <= self.v_t + 1e-10,
+            "SVI-JW: v_tilde_t ({}) must be <= v_t ({})",
+            self.v_tilde_t,
+            self.v_t
+        );
+        assert!(
+            self.p_t > 0.0,
+            "SVI-JW: p_t must be > 0 (ensures |rho| < 1), got {}",
+            self.p_t
+        );
+        assert!(
+            self.c_t > 0.0,
+            "SVI-JW: c_t must be > 0 (ensures |rho| < 1), got {}",
+            self.c_t
+        );
+        assert!(
+            self.psi_t >= -self.p_t - 1e-10,
+            "SVI-JW: psi_t ({}) must be >= -p_t ({}) to keep |beta| <= 1",
+            self.psi_t,
+            -self.p_t
+        );
+        assert!(
+            self.psi_t <= self.c_t + 1e-10,
+            "SVI-JW: psi_t ({}) must be <= c_t ({}) to keep |beta| <= 1",
+            self.psi_t,
+            self.c_t
+        );
+    }
+
+    /// Convert JW parameters to Raw SVI parameters.
+    ///
+    /// Uses the closed-form algebraic mapping from Gatheral & Jacquier (2014).
+    ///
+    /// # Critical β = 0 edge case
+    ///
+    /// The auxiliary variable β = ρ − ψ_t/b equals m/Δ in Raw space.
+    /// When |β| < 1e-12 the smile's minimum lies exactly at the money
+    /// (`m = 0`), and the general Δ-formula would divide by an expression
+    /// that collapses to zero.  The closed-form shortcut used instead is:
+    ///
+    /// - `m = 0`
+    /// - `σ = (v_t − ṽ_t) / (b · (1 − √(1 − ρ²)))`
+    ///
+    /// # Arguments
+    /// * `t` — time to expiry (validated > 0; not consumed in the algebraic
+    ///   conversion because all JW parameters are already in total-variance units)
+    pub fn to_raw(&self, t: Real) -> SviParameters {
+        assert!(t > 0.0, "to_raw: t must be > 0");
+
+        let b = 0.5 * (self.p_t + self.c_t);
+        let rho = 1.0 - self.p_t / b;
+        // β = ρ − ψ_t/b = m/Δ in Raw space.
+        let beta = rho - self.psi_t / b;
+
+        let (m, sigma) = if beta.abs() < 1e-12 {
+            // ── β = 0 edge case: minimum is at the money (m = 0) ──────────
+            // σ = (v_t − ṽ_t) / (b · (1 − √(1−ρ²)))
+            let one_minus_sqrt_one_minus_rho_sq = 1.0 - (1.0 - rho * rho).sqrt();
+            let sigma = (self.v_t - self.v_tilde_t) / (b * one_minus_sqrt_one_minus_rho_sq);
+            (0.0_f64, sigma)
+        } else {
+            // ── General case: β ≠ 0 ───────────────────────────────────────
+            // Δ = (v_t − ṽ_t) / (b · (1 − ρβ − √((1−β²)(1−ρ²))))
+            let denom =
+                1.0 - rho * beta - ((1.0 - beta * beta) * (1.0 - rho * rho)).sqrt();
+            let big_delta = (self.v_t - self.v_tilde_t) / (b * denom);
+            let m = beta * big_delta;
+            let sigma = big_delta * (1.0 - beta * beta).sqrt();
+            (m, sigma)
+        };
+
+        let a = self.v_tilde_t - b * sigma * (1.0 - rho * rho).sqrt();
+        SviParameters { a, b, sigma, rho, m }
+    }
+}
+
+/// An SVI Jump-Wing smile section.
+///
+/// Stores JW parameters and delegates to [`SviSmileSection`] internally after
+/// converting to Raw at construction time.
+#[derive(Debug, Clone)]
+pub struct SviJwSmileSection {
+    jw_params: SviJwParameters,
+    inner: SviSmileSection,
+}
+
+impl SviJwSmileSection {
+    /// Create a new SVI Jump-Wing smile section.
+    ///
+    /// Validates the JW parameters, converts them to Raw, and constructs an
+    /// inner [`SviSmileSection`] for all volatility computations.
+    pub fn new(exercise_time: Time, forward: Real, params: SviJwParameters) -> Self {
+        assert!(exercise_time > 0.0, "exercise time must be > 0");
+        params.validate();
+        let raw = params.to_raw(exercise_time);
+        let inner = SviSmileSection::new(exercise_time, forward, raw);
+        Self { jw_params: params, inner }
+    }
+
+    /// The Jump-Wing parameters.
+    pub fn jw_params(&self) -> &SviJwParameters {
+        &self.jw_params
+    }
+
+    /// The equivalent Raw SVI parameters.
+    pub fn raw_params(&self) -> &SviParameters {
+        self.inner.params()
+    }
+
+    /// The forward price.
+    pub fn forward(&self) -> Real {
+        self.inner.forward()
+    }
+}
+
+impl SmileSection for SviJwSmileSection {
+    fn min_strike(&self) -> Real {
+        self.inner.min_strike()
+    }
+
+    fn max_strike(&self) -> Real {
+        self.inner.max_strike()
+    }
+
+    fn atm_level(&self) -> Real {
+        self.inner.atm_level()
+    }
+
+    fn volatility_impl(&self, strike: Real) -> Volatility {
+        self.inner.volatility_impl(strike)
+    }
+
+    fn exercise_time(&self) -> Time {
+        self.inner.exercise_time()
+    }
+}
+
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 #[cfg(test)]
@@ -784,5 +993,166 @@ mod tests {
                 model_vol
             );
         }
+    }
+
+    // ── SVI Jump-Wing Tests ───────────────────────────────────────────────────
+
+    /// Roundtrip: Raw → JW → Raw.  Parameters must be recovered exactly.
+    #[test]
+    fn svi_jw_roundtrip_raw_to_jw_to_raw() {
+        let t = 1.0;
+        let raw = SviParameters {
+            a: -0.0666,
+            b: 0.229,
+            sigma: 0.337,
+            rho: 0.439,
+            m: 0.193,
+        };
+        let jw = raw.to_jw(t);
+        let raw2 = jw.to_raw(t);
+
+        assert_abs_diff_eq!(raw2.a, raw.a, epsilon = 1e-10);
+        assert_abs_diff_eq!(raw2.b, raw.b, epsilon = 1e-10);
+        assert_abs_diff_eq!(raw2.sigma, raw.sigma, epsilon = 1e-10);
+        assert_abs_diff_eq!(raw2.rho, raw.rho, epsilon = 1e-10);
+        assert_abs_diff_eq!(raw2.m, raw.m, epsilon = 1e-10);
+    }
+
+    /// Roundtrip: JW → Raw → JW.  JW parameters must be recovered exactly.
+    #[test]
+    fn svi_jw_roundtrip_jw_to_raw_to_jw() {
+        let t = 0.5;
+        let raw = SviParameters {
+            a: 0.04,
+            b: 0.2,
+            sigma: 0.1,
+            rho: -0.3,
+            m: 0.05,
+        };
+        let jw = raw.to_jw(t);
+        let raw2 = jw.to_raw(t);
+        let jw2 = raw2.to_jw(t);
+
+        assert_abs_diff_eq!(jw2.v_t, jw.v_t, epsilon = 1e-10);
+        assert_abs_diff_eq!(jw2.psi_t, jw.psi_t, epsilon = 1e-10);
+        assert_abs_diff_eq!(jw2.p_t, jw.p_t, epsilon = 1e-10);
+        assert_abs_diff_eq!(jw2.c_t, jw.c_t, epsilon = 1e-10);
+        assert_abs_diff_eq!(jw2.v_tilde_t, jw.v_tilde_t, epsilon = 1e-10);
+    }
+
+    /// β = 0 edge case: ψ_t = ρ·b forces m = 0 in Raw.
+    ///
+    /// With p_t = 0.1, c_t = 0.3: b = 0.2, ρ = 0.5.
+    /// β = ρ − ψ_t/b = 0  ⟺  ψ_t = ρ·b = 0.1.
+    #[test]
+    fn svi_jw_beta_zero_no_panic_and_correct_raw() {
+        let jw = SviJwParameters {
+            v_t: 0.04,
+            psi_t: 0.1, // = ρ·b = 0.5 · 0.2, so β = 0
+            p_t: 0.1,
+            c_t: 0.3,
+            v_tilde_t: 0.02,
+        };
+        let t = 1.0;
+        let raw = jw.to_raw(t); // must not panic
+
+        // β = 0 ⟹ m = 0
+        assert_abs_diff_eq!(raw.m, 0.0, epsilon = 1e-12);
+        assert_abs_diff_eq!(raw.b, 0.2, epsilon = 1e-10);
+        assert_abs_diff_eq!(raw.rho, 0.5, epsilon = 1e-10);
+
+        // σ = (v_t − ṽ_t) / (b · (1 − √(1−ρ²)))
+        let expected_sigma =
+            0.02 / (0.2 * (1.0 - (1.0_f64 - 0.25_f64).sqrt()));
+        assert_abs_diff_eq!(raw.sigma, expected_sigma, epsilon = 1e-10);
+
+        // Full roundtrip back to JW
+        let jw2 = raw.to_jw(t);
+        assert_abs_diff_eq!(jw2.v_t, jw.v_t, epsilon = 1e-10);
+        assert_abs_diff_eq!(jw2.psi_t, jw.psi_t, epsilon = 1e-10);
+        assert_abs_diff_eq!(jw2.p_t, jw.p_t, epsilon = 1e-10);
+        assert_abs_diff_eq!(jw2.c_t, jw.c_t, epsilon = 1e-10);
+        assert_abs_diff_eq!(jw2.v_tilde_t, jw.v_tilde_t, epsilon = 1e-10);
+    }
+
+    /// SviJwSmileSection must produce the same implied vols as an
+    /// SviSmileSection built from the equivalent Raw params.
+    #[test]
+    fn svi_jw_smile_section_matches_raw() {
+        let t = 11.0 / 365.0;
+        let forward = 100.0;
+        let raw_params = SviParameters {
+            a: 0.04,
+            b: 0.2,
+            sigma: 0.1,
+            rho: -0.3,
+            m: 0.05,
+        };
+        let jw_params = raw_params.to_jw(t);
+
+        let raw_section = SviSmileSection::new(t, forward, raw_params);
+        let jw_section = SviJwSmileSection::new(t, forward, jw_params);
+
+        for &strike in &[80.0, 90.0, 95.0, 100.0, 105.0, 110.0, 120.0] {
+            let vol_raw = raw_section.volatility(strike);
+            let vol_jw = jw_section.volatility(strike);
+            assert_abs_diff_eq!(vol_jw, vol_raw, epsilon = 1e-12);
+        }
+    }
+
+    /// Invalid JW params (v_t ≤ 0) must be rejected.
+    #[test]
+    #[should_panic(expected = "v_t must be > 0")]
+    fn svi_jw_validate_rejects_non_positive_v_t() {
+        SviJwParameters {
+            v_t: -0.01,
+            psi_t: 0.0,
+            p_t: 0.1,
+            c_t: 0.2,
+            v_tilde_t: 0.0,
+        }
+        .validate();
+    }
+
+    /// Invalid JW params (v_tilde_t > v_t) must be rejected.
+    #[test]
+    #[should_panic(expected = "v_tilde_t")]
+    fn svi_jw_validate_rejects_v_tilde_exceeds_v_t() {
+        SviJwParameters {
+            v_t: 0.04,
+            psi_t: 0.0,
+            p_t: 0.1,
+            c_t: 0.2,
+            v_tilde_t: 0.05, // exceeds v_t
+        }
+        .validate();
+    }
+
+    /// Invalid JW params (p_t ≤ 0) must be rejected.
+    #[test]
+    #[should_panic(expected = "p_t must be > 0")]
+    fn svi_jw_validate_rejects_non_positive_p_t() {
+        SviJwParameters {
+            v_t: 0.04,
+            psi_t: 0.0,
+            p_t: 0.0,
+            c_t: 0.2,
+            v_tilde_t: 0.02,
+        }
+        .validate();
+    }
+
+    /// Invalid JW params (ψ_t > c_t, i.e. β < −1) must be rejected.
+    #[test]
+    #[should_panic(expected = "psi_t")]
+    fn svi_jw_validate_rejects_psi_t_out_of_range() {
+        SviJwParameters {
+            v_t: 0.04,
+            psi_t: 0.5, // exceeds c_t = 0.2
+            p_t: 0.1,
+            c_t: 0.2,
+            v_tilde_t: 0.02,
+        }
+        .validate();
     }
 }

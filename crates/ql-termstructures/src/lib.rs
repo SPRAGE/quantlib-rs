@@ -90,7 +90,7 @@ pub use smile_calibration::{
 };
 pub use smile_section::{
     calibrate_svi, FlatSmileSection, SabrSmileSection, SmileOptionType, SmileSection,
-    SviParameters, SviSmileSection, VolatilityType,
+    SviJwParameters, SviJwSmileSection, SviParameters, SviSmileSection, VolatilityType,
 };
 pub use term_structure::TermStructure;
 pub use volatility_term_structure::VolatilityTermStructure;
