@@ -33,12 +33,15 @@
 
     # flake-utils removes the per-system boilerplate.
     flake-utils.url = "github:numtide/flake-utils";
+
+    # ruflo — AI orchestration platform for Claude Code.
+    ruflo-nix.url = "git+ssh://git@github.com/SPRAGE/ruflo-nix";
   };
 
   # ---------------------------------------------------------------------------
   # Outputs
   # ---------------------------------------------------------------------------
-  outputs = { self, nixpkgs, rust-overlay, flake-utils }:
+  outputs = { self, nixpkgs, rust-overlay, flake-utils, ruflo-nix }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         # Inject the rust-overlay so `pkgs.rust-bin` is available.
@@ -160,6 +163,9 @@
           jq                    # parse/transform JSON (test output, benchmarks)
           git                   # obviously
           gnumake               # some QuantLib examples use plain Makefiles
+
+          # ruflo / claude-flow — AI orchestration platform for Claude Code
+          ruflo-nix.packages.${system}.default
         ];
 
         # ── Helper: build a dev shell with a given Rust toolchain ────────────
@@ -211,6 +217,8 @@
               echo "  Clang     : $(clang --version | head -1)"
               echo "  Boost     : ${pkgs.boost.version}"
               echo "  bindgen   : $(bindgen --version)"
+              echo ""
+              echo "  claude-flow : $(claude-flow --version 2>/dev/null || echo 'ready')"
               echo ""
               echo "  Useful commands:"
               echo "    bindgen <header.h> --output <out.rs>   generate FFI scaffold"
